@@ -433,7 +433,7 @@
 	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.02a du 13/01/2024 : Migration du code principal vers Github</li>
+ 		<li>version 1.02a du 13/01/2024 : Migration du code principal vers Github et adaptation</li>
 		<li>version 1.01a du 11/01/2024 : Ajout des liens hypertextes</li>
 		<li>version 1.0a du 01/01/2024 : Mise en ligne</li>
 	</ul>
