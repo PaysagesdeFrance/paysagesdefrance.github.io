@@ -2,7 +2,7 @@
 <html lang="fr">
 
 <head>
-	<link rel="stylesheet" type="text/css" href="chemin/vers/style.css">
+	<link rel="stylesheet" type="text/css" href="https://raw.githubusercontent.com/PaysagesdeFrance/paysagesdefrance.github.io/main/style.css">
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Recherche d'une commune</title>
