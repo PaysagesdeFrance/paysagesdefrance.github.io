@@ -438,6 +438,16 @@
 		<li>version 1.01a du 11/01/2024 : Ajout des liens hypertextes</li>
 		<li>version 1.0a du 01/01/2024 : Mise en ligne</li>
 	</ul>
-	<hr> </body>
+	<hr>
+ <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var githubLink = document.querySelector('h1 a[href="https://paysagesdefrance.github.io/"]');
+  if (githubLink) {
+    githubLink.parentElement.style.display = 'none';
+  }
+});
+</script>
+
+ </body>
 
 </html>
