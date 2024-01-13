@@ -438,6 +438,15 @@
 		<li>version 1.01a du 11/01/2024 : Ajout des liens hypertextes</li>
 		<li>version 1.0a du 01/01/2024 : Mise en ligne</li>
 	</ul>
-	<hr> </body>
+	<hr>
+ <script>
+    window.onload = function () {
+        var containerDiv = document.querySelector('.container-lg');
+        if (containerDiv) {
+            containerDiv.parentNode.removeChild(containerDiv);
+        }
+    };
+</script>
+ </body>
 
 </html>
