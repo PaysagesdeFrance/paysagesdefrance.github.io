@@ -439,13 +439,13 @@
 		<li>version 1.0a du 01/01/2024 : Mise en ligne</li>
 	</ul>
 	<hr>
- <script>
-    window.onload = function () {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
         var containerDiv = document.querySelector('.container-lg');
         if (containerDiv) {
             containerDiv.parentNode.removeChild(containerDiv);
         }
-    };
+    });
 </script>
  </body>
 
