@@ -446,6 +446,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      var unwantedStyle = document.querySelector('link[href^="/assets/css/style.css"]');
+      if (unwantedStyle) {
+          unwantedStyle.parentNode.removeChild(unwantedStyle);
+      }
+  });
+</script>
 
  </body>
 
