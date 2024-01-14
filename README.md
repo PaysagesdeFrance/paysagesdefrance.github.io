@@ -433,6 +433,7 @@
 	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.03a du 14/01/2024 : Suppression du style imposé par Github Pages</li>
  		<li>version 1.02a du 13/01/2024 : Migration du code principal vers Github et adaptation</li>
 		<li>version 1.01a du 11/01/2024 : Ajout des liens hypertextes</li>
 		<li>version 1.0a du 01/01/2024 : Mise en ligne</li>
@@ -441,19 +442,15 @@
  <script>
 document.addEventListener('DOMContentLoaded', function() {
   var githubLink = document.querySelector('h1 a[href="https://paysagesdefrance.github.io/"]');
+  var unwantedStyle = document.querySelector('link[href^="/assets/css/style.css"]');
   if (githubLink) {
     githubLink.parentElement.style.display = 'none';
   }
-});
+  if (unwantedStyle) {
+    unwantedStyle.parentNode.removeChild(unwantedStyle);
+  }});
 </script>
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-      var unwantedStyle = document.querySelector('link[href^="/assets/css/style.css"]');
-      if (unwantedStyle) {
-          unwantedStyle.parentNode.removeChild(unwantedStyle);
-      }
-  });
-</script>
+
 
  </body>
 
