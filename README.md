@@ -7,7 +7,7 @@
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
 	<meta name="referrer-policy" content="no-referrer">
-	<meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
+	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
 	<title>Recherche d'une commune</title>
 	<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha256-uOhwxdKyl3LxDJ+pppPIuJaqyFQO1nAePMYwTGg/69s=" crossorigin="anonymous"></script>
@@ -438,7 +438,7 @@
 	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.04k du 17/03/2024 : Implantation Content Security Policy header, Subresource integrity, X-Content-Type-Options header, X-Frame-Options header, referrer-policy header</li>
+ 		<li>version 1.04m du 17/03/2024 : Implantation Content Security Policy header, Subresource integrity, X-Content-Type-Options header, X-Frame-Options header, referrer-policy header</li>
 		<li>version 1.03a du 14/01/2024 : Suppression du style imposé par Github Pages</li>
  		<li>version 1.02a du 13/01/2024 : Migration du code principal vers Github et adaptation</li>
 		<li>version 1.01a du 11/01/2024 : Ajout des liens hypertextes</li>
