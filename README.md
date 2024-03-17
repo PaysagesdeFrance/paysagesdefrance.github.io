@@ -434,6 +434,7 @@
 	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+ 		<li>version 1.04a du 17/03/2024 : Implantation Content Security Policy header </li>
 		<li>version 1.03a du 14/01/2024 : Suppression du style imposé par Github Pages</li>
  		<li>version 1.02a du 13/01/2024 : Migration du code principal vers Github et adaptation</li>
 		<li>version 1.01a du 11/01/2024 : Ajout des liens hypertextes</li>
