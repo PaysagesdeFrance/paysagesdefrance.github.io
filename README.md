@@ -81,7 +81,7 @@
 
 <body>
 	<h1>Recherche d'une commune</h1>
-	<form id="searchForm" action="self">
+	<form id="searchForm" action="none">
 		<div class="combobox">
 		<input type="text" id="communeInput" name="commune" autocomplete="off">
 		<ul id="commune-list" class="dropdown-menu"></ul>
@@ -440,7 +440,7 @@
 	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.04r du 17/03/2024 : Implantation Content Security Policy header, Subresource integrity, X-Content-Type-Options header, X-Frame-Options header, referrer-policy header</li>
+ 		<li>version 1.04s du 17/03/2024 : Implantation Content Security Policy header, Subresource integrity, X-Content-Type-Options header, X-Frame-Options header, referrer-policy header</li>
 		<li>version 1.03a du 14/01/2024 : Suppression du style imposé par Github Pages</li>
  		<li>version 1.02a du 13/01/2024 : Migration du code principal vers Github et adaptation</li>
 		<li>version 1.01a du 11/01/2024 : Ajout des liens hypertextes</li>
