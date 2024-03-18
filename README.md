@@ -425,10 +425,10 @@
 	<hr> <b>Sources :</b>
 	<ul style="list-style-type:square">
 		<li>(1) API gouvernementale : <a href="https://geo.api.gouv.fr/decoupage-administratif/communes" target="_blank">https://geo.api.gouv.fr/decoupage-administratif/communes</a></li>
-		<li>(2) informations mises à jour manuellement – valable au 1er janvier 2023 – source : <a href="https://www.insee.fr/fr/information/4802589" target="_blank">https://www.insee.fr/fr/information/4802589</a></li>
+		<li>(2) informations mises à jour manuellement – valable au 1er janvier 2024 – source : <a href="https://www.insee.fr/fr/information/4802589" target="_blank">https://www.insee.fr/fr/information/4802589</a></li>
 		<li>(3) OpenData gouvernemental : Ministère de l'Intérieur et des Outre-Mer – <a href="https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/" target="_blank">https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/</a></li>
 		<li>(4) API gouvernementale : <a href="https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration" target="_blank">https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration</a></li>
-		<li>(5) informations mises à jour manuellement – valable au 10 octobre 2023 – source : <a href="https://www.banatic.interieur.gouv.fr/" target="_blank">https://www.banatic.interieur.gouv.fr/</a></li>
+		<li>(5) informations mises à jour manuellement – valable au 1er janvier 2024 – source : <a href="https://www.banatic.interieur.gouv.fr/" target="_blank">https://www.banatic.interieur.gouv.fr/</a></li>
 
 	</ul>
 	<hr> <b>Librairies :</b>
@@ -438,6 +438,7 @@
 	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.05a du 18/03/2024 : Mise à jour des bases de données compétence PLU et unité urbaine</li>
  		<li>version 1.04t du 17/03/2024 : Implantation Content Security Policy header, Subresource integrity, X-Content-Type-Options header, X-Frame-Options header, referrer-policy header</li>
 		<li>version 1.03a du 14/01/2024 : Suppression du style imposé par Github Pages</li>
  		<li>version 1.02a du 13/01/2024 : Migration du code principal vers Github et adaptation</li>
