@@ -6,9 +6,8 @@
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; frame-ancestors 'self'; base-uri 'none';">
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-	<meta name="referrer" content="strict-origin">
+	<meta name="referrer" content="no-referrer-when-downgrade">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
-	<meta http-equiv="Access-Control-Allow-Origin" content="*">
 	<title>Recherche d'une commune</title>
 	<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha256-uOhwxdKyl3LxDJ+pppPIuJaqyFQO1nAePMYwTGg/69s=" crossorigin="anonymous"></script>
@@ -439,7 +438,7 @@
 	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.06f du 22/03/2024 : Mise à jour du CSP</li>
+ 		<li>version 1.06g du 22/03/2024 : Mise à jour du CSP</li>
 		<li>version 1.05a du 18/03/2024 : Mise à jour des bases de données compétence PLU et unité urbaine</li>
  		<li>version 1.04t du 17/03/2024 : Implantation Content Security Policy header, Subresource integrity, X-Content-Type-Options header, X-Frame-Options header, referrer-policy header</li>
 		<li>version 1.03a du 14/01/2024 : Suppression du style imposé par Github Pages</li>
