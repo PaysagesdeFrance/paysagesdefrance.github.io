@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src *; script-src 'self' https://code.jquery.com; frame-ancestors 'self'; base-uri 'self';">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src *; script-src 'self' https://code.jquery.com; frame-ancestors 'self'; base-uri 'none';">
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
 	<meta name="referrer" content="strict-origin">
@@ -438,7 +438,7 @@
 	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.06c du 22/03/2024 : Mise à jour du CSP</li>
+ 		<li>version 1.06d du 22/03/2024 : Mise à jour du CSP</li>
 		<li>version 1.05a du 18/03/2024 : Mise à jour des bases de données compétence PLU et unité urbaine</li>
  		<li>version 1.04t du 17/03/2024 : Implantation Content Security Policy header, Subresource integrity, X-Content-Type-Options header, X-Frame-Options header, referrer-policy header</li>
 		<li>version 1.03a du 14/01/2024 : Suppression du style imposé par Github Pages</li>
