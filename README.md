@@ -434,10 +434,11 @@
 	<ul style="list-style-type:square">
 		<li><a href="https://releases.jquery.com/" target="_blank">https://releases.jquery.com/</a> – version 3.7.1</li>
 		<li><a href="https://cdnjs.com/libraries/PapaParse" target="_blank">https://cdnjs.com/libraries/PapaParse</a> – version 5.4.1</li>
-	</ul>
+  		<li><a href="https://cdn.jsdelivr.net/npm/axios/dist/" target="_blank">https://cdn.jsdelivr.net/npm/axios/dist/</a> – version 1.7.2</li>
+  	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.07b du 03/06/2024 : suppression de la balise meta http-equiv="X-Frame-Options" content="SAMEORIGIN" et modification de integrity de axios</li>
+		<li>version 1.07c du 03/06/2024 : suppression de la balise meta http-equiv="X-Frame-Options" content="SAMEORIGIN", modification de integrity de Axios, ajout de Axios dans la liste des librairies</li>
  		<li>version 1.06c du 22/03/2024 : Mise à jour du CSP</li>
 		<li>version 1.05a du 18/03/2024 : Mise à jour des bases de données compétence PLU et unité urbaine</li>
  		<li>version 1.04t du 17/03/2024 : Implantation Content Security Policy header, Subresource integrity, X-Content-Type-Options header, X-Frame-Options header, referrer-policy header</li>
