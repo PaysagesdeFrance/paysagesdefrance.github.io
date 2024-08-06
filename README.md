@@ -269,7 +269,7 @@
 				console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
 			}
 		});
-	}
+	
 
 		function fetchAdresseData(code, type) {
 			const isMairie = type === 'mairie';
