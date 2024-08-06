@@ -238,50 +238,38 @@
 		});
 
 		function fetchNomEluOuPresident(typeElu, code) {
-			const csvUrlMaire = "https://www.data.gouv.fr/fr/datasets/r/2876a346-d50c-4911-934e-19ee07b0e503";
-			const csvUrlPresident = "https://www.data.gouv.fr/fr/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7";
-			const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
-			Papa.parse(csvUrl, {
-				download: true,
-				header: false,
-				complete: function(results) {
-					const data = results.data;
-
-     			if (!data || data.length === 0) {
-				showError("Le fichier CSV est vide ou n'a pas pu être lu correctement.");
-				return;
-			}
-
-			let found = false;
-   
-					for(let i = 0; i < data.length; i++) {
-
-     				const codeIndex = 4;
-				const fonctionIndex = 15;
-
-						if(parseInt(data[i][codeIndex]) === parseInt(code) && (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
-							const nomElu = data[i][typeElu === "maire" ? 6 : 8];
-							const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
-							let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
-       
-							sexeElu = (sexeElu === "M") ? "M." : (sexeElu === "F") ? "Mme" : "";
-       
-							const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
-							document.getElementById(infoText).textContent = `${sexeElu} ${nomElu} ${prenomElu}`;
-							found = true;
-       							break;
+		const csvUrlMaire = "https://www.data.gouv.fr/fr/datasets/r/2876a346-d50c-4911-934e-19ee07b0e503";
+		const csvUrlPresident = "https://www.data.gouv.fr/fr/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7";
+		const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
+		Papa.parse(csvUrl, {
+			download: true,
+			header: false,
+			complete: function(results) {
+				const data = results.data;
+				for(let i = 0; i < data.length; i++) {
+					const codeIndex = typeElu === "maire" ? 4 : 4;
+					const fonctionIndex = typeElu === "maire" ? 15 : 15;
+					if(parseInt(data[i][codeIndex]) === parseInt(code) && (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+						const nomElu = data[i][typeElu === "maire" ? 6 : 8];
+						const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
+						let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
+						if(sexeElu === "M") {
+							sexeElu = "M.";
+						} else if(sexeElu === "F") {
+							sexeElu = "Mme";
 						}
+						const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
+						document.getElementById(infoText).textContent = ${sexeElu} ${nomElu} ${prenomElu};
+						break;
 					}
-     				if (!found) {
-				showError("Aucun élu correspondant trouvé.");
-			}
-				},
-				error: function(error) {
-					showError("Une erreur s'est produite lors de la récupération du fichier CSV. Veuillez réessayer.");
-					console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
 				}
-			});
-		}
+			},
+			error: function(error) {
+				showError("Une erreur s'est produite lors de la récupération du fichier CSV. Veuillez réessayer.");
+				console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
+			}
+		});
+	}
 
 		function fetchAdresseData(code, type) {
 			const isMairie = type === 'mairie';
