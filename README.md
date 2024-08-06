@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; frame-ancestors 'self'; base-uri 'none';">
+	
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
@@ -438,7 +438,7 @@
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.08a du 06/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.3)</li>
+		<li>version 1.08b du 06/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.3)</li>
 		<li>version 1.07c du 03/06/2024 : suppression de la balise meta http-equiv="X-Frame-Options" content="SAMEORIGIN", modification de integrity de Axios, ajout de Axios dans la liste des librairies</li>
  		<li>version 1.06c du 22/03/2024 : Mise à jour du CSP</li>
 		<li>version 1.05a du 18/03/2024 : Mise à jour des bases de données compétence PLU et unité urbaine</li>
