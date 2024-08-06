@@ -10,7 +10,7 @@
 	<title>Recherche d'une commune</title>
 	<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha256-uOhwxdKyl3LxDJ+pppPIuJaqyFQO1nAePMYwTGg/69s=" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" integrity="sha256-itEcTLB5u6kxVnJycPUQKS7tzAcWxvIXJQdKWeyLm5Y=" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" integrity="sha384-sCbZKfxPz32t8wuNnYrMDk87iEclCUa1fJsnI3cs9DlcNAZnTySu90hbp3cNyZWH" crossorigin="anonymous"></script>
 	<style>
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
@@ -434,10 +434,11 @@
 	<ul style="list-style-type:square">
 		<li><a href="https://releases.jquery.com/" target="_blank">https://releases.jquery.com/</a> – version 3.7.1</li>
 		<li><a href="https://cdnjs.com/libraries/PapaParse" target="_blank">https://cdnjs.com/libraries/PapaParse</a> – version 5.4.1</li>
-  		<li><a href="https://cdn.jsdelivr.net/npm/axios/dist/" target="_blank">https://cdn.jsdelivr.net/npm/axios/dist/</a> – version 1.7.2</li>
+  		<li><a href="https://cdn.jsdelivr.net/npm/axios/dist/" target="_blank">https://cdn.jsdelivr.net/npm/axios/dist/</a> – version 1.7.3</li>
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.08a du 06/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.3)</li>
 		<li>version 1.07c du 03/06/2024 : suppression de la balise meta http-equiv="X-Frame-Options" content="SAMEORIGIN", modification de integrity de Axios, ajout de Axios dans la liste des librairies</li>
  		<li>version 1.06c du 22/03/2024 : Mise à jour du CSP</li>
 		<li>version 1.05a du 18/03/2024 : Mise à jour des bases de données compétence PLU et unité urbaine</li>
