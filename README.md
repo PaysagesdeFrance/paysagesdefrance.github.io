@@ -438,7 +438,7 @@
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.08d du 06/08/2024 : résolution d'un bug</li>
+ 		<li>version 1.08e du 06/08/2024 : résolution d'un bug</li>
 		<li>version 1.08a du 06/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.3)</li>
 		<li>version 1.07c du 03/06/2024 : suppression de la balise meta http-equiv="X-Frame-Options" content="SAMEORIGIN", modification de integrity de Axios, ajout de Axios dans la liste des librairies</li>
  		<li>version 1.06c du 22/03/2024 : Mise à jour du CSP</li>
