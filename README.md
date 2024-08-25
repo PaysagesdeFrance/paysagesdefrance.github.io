@@ -434,11 +434,11 @@
 	<ul style="list-style-type:square">
 		<li><a href="https://releases.jquery.com/" target="_blank">https://releases.jquery.com/</a> – version 3.7.1</li>
 		<li><a href="https://cdnjs.com/libraries/PapaParse" target="_blank">https://cdnjs.com/libraries/PapaParse</a> – version 5.4.1</li>
-  		<li><a href="https://cdn.jsdelivr.net/npm/axios/dist/" target="_blank">https://cdn.jsdelivr.net/npm/axios/dist/</a> – version 1.7.3</li>
+  		<li><a href="https://cdn.jsdelivr.net/npm/axios/dist/" target="_blank">https://cdn.jsdelivr.net/npm/axios/dist/</a> – version 1.7.5</li>
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.09a du 25/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.5)</li>
+		<li>version 1.09b du 25/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.5)</li>
   		<li>version 1.08c du 06/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.3), remplacement de csvUrlMaire et de csvUrlPresident, mise à jour de la source (5)</li>
 		<li>version 1.07c du 03/06/2024 : suppression de la balise meta http-equiv="X-Frame-Options" content="SAMEORIGIN", modification de integrity de Axios, ajout de Axios dans la liste des librairies</li>
  		<li>version 1.06c du 22/03/2024 : Mise à jour du CSP</li>
