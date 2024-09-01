@@ -10,7 +10,7 @@
 	<title>Recherche d'une commune</title>
 	<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha256-uOhwxdKyl3LxDJ+pppPIuJaqyFQO1nAePMYwTGg/69s=" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" integrity="sha512-01Pe9P3mJM/4c80VuoYEGHlspKGbd9uWQe9HtdLsdTqV0CS1kz8ca44sinVEXEvlZNciMmsAjeEbm5ZxHC7yYg==" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" integrity="sha512-DdX/YwF5e41Ok+AI81HI8f5/5UsoxCVT9GKYZRIzpLxb8Twz4ZwPPX+jQMwMhNQ9b5+zDEefc+dcvQoPWGNZ3g==" crossorigin="anonymous"></script>
 	<style>
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
@@ -434,10 +434,11 @@
 	<ul style="list-style-type:square">
 		<li><a href="https://releases.jquery.com/" target="_blank">https://releases.jquery.com/</a> – version 3.7.1</li>
 		<li><a href="https://cdnjs.com/libraries/PapaParse" target="_blank">https://cdnjs.com/libraries/PapaParse</a> – version 5.4.1</li>
-  		<li><a href="https://cdn.jsdelivr.net/npm/axios/dist/" target="_blank">https://cdn.jsdelivr.net/npm/axios/dist/</a> – version 1.7.5</li>
+  		<li><a href="https://cdn.jsdelivr.net/npm/axios/dist/" target="_blank">https://cdn.jsdelivr.net/npm/axios/dist/</a> – version 1.7.7</li>
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+ 		<li>version 1.10a du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7)</li>
 		<li>version 1.09b du 25/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.5)</li>
   		<li>version 1.08c du 06/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.3), remplacement de csvUrlMaire et de csvUrlPresident, mise à jour de la source (5)</li>
 		<li>version 1.07c du 03/06/2024 : suppression de la balise meta http-equiv="X-Frame-Options" content="SAMEORIGIN", modification de integrity de Axios, ajout de Axios dans la liste des librairies</li>
