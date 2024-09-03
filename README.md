@@ -10,7 +10,7 @@
 	<title>Recherche d'une commune</title>
 	<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha384-5AkRS45j4ukf+JbWAfHL8P4onPA9p0KwwP7pUdjSQA3ss9edbJUJc/XcYAiheSSz" crossorigin="anonymous"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha256-uOhwxdKyl3LxDJ+pppPIuJaqyFQO1nAePMYwTGg/69s=" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" integrity="sha256-9bKyYHG7WfRmaDNW3xG1OSYUz2lmWGkXmQxl1Irw3Lk=" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" crossorigin="anonymous"></script>
 	<style>
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
@@ -438,7 +438,7 @@
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.11e du 03/09/2024 : Résolution de bugs</li>
+ 		<li>version 1.11f du 03/09/2024 : Résolution de bugs</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
 		<li>version 1.09b du 25/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.5)</li>
   		<li>version 1.08c du 06/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.3), remplacement de csvUrlMaire et de csvUrlPresident, mise à jour de la source (5)</li>
