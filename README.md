@@ -171,25 +171,16 @@
 		function hideCommuneList() {
 			communeList.empty().hide();
 		}
-
-function debounce(func, delay) {
-    let debounceTimer;
-    return function() {
-        const context = this;
-        const args = arguments;
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-		communeInput.on("input", debounce(function() {
-    var communeName = $(this).val();
-    if (communeName.length >= 1) {
-        fetchCommunes(communeName);
-    } else {
-        hideCommuneList();
-    }
-}, 300));
+		communeInput.on("input", function() {
+			var communeName = $(this).val();
+			clearTimeout(lastSearchTimeout);
+			lastSearchTimeout = setTimeout(function() {
+				if(communeName.length >= 1) {
+					fetchCommunes(communeName);
+				} else {
+					hideCommuneList();
+				}
+			}, 100);
 		});
 
 		function fetchCommunes(communeName) {
@@ -447,7 +438,6 @@ function debounce(func, delay) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.12a du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
 		<li>version 1.09b du 25/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.5)</li>
