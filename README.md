@@ -311,56 +311,53 @@ function fetchNomEluOuPresident(typeElu, code) {
     });
 }
 
-		function fetchAdresseData(code, type) {
-			const isMairie = type === 'mairie';
-			const endpoint = isMairie ? `code_insee_commune%3A%22${code}%22` : `siren%3A%22${code}%22`;
-			const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
-			fetch(apiUrl).then(response => response.json()).then(data => {
-				const mairieRecord = data.results.find(record => {
-					const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-					return(
-						(isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || (!isMairie && pivotData.some(item => item.type_service_local === "epci")));
-				});
-				if(mairieRecord) {
-					const adresseData = JSON.parse(mairieRecord.adresse);
-					const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
-					const infoText = type === "mairie" ? "adressemairie" : "adresseEpci";
-					document.getElementById(infoText).textContent = `${adresseMairie}`;
-					if(mairieRecord.adresse_courriel) {
-						const infoText = type === "mairie" ? "courrielmairie" : "courrielEpci";
-						document.getElementById(infoText).textContent = `${mairieRecord.adresse_courriel}`;
-					}
-					const siteInternetJSON = mairieRecord.site_internet;
-					if(siteInternetJSON) {
-						const siteInternetData = JSON.parse(siteInternetJSON);
-						const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-						const infoText = type === "mairie" ? "sitemairie" : "siteEpci";
+function fetchAdresseData(code, type) {
+    const isMairie = type === 'mairie';
+    const endpoint = isMairie ? `code_insee_commune%3A%22${code}%22` : `siren%3A%22${code}%22`;
+    const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
+    fetch(apiUrl).then(response => response.json()).then(data => {
+        const mairieRecord = data.results.find(record => {
+            const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
+            return(
+                (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || (!isMairie && pivotData.some(item => item.type_service_local === "epci")));
+        });
+        if(mairieRecord) {
+            const adresseData = JSON.parse(mairieRecord.adresse);
+            const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
+            
+            // Validation et échappement avant d'insérer dans le DOM
+            if (validateText(adresseMairie)) {
+                const infoText = type === "mairie" ? "adressemairie" : "adresseEpci";
+                document.getElementById(infoText).textContent = escapeHTML(adresseMairie);
+            } else {
+                console.warn("Adresse non valide :", adresseMairie);
+            }
+            
+            if (mairieRecord.adresse_courriel) {
+                const infoText = type === "mairie" ? "courrielmairie" : "courrielEpci";
+                document.getElementById(infoText).textContent = escapeHTML(mairieRecord.adresse_courriel);
+            }
 
-      const lienElement = document.createElement('a');
-lienElement.href = siteInternet;
-lienElement.textContent = siteInternet;
-lienElement.target = '_blank'; // Ouvre le lien dans un nouvel onglet
+            const siteInternetJSON = mairieRecord.site_internet;
+            if (siteInternetJSON) {
+                const siteInternetData = JSON.parse(siteInternetJSON);
+                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+                const infoText = type === "mairie" ? "sitemairie" : "siteEpci";
+                document.getElementById(infoText).innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
+            }
+        } else {
+            if (isMairie) {
+                fetchAdresseCommune(sirenCommune);
+            } else {
+                infosElement.innerHTML += `Aucune information sur l'EPCI trouvée.`;
+            }
+        }
+    }).catch(error => {
+        console.error("Erreur lors de la récupération des données :", error);
+        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+    });
+}
 
-// Effacer le contenu précédent de l'élément
-document.getElementById(infoText).textContent = '';
-
-// Ajouter le lien <a> à l'élément cible
-document.getElementById(infoText).appendChild(lienElement);
-
-					
-					}
-				} else {
-					if(isMairie) {
-						fetchAdresseCommune(sirenCommune);
-					} else {
-						infosElement.textContent += `Aucune information sur l'EPCI trouvée.`;
-					}
-				}
-			}).catch(error => {
-				console.error("Erreur lors de la récupération des données :", error);
-				showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-			});
-		}
 
 		function fetchAdresseCommune(sirenCommune) {
 			const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?where=startswith(siret,"${sirenCommune}")`;
@@ -490,7 +487,7 @@ document.getElementById(infoText).appendChild(lienElement);
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.13d du 18/10/2024 : Amélioration de la sécurité</li>
+		<li>version 1.13e du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
