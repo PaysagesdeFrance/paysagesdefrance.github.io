@@ -218,7 +218,12 @@ function debounce(func, delay) {
 						document.getElementById('competencePLU').textContent = '';
 						const resultatCommune = document.getElementById('resultatCommune');
 						$("table").css("display", "none");
-						resultatCommune.textContent = `<h2>– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}</h2>`;
+						
+      						const h2Element = document.createElement('h2');
+	    					h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
+	  					resultatCommune.textContent = ''; // Effacer le contenu précédent
+						resultatCommune.appendChild(h2Element);
+	    					
 						if(resultatCommune.textContent.trim() !== "") {
 							rechercherBtn.focus();
 						}
@@ -448,7 +453,7 @@ function debounce(func, delay) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.13a du 18/10/2024 : Amélioration de la sécurité</li>
+		<li>version 1.13b du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
