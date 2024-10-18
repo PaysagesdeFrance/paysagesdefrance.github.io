@@ -359,34 +359,43 @@ function fetchAdresseData(code, type) {
 }
 
 
-		function fetchAdresseCommune(sirenCommune) {
-			const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?where=startswith(siret,"${sirenCommune}")`;
-			fetch(apiUrl).then(response => response.json()).then(data => {
-				const mairieRecord = data.results.find(record => {
-					const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-					return(pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - "));
-				});
-				if(mairieRecord) {
-					const adresseData = JSON.parse(mairieRecord.adresse);
-					const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
-					document.getElementById('adressemairie').textContent = `${adresseMairie}`;
-					if(mairieRecord.adresse_courriel) {
-						document.getElementById('courrielmairie').textContent = `${mairieRecord.adresse_courriel}`;
-					}
-					const siteInternetJSON = mairieRecord.site_internet;
-					if(siteInternetJSON) {
-						const siteInternetData = JSON.parse(siteInternetJSON);
-						const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-						document.getElementById('sitemairie').textContent = `${siteInternet}`;
-					}
-				} else {
-					infosElement.texContent += "Aucune information sur la Mairie trouvée.";
-				}
-			}).catch(error => {
-				console.error("Erreur lors de la récupération des données :", error);
-				showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-			});
-		}
+function fetchAdresseCommune(sirenCommune) {
+    const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?where=startswith(siret,"${sirenCommune}")`;
+    fetch(apiUrl).then(response => response.json()).then(data => {
+        const mairieRecord = data.results.find(record => {
+            const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
+            return(pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - "));
+        });
+        if(mairieRecord) {
+            const adresseData = JSON.parse(mairieRecord.adresse);
+            const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
+            
+            // Validation et échappement avant d'insérer dans le DOM
+            if (validateText(adresseMairie)) {
+                document.getElementById('adressemairie').textContent = escapeHTML(adresseMairie);
+            } else {
+                console.warn("Adresse non valide :", adresseMairie);
+            }
+            
+            if (mairieRecord.adresse_courriel) {
+                document.getElementById('courrielmairie').textContent = escapeHTML(mairieRecord.adresse_courriel);
+            }
+
+            const siteInternetJSON = mairieRecord.site_internet;
+            if (siteInternetJSON) {
+                const siteInternetData = JSON.parse(siteInternetJSON);
+                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+                document.getElementById('sitemairie').textContent = escapeHTML(siteInternet);
+            }
+        } else {
+            infosElement.innerHTML += "Aucune information sur la Mairie trouvée.";
+        }
+    }).catch(error => {
+        console.error("Erreur lors de la récupération des données :", error);
+        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+    });
+}
+
 
 		function fetchData(selectedCodeCommune) {
 			const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
@@ -487,7 +496,7 @@ function fetchAdresseData(code, type) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.13e du 18/10/2024 : Amélioration de la sécurité</li>
+		<li>version 1.13f du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
