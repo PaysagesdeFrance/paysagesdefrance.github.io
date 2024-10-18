@@ -311,129 +311,125 @@ function fetchNomEluOuPresident(typeElu, code) {
     });
 }
 
-function fetchAdresseData(code, type) {
-    const isMairie = type === 'mairie';
-    const endpoint = isMairie ? `code_insee_commune%3A%22${code}%22` : `siren%3A%22${code}%22`;
-    const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
-    fetch(apiUrl).then(response => response.json()).then(data => {
-        const mairieRecord = data.results.find(record => {
-            const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-            return(
-                (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || (!isMairie && pivotData.some(item => item.type_service_local === "epci")));
-        });
-        if(mairieRecord) {
-            const adresseData = JSON.parse(mairieRecord.adresse);
-            const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
-            
-            // Validation et échappement avant d'insérer dans le DOM
-            if (validateText(adresseMairie)) {
-                const infoText = type === "mairie" ? "adressemairie" : "adresseEpci";
-                document.getElementById(infoText).textContent = escapeHTML(adresseMairie);
-            } else {
-                console.warn("Adresse non valide :", adresseMairie);
-            }
-            
-            if (mairieRecord.adresse_courriel) {
-                const infoText = type === "mairie" ? "courrielmairie" : "courrielEpci";
-                document.getElementById(infoText).textContent = escapeHTML(mairieRecord.adresse_courriel);
-            }
+		function fetchAdresseData(code, type) {
+			const isMairie = type === 'mairie';
+			const endpoint = isMairie ? `code_insee_commune%3A%22${code}%22` : `siren%3A%22${code}%22`;
+			const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
+			fetch(apiUrl).then(response => response.json()).then(data => {
+				const mairieRecord = data.results.find(record => {
+					const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
+					return(
+						(isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || (!isMairie && pivotData.some(item => item.type_service_local === "epci")));
+				});
+				if(mairieRecord) {
+					const adresseData = JSON.parse(mairieRecord.adresse);
+					const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
+					const infoText = type === "mairie" ? "adressemairie" : "adresseEpci";
+					document.getElementById(infoText).textContent = `${adresseMairie}`;
+					if(mairieRecord.adresse_courriel) {
+						const infoText = type === "mairie" ? "courrielmairie" : "courrielEpci";
+						document.getElementById(infoText).textContent = `${mairieRecord.adresse_courriel}`;
+					}
+					const siteInternetJSON = mairieRecord.site_internet;
+					if(siteInternetJSON) {
+						const siteInternetData = JSON.parse(siteInternetJSON);
+						const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+						const infoText = type === "mairie" ? "sitemairie" : "siteEpci";
 
-            const siteInternetJSON = mairieRecord.site_internet;
-            if (siteInternetJSON) {
-                const siteInternetData = JSON.parse(siteInternetJSON);
-                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-                const infoText = type === "mairie" ? "sitemairie" : "siteEpci";
-                document.getElementById(infoText).innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
-            }
-        } else {
-            if (isMairie) {
-                fetchAdresseCommune(sirenCommune);
-            } else {
-                infosElement.innerHTML += `Aucune information sur l'EPCI trouvée.`;
-            }
-        }
-    }).catch(error => {
-        console.error("Erreur lors de la récupération des données :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-    });
-}
+      const lienElement = document.createElement('a');
+lienElement.href = siteInternet;
+lienElement.textContent = siteInternet;
+lienElement.target = '_blank'; // Ouvre le lien dans un nouvel onglet
 
+// Effacer le contenu précédent de l'élément
+document.getElementById(infoText).textContent = '';
 
-function fetchAdresseCommune(sirenCommune) {
-    const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?where=startswith(siret,"${sirenCommune}")`;
-    fetch(apiUrl).then(response => response.json()).then(data => {
-        const mairieRecord = data.results.find(record => {
-            const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-            return(pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - "));
-        });
-        if(mairieRecord) {
-            const adresseData = JSON.parse(mairieRecord.adresse);
-            const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
-            
-            // Validation et échappement avant d'insérer dans le DOM
-            if (validateText(adresseMairie)) {
-                document.getElementById('adressemairie').textContent = escapeHTML(adresseMairie);
-            } else {
-                console.warn("Adresse non valide :", adresseMairie);
-            }
-            
-            if (mairieRecord.adresse_courriel) {
-                document.getElementById('courrielmairie').textContent = escapeHTML(mairieRecord.adresse_courriel);
-            }
+// Ajouter le lien <a> à l'élément cible
+document.getElementById(infoText).appendChild(lienElement);
 
-            const siteInternetJSON = mairieRecord.site_internet;
-            if (siteInternetJSON) {
-                const siteInternetData = JSON.parse(siteInternetJSON);
-                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-                document.getElementById('sitemairie').textContent = escapeHTML(siteInternet);
-            }
-        } else {
-            infosElement.innerHTML += "Aucune information sur la Mairie trouvée.";
-        }
-    }).catch(error => {
-        console.error("Erreur lors de la récupération des données :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-    });
-}
+					
+					}
+				} else {
+					if(isMairie) {
+						fetchAdresseCommune(sirenCommune);
+					} else {
+						infosElement.textContent += `Aucune information sur l'EPCI trouvée.`;
+					}
+				}
+			}).catch(error => {
+				console.error("Erreur lors de la récupération des données :", error);
+				showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+			});
+		}
 
+		function fetchAdresseCommune(sirenCommune) {
+			const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?where=startswith(siret,"${sirenCommune}")`;
+			fetch(apiUrl).then(response => response.json()).then(data => {
+				const mairieRecord = data.results.find(record => {
+					const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
+					return(pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - "));
+				});
+				if(mairieRecord) {
+					const adresseData = JSON.parse(mairieRecord.adresse);
+					const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
+					document.getElementById('adressemairie').textContent = `${adresseMairie}`;
+					if(mairieRecord.adresse_courriel) {
+						document.getElementById('courrielmairie').textContent = `${mairieRecord.adresse_courriel}`;
+					}
+					const siteInternetJSON = mairieRecord.site_internet;
+					if(siteInternetJSON) {
+						const siteInternetData = JSON.parse(siteInternetJSON);
+						const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+						document.getElementById('sitemairie').textContent = `${siteInternet}`;
+					}
+				} else {
+					infosElement.texContent += "Aucune information sur la Mairie trouvée.";
+				}
+			}).catch(error => {
+				console.error("Erreur lors de la récupération des données :", error);
+				showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+			});
+		}
 
-function fetchData(selectedCodeCommune) {
-    const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
-    axios.get(apiUrl).then(response => response.data).then(data => {
-        if (data.length > 0) {
-            const codeCommune = data[0].code;
-            const population = data[0].population;
-            const epci = data[0].epci;
-            const nomEpci = epci ? epci.nom : 'Non disponible';
-            const codeEpci = data[0].codeEpci;
-            sirenCommune = data[0].siren;
-            
-            // Validation des données avant insertion
-            if (Number.isInteger(population)) {
-                document.getElementById('populationInfo').textContent = `${escapeHTML(population.toString())} habitants`;
-            }
-
-            if (validateText(nomEpci)) {
-                document.getElementById('epciInfo').textContent = `${escapeHTML(nomEpci)} – (SIREN : ${escapeHTML(codeEpci)})`;
-            }
-            
-            fetchNomEluOuPresident("maire", codeCommune);
-            fetchAdresseData(codeCommune, "mairie");
-            if (codeEpci !== "200054781") {
-                fetchAdresseData(codeEpci, "epci");
-                fetchNomEluOuPresident("president", codeEpci);
-            } else {
-                document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
-            }
-        } else {
-            showError('Aucune commune trouvée avec ce nom.');
-        }
-    }).catch(error => {
-        console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-    });
-}
-
+		function fetchData(selectedCodeCommune) {
+			const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
+			axios.get(apiUrl).then(response => response.data).then(data => {
+				if(data.length > 0) {
+					const codeCommune = data[0].code;
+					const population = data[0].population;
+					const epci = data[0].epci;
+					const nomEpci = epci ? epci.nom : 'Non disponible';
+					const codeEpci = data[0].codeEpci;
+					sirenCommune = data[0].siren;
+					document.getElementById('populationInfo').textContent = `${population} habitants`;
+					document.getElementById('epciInfo').textContent = `${nomEpci} – (SIREN : ${codeEpci})`;
+					fetchNomEluOuPresident("maire", codeCommune);
+					fetchAdresseData(codeCommune, "mairie");
+					if(codeEpci !== "200054781") {
+						fetchAdresseData(codeEpci, "epci");
+						fetchNomEluOuPresident("president", codeEpci);
+					} else {
+						document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
+					}
+					axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu').then(response => response.data).then(text => {
+						const lines = text.split('\n');
+						const line = lines.find(line => line.match(`^${codeEpci},`));
+						if(line) {
+							const uuValues = line.split(',');
+							const numAssocie = uuValues[1].toString();
+							if(codeEpci !== "200054781") {
+								let message = "";
+								if(numAssocie === "0") {
+									message = "non";
+								} else if(numAssocie === "1") {
+									message = "oui";
+								} else {
+									message = "Valeur inconnue";
+								}
+								document.getElementById('competencePLU').textContent = message;
+							}
+						}
+					});
 					axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee').then(response => response.data).then(text => {
 						const lines = text.split('\n');
 						const line = lines.find(line => line.match(`^${codeCommune},`));
@@ -494,7 +490,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.13e du 18/10/2024 : Amélioration de la sécurité</li>
+		<li>version 1.13d du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
