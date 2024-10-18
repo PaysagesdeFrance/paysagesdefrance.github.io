@@ -318,21 +318,24 @@ function fetchAdresseData(code, type) {
     fetch(apiUrl).then(response => response.json()).then(data => {
         const mairieRecord = data.results.find(record => {
             const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-            return(
-                (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || (!isMairie && pivotData.some(item => item.type_service_local === "epci")));
+            return (
+                (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || 
+                (!isMairie && pivotData.some(item => item.type_service_local === "epci"))
+            );
         });
-        if(mairieRecord) {
+
+        if (mairieRecord && mairieRecord.adresse) {
             const adresseData = JSON.parse(mairieRecord.adresse);
-            const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
-            
-            // Validation et échappement avant d'insérer dans le DOM
-            if (validateText(adresseMairie)) {
+            const adresseMairie = `${adresseData[0].numero_voie || ''} ${adresseData[0].complement1 || ''} ${adresseData[0].complement2 || ''} ${adresseData[0].service_distribution || ''} ${adresseData[0].code_postal || ''} ${adresseData[0].nom_commune || ''}`.trim();
+
+            // Affichage de l'adresse, validation souple
+            if (adresseMairie) {
                 const infoText = type === "mairie" ? "adressemairie" : "adresseEpci";
                 document.getElementById(infoText).textContent = escapeHTML(adresseMairie);
             } else {
-                console.warn("Adresse non valide :", adresseMairie);
+                console.warn("Adresse vide ou non valide :", adresseMairie);
             }
-            
+
             if (mairieRecord.adresse_courriel) {
                 const infoText = type === "mairie" ? "courrielmairie" : "courrielEpci";
                 document.getElementById(infoText).textContent = escapeHTML(mairieRecord.adresse_courriel);
@@ -343,7 +346,9 @@ function fetchAdresseData(code, type) {
                 const siteInternetData = JSON.parse(siteInternetJSON);
                 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
                 const infoText = type === "mairie" ? "sitemairie" : "siteEpci";
-                document.getElementById(infoText).innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
+                if (siteInternet) {
+                    document.getElementById(infoText).innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
+                }
             }
         } else {
             if (isMairie) {
@@ -359,24 +364,28 @@ function fetchAdresseData(code, type) {
 }
 
 
+
 function fetchAdresseCommune(sirenCommune) {
     const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?where=startswith(siret,"${sirenCommune}")`;
     fetch(apiUrl).then(response => response.json()).then(data => {
         const mairieRecord = data.results.find(record => {
             const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-            return(pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - "));
+            return (
+                pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")
+            );
         });
-        if(mairieRecord) {
+
+        if (mairieRecord && mairieRecord.adresse) {
             const adresseData = JSON.parse(mairieRecord.adresse);
-            const adresseMairie = `${adresseData[0].numero_voie} – ${adresseData[0].complement1} – ${adresseData[0].complement2} – ${adresseData[0].service_distribution} – ${adresseData[0].code_postal} ${adresseData[0].nom_commune}`;
-            
-            // Validation et échappement avant d'insérer dans le DOM
-            if (validateText(adresseMairie)) {
+            const adresseMairie = `${adresseData[0].numero_voie || ''} ${adresseData[0].complement1 || ''} ${adresseData[0].complement2 || ''} ${adresseData[0].service_distribution || ''} ${adresseData[0].code_postal || ''} ${adresseData[0].nom_commune || ''}`.trim();
+
+            // Affichage de l'adresse, validation souple
+            if (adresseMairie) {
                 document.getElementById('adressemairie').textContent = escapeHTML(adresseMairie);
             } else {
-                console.warn("Adresse non valide :", adresseMairie);
+                console.warn("Adresse vide ou non valide :", adresseMairie);
             }
-            
+
             if (mairieRecord.adresse_courriel) {
                 document.getElementById('courrielmairie').textContent = escapeHTML(mairieRecord.adresse_courriel);
             }
@@ -385,7 +394,9 @@ function fetchAdresseCommune(sirenCommune) {
             if (siteInternetJSON) {
                 const siteInternetData = JSON.parse(siteInternetJSON);
                 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-                document.getElementById('sitemairie').textContent = escapeHTML(siteInternet);
+                if (siteInternet) {
+                    document.getElementById('sitemairie').innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
+                }
             }
         } else {
             infosElement.innerHTML += "Aucune information sur la Mairie trouvée.";
@@ -395,6 +406,7 @@ function fetchAdresseCommune(sirenCommune) {
         showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
     });
 }
+
 
 
 function fetchData(selectedCodeCommune) {
@@ -522,7 +534,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.13g du 18/10/2024 : Amélioration de la sécurité</li>
+		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
