@@ -202,7 +202,7 @@ function debounce(func, delay) {
 						selectedCodeCommune = commune.code;
 						communeInput.val(commune.nom);
 						hideCommuneList();
-						infosElement.innerHTML = '';
+						infosElement.textContent = '';
 						document.getElementById('resultatCommune').textContent = '';
 						document.getElementById('populationInfo').textContent = '';
 						document.getElementById('popUrbaineInfo').textContent = '';
@@ -218,8 +218,8 @@ function debounce(func, delay) {
 						document.getElementById('competencePLU').textContent = '';
 						const resultatCommune = document.getElementById('resultatCommune');
 						$("table").css("display", "none");
-						resultatCommune.innerHTML = `<h2>– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}</h2>`;
-						if(resultatCommune.innerHTML.trim() !== "") {
+						resultatCommune.textContent = `<h2>– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}</h2>`;
+						if(resultatCommune.textContent.trim() !== "") {
 							rechercherBtn.focus();
 						}
 					});
@@ -305,13 +305,13 @@ function debounce(func, delay) {
 						const siteInternetData = JSON.parse(siteInternetJSON);
 						const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
 						const infoText = type === "mairie" ? "sitemairie" : "siteEpci";
-						document.getElementById(infoText).innerHTML = `<a href="${siteInternet}" target="_blank">${siteInternet}</a>`;
+						document.getElementById(infoText).textContent = `<a href="${siteInternet}" target="_blank">${siteInternet}</a>`;
 					}
 				} else {
 					if(isMairie) {
 						fetchAdresseCommune(sirenCommune);
 					} else {
-						infosElement.innerHTML += `Aucune information sur l'EPCI trouvée.`;
+						infosElement.textContent += `Aucune information sur l'EPCI trouvée.`;
 					}
 				}
 			}).catch(error => {
@@ -341,7 +341,7 @@ function debounce(func, delay) {
 						document.getElementById('sitemairie').textContent = `${siteInternet}`;
 					}
 				} else {
-					infosElement.innerHTML += "Aucune information sur la Mairie trouvée.";
+					infosElement.texContent += "Aucune information sur la Mairie trouvée.";
 				}
 			}).catch(error => {
 				console.error("Erreur lors de la récupération des données :", error);
@@ -448,7 +448,8 @@ function debounce(func, delay) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
+		<li>version 1.13a du 18/10/2024 : Amélioration de la sécurité</li>
+  		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
 		<li>version 1.09b du 25/08/2024 : Modification de integrity de Axios suite à mise à jour (1.7.5)</li>
