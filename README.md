@@ -397,86 +397,112 @@ function fetchAdresseCommune(sirenCommune) {
 }
 
 
-		function fetchData(selectedCodeCommune) {
-			const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
-			axios.get(apiUrl).then(response => response.data).then(data => {
-				if(data.length > 0) {
-					const codeCommune = data[0].code;
-					const population = data[0].population;
-					const epci = data[0].epci;
-					const nomEpci = epci ? epci.nom : 'Non disponible';
-					const codeEpci = data[0].codeEpci;
-					sirenCommune = data[0].siren;
-					document.getElementById('populationInfo').textContent = `${population} habitants`;
-					document.getElementById('epciInfo').textContent = `${nomEpci} – (SIREN : ${codeEpci})`;
-					fetchNomEluOuPresident("maire", codeCommune);
-					fetchAdresseData(codeCommune, "mairie");
-					if(codeEpci !== "200054781") {
-						fetchAdresseData(codeEpci, "epci");
-						fetchNomEluOuPresident("president", codeEpci);
-					} else {
-						document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
-					}
-					axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu').then(response => response.data).then(text => {
-						const lines = text.split('\n');
-						const line = lines.find(line => line.match(`^${codeEpci},`));
-						if(line) {
-							const uuValues = line.split(',');
-							const numAssocie = uuValues[1].toString();
-							if(codeEpci !== "200054781") {
-								let message = "";
-								if(numAssocie === "0") {
-									message = "non";
-								} else if(numAssocie === "1") {
-									message = "oui";
-								} else {
-									message = "Valeur inconnue";
-								}
-								document.getElementById('competencePLU').textContent = message;
-							}
-						}
-					});
-					axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee').then(response => response.data).then(text => {
-						const lines = text.split('\n');
-						const line = lines.find(line => line.match(`^${codeCommune},`));
-						if(line) {
-							const values = line.split(',');
-							let numUniteUrbaine = values[1].toString().substring(0, 5);
-							axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu').then(response => response.data).then(text => {
-								const uuLines = text.split('\n');
-								const uuLine = uuLines.find(uuLine => uuLine.includes(`${numUniteUrbaine},`));
-								if(uuLine) {
-									const uuValues = uuLine.split(',');
-									const numAssocie = uuValues[1].toString();
-									if(numAssocie <= 5) {
-										document.getElementById('popUrbaineInfo').textContent = `inférieure à 100000 habitants`;
-									} else if(numAssocie == 8) {
-										document.getElementById('popUrbaineInfo').textContent = `unité urbaine de Paris`;
-									} else if(numAssocie == 6 || numAssocie == 7) {
-										document.getElementById('popUrbaineInfo').textContent = `supérieure à 100000 habitants`;
-									} else {
-										document.getElementById('popUrbaineInfo').textContent = `Aucune condition spécifiée`;
-									}
-								} else {
-									document.getElementById('popUrbaineInfo').textContent = `hors unité urbaine`;
-								}
-							}).catch(error => {
-								console.error("Une erreur s'est produite lors de la récupération des données du fichier uu :", error);
-								showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-							});
-						}
-					}).catch(error => {
-						console.error("Une erreur s'est produite lors de la récupération des données du fichier insee :", error);
-						showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-					});
-				} else {
-					showError('Aucune commune trouvée avec ce nom.');
-				}
-			}).catch(error => {
-				console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
-				showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-			});
-		}
+function fetchData(selectedCodeCommune) {
+    const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
+    axios.get(apiUrl).then(response => response.data).then(data => {
+        if (data.length > 0) {
+            const codeCommune = data[0].code;
+            const population = data[0].population;
+            const epci = data[0].epci;
+            const nomEpci = epci ? epci.nom : 'Non disponible';
+            const codeEpci = data[0].codeEpci;
+            sirenCommune = data[0].siren;
+
+            // Validation et échappement des données avant insertion dans le DOM
+            if (Number.isInteger(population)) {
+                document.getElementById('populationInfo').textContent = `${escapeHTML(population.toString())} habitants`;
+            } else {
+                document.getElementById('populationInfo').textContent = 'Données non disponibles';
+            }
+
+            if (nomEpci && validateText(nomEpci)) {
+                document.getElementById('epciInfo').textContent = `${escapeHTML(nomEpci)} – (SIREN : ${escapeHTML(codeEpci)})`;
+            } else {
+                document.getElementById('epciInfo').textContent = 'EPCI non disponible';
+            }
+
+            // Récupération des informations complémentaires sur les élus et les adresses
+            fetchNomEluOuPresident("maire", codeCommune);
+            fetchAdresseData(codeCommune, "mairie");
+            
+            if (codeEpci && codeEpci !== "200054781") {
+                fetchAdresseData(codeEpci, "epci");
+                fetchNomEluOuPresident("president", codeEpci);
+            } else {
+                document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
+            }
+
+            // Récupération des informations sur les compétences PLU
+            axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu').then(response => response.data).then(text => {
+                const lines = text.split('\n');
+                const line = lines.find(line => line.match(`^${codeEpci},`));
+                if (line) {
+                    const uuValues = line.split(',');
+                    const numAssocie = uuValues[1].toString();
+                    let message = "";
+                    if (numAssocie === "0") {
+                        message = "non";
+                    } else if (numAssocie === "1") {
+                        message = "oui";
+                    } else {
+                        message = "Valeur inconnue";
+                    }
+                    document.getElementById('competencePLU').textContent = escapeHTML(message);
+                } else {
+                    document.getElementById('competencePLU').textContent = "Information non disponible";
+                }
+            }).catch(error => {
+                console.error("Erreur lors de la récupération des données PLU :", error);
+                showError("Une erreur s'est produite lors de la récupération des données PLU. Veuillez réessayer.");
+            });
+
+            // Récupération des informations sur les unités urbaines
+            axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee').then(response => response.data).then(text => {
+                const lines = text.split('\n');
+                const line = lines.find(line => line.match(`^${codeCommune},`));
+                if (line) {
+                    const values = line.split(',');
+                    let numUniteUrbaine = values[1].toString().substring(0, 5);
+                    axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu').then(response => response.data).then(text => {
+                        const uuLines = text.split('\n');
+                        const uuLine = uuLines.find(uuLine => uuLine.includes(`${numUniteUrbaine},`));
+                        if (uuLine) {
+                            const uuValues = uuLine.split(',');
+                            const numAssocie = uuValues[1].toString();
+                            let populationUrbainMessage = "";
+                            if (numAssocie <= 5) {
+                                populationUrbainMessage = "inférieure à 100000 habitants";
+                            } else if (numAssocie == 8) {
+                                populationUrbainMessage = "unité urbaine de Paris";
+                            } else if (numAssocie == 6 || numAssocie == 7) {
+                                populationUrbainMessage = "supérieure à 100000 habitants";
+                            } else {
+                                populationUrbainMessage = "Aucune condition spécifiée";
+                            }
+                            document.getElementById('popUrbaineInfo').textContent = escapeHTML(populationUrbainMessage);
+                        } else {
+                            document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
+                        }
+                    }).catch(error => {
+                        console.error("Erreur lors de la récupération des données de l'unité urbaine :", error);
+                        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+                    });
+                } else {
+                    document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
+                }
+            }).catch(error => {
+                console.error("Erreur lors de la récupération des données INSEE :", error);
+                showError("Une erreur s'est produite lors de la récupération des données INSEE. Veuillez réessayer.");
+            });
+        } else {
+            showError('Aucune commune trouvée avec ce nom.');
+        }
+    }).catch(error => {
+        console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
+        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+    });
+}
+
 	});
 	</script>
 	<hr> <b>Sources :</b>
@@ -496,7 +522,7 @@ function fetchAdresseCommune(sirenCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.13f du 18/10/2024 : Amélioration de la sécurité</li>
+		<li>version 1.13g du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
  		<li>version 1.10c du 01/09/2024 : Modification de integrity de Axios suite à mise à jour (1.7.7) et de jQuery</li>
