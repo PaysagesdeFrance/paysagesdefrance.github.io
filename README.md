@@ -158,9 +158,9 @@
 	<script>
 	document.addEventListener('DOMContentLoaded', function() {
 		const infosElement = document.getElementById('infos');
-const communeInput = $("#communeInput");
-const communeList = $("#commune-list");
-const rechercherBtn = $("#rechercherBtn");
+		const communeInput = $("#communeInput");
+		const communeList = $("#commune-list");
+		const rechercherBtn = $("#rechercherBtn");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
 
@@ -185,7 +185,7 @@ function debounce(func, delay) {
 }
 
 		communeInput.on("input", debounce(function() {
-    var communeName = $(this).val();
+    var communeName = this.value;
     if (communeName.length >= 1) {
         fetchCommunes(communeName);
     } else {
@@ -200,7 +200,7 @@ function debounce(func, delay) {
 					var listItem = $("<li>").text(`${commune.nom} (${commune.codeDepartement})`);
 					listItem.on("click", function() {
 						selectedCodeCommune = commune.code;
-						communeInput.val(commune.nom);
+						communeInput.value = commune.nom;
 						hideCommuneList();
 						infosElement.textContent = '';
 						document.getElementById('resultatCommune').textContent = '';
@@ -241,7 +241,7 @@ function debounce(func, delay) {
 				hideCommuneList();
 			}
 		});
-		rechercherBtn.addEventListener("click", function() {
+		rechercherBtn.on("click", function() {
 			const nomCommune = communeInput.val().trim();
 			infosElement.textContent = '';
 			if(selectedCodeCommune) {
@@ -550,7 +550,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14j du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14g du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
