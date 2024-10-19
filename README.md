@@ -273,45 +273,30 @@ function escapeHTML(str) {
 }
 
 
-function validateCsvRow(row, expectedLength) {
-    // Vérifie si le nombre de colonnes est correct
-    if (row.length !== expectedLength) {
-        return false;
-    }
-    // Vérifie que les colonnes nécessaires ont les bons types de données
-    const [codeColumn, fonctionColumn, nomColumn, prenomColumn] = [4, 15, 6, 7];
-    if (isNaN(parseInt(row[codeColumn], 10))) {
-        return false; // Le code doit être un nombre
-    }
-    if (typeof row[fonctionColumn] !== 'string' || typeof row[nomColumn] !== 'string' || typeof row[prenomColumn] !== 'string') {
-        return false; // Les champs texte doivent être des chaînes de caractères
-    }
-    return true;
-}
-
 function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240730-125205/elus-maires.csv";
     const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240731-142441/elus-epci.csv";
     const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
-Papa.parse(csvUrl, {
-    download: true,
-    header: false,
-    complete: function(results) {
-        const data = results.data;
-        for (let i = 0; i < data.length; i++) {
-            // Validation de chaque ligne CSV
-            if (validateCsvRow(data[i], 16)) { // Vérifiez que la ligne a le bon nombre de colonnes (16)
-                const codeIndex = 4;
-                const fonctionIndex = 15;
-                if (parseInt(data[i][codeIndex], 10) === parseInt(code, 10) && 
-                    (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+    Papa.parse(csvUrl, {
+        download: true,
+        header: false,
+        complete: function(results) {
+            const data = results.data;
+            for(let i = 0; i < data.length; i++) {
+                const codeIndex = typeElu === "maire" ? 4 : 4;
+                const fonctionIndex = typeElu === "maire" ? 15 : 15;
+                if(parseInt(data[i][codeIndex]) === parseInt(code) && (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+                    const nomElu = data[i][typeElu === "maire" ? 6 : 8];
+                    const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
+                    let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
 
-                    const nomElu = data[i][6];
-                    const prenomElu = data[i][7];
-                    const sexeElu = data[i][8] === "M" ? "M." : "Mme";
-
-                    // Validation des noms avec la fonction validateText existante
+                    // Validation et échappement des données
                     if (validateText(nomElu) && validateText(prenomElu)) {
+                        if (sexeElu === "M") {
+                            sexeElu = "M.";
+                        } else if (sexeElu === "F") {
+                            sexeElu = "Mme";
+                        }
                         const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
                         document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
                     } else {
@@ -319,16 +304,13 @@ Papa.parse(csvUrl, {
                     }
                     break;
                 }
-            } else {
-                console.warn("Ligne CSV invalide :", data[i]);
             }
+        },
+        error: function(error) {
+            showError("Une erreur s'est produite lors de la récupération du fichier CSV. Veuillez réessayer.");
+            console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
         }
-    },
-    error: function(error) {
-        showError("Une erreur s'est produite lors de la récupération du fichier CSV. Veuillez réessayer.");
-        console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
-    }
-});
+    });
 }
 
 function fetchAdresseData(code, type) {
@@ -568,7 +550,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14g du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14f du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
