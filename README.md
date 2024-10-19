@@ -237,11 +237,11 @@ function debounce(func, delay) {
 				console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
 			});
 		}
-		$(document).on("click", function(event) {
-			if(!communeInput.is(event.target) && !communeList.is(event.target) && communeList.has(event.target).length === 0) {
-				hideCommuneList();
-			}
-		});
+document.addEventListener("click", function(event) {
+    if (event.target !== communeInput && !communeList.contains(event.target)) {
+        hideCommuneList();
+    }
+});
 		rechercherBtn.on("click", function() {
 			const nomCommune = communeInput.val().trim();
 			infosElement.textContent = '';
@@ -551,7 +551,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14h du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14j du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
