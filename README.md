@@ -408,11 +408,14 @@ function fetchAdresseCommune(sirenCommune) {
 }
 
 
+function validateApiResponse(data, expectedFields) {
+    return expectedFields.every(field => field in data);
+}
 
 function fetchData(selectedCodeCommune) {
     const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
     axios.get(apiUrl).then(response => response.data).then(data => {
-        if (data.length > 0) {
+        if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci', 'siren'])) {
             const codeCommune = data[0].code;
             const population = data[0].population;
             const epci = data[0].epci;
@@ -534,7 +537,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14c du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14d du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
