@@ -171,7 +171,8 @@ function showError(message) {
 
 
 		function hideCommuneList() {
-			communeList.empty().hide();
+			communeList.innerHTML = '';
+communeList.style.display = 'none';
 		}
 
 function debounce(func, delay) {
@@ -550,7 +551,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14g du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14h du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
