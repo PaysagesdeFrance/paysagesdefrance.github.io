@@ -158,7 +158,7 @@
 	<script>
 	document.addEventListener('DOMContentLoaded', function() {
 		const infosElement = document.getElementById('infos');
-		const communeInput = $("#communeInput");
+		const communeInput = document.getElementById("communeInput");
 		const communeList = $("#commune-list");
 		const rechercherBtn = $("#rechercherBtn");
 		let lastSearchTimeout;
@@ -550,7 +550,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14k du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14m du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
