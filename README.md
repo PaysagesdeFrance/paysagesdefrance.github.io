@@ -313,11 +313,15 @@ function fetchNomEluOuPresident(typeElu, code) {
     });
 }
 
-function fetchAdresseData(code, type) {
+async function fetchAdresseData(code, type) {
     const isMairie = type === 'mairie';
     const endpoint = isMairie ? `code_insee_commune%3A%22${code}%22` : `siren%3A%22${code}%22`;
     const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
-    fetch(apiUrl).then(response => response.json()).then(data => {
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
         const mairieRecord = data.results.find(record => {
             const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
             return (
@@ -367,10 +371,10 @@ function fetchAdresseData(code, type) {
                 infosElement.innerHTML += `Aucune information sur l'EPCI trouvée.`;
             }
         }
-    }).catch(error => {
+    } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
         showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-    });
+    }
 }
 
 
@@ -550,7 +554,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14q du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14r du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
