@@ -3,12 +3,11 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://code.jquery.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' https://geo.api.gouv.fr https://api-lannuaire.service-public.fr; frame-ancestors 'none';">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' https://geo.api.gouv.fr https://api-lannuaire.service-public.fr; frame-ancestors 'none';">
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
 	<title>Recherche d'une commune</title>
-	<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha384-5AkRS45j4ukf+JbWAfHL8P4onPA9p0KwwP7pUdjSQA3ss9edbJUJc/XcYAiheSSz" crossorigin="anonymous"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha384-D/t0ZMqQW31H3az8ktEiNb39wyKnS82iFY52QPACM+IjKW3jDUhyIgh2PApRqJZs" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" integrity="sha384-BSfV8fZD1qtU+7KBLfwU6gmcvPJpmwSoXe28kfEv6tS2XTcI4RYmu9GIrKLrhA4y" crossorigin="anonymous"></script>
 	<style>
@@ -156,11 +155,11 @@
 	</table>
 	<br>
 	<script>
-	$(document).ready(function() {
+	document.addEventListener('DOMContentLoaded', function() {
 		const infosElement = document.getElementById('infos');
-		const communeInput = $("#communeInput");
-		const communeList = $("#commune-list");
-		const rechercherBtn = $("#rechercherBtn");
+		const communeInput = document.getElementById("communeInput");
+		const communeList = document.getElementById("commune-list");
+		const rechercherBtn = document.getElementById("rechercherBtn");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
 
@@ -171,7 +170,8 @@ function showError(message) {
 
 
 		function hideCommuneList() {
-			communeList.empty().hide();
+			communeList.innerHTML = '';
+communeList.style.display = 'none';
 		}
 
 function debounce(func, delay) {
@@ -185,7 +185,7 @@ function debounce(func, delay) {
 }
 
 		communeInput.on("input", debounce(function() {
-    var communeName = $(this).val();
+  var communeName = this.value;
     if (communeName.length >= 1) {
         fetchCommunes(communeName);
     } else {
@@ -200,7 +200,7 @@ function debounce(func, delay) {
 					var listItem = $("<li>").text(`${commune.nom} (${commune.codeDepartement})`);
 					listItem.on("click", function() {
 						selectedCodeCommune = commune.code;
-						communeInput.val(commune.nom);
+						communeInput.value = commune.nom;
 						hideCommuneList();
 						infosElement.textContent = '';
 						document.getElementById('resultatCommune').textContent = '';
@@ -236,12 +236,12 @@ function debounce(func, delay) {
 				console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
 			});
 		}
-		$(document).on("click", function(event) {
-			if(!communeInput.is(event.target) && !communeList.is(event.target) && communeList.has(event.target).length === 0) {
-				hideCommuneList();
-			}
-		});
-		rechercherBtn.on("click", function() {
+document.addEventListener("click", function(event) {
+    if (event.target !== communeInput && !communeList.contains(event.target)) {
+        hideCommuneList();
+    }
+});
+		rechercherBtn.addEventListener("click", function() {
 			const nomCommune = communeInput.val().trim();
 			infosElement.textContent = '';
 			if(selectedCodeCommune) {
@@ -550,7 +550,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14f du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14g du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
