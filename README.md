@@ -10,7 +10,7 @@
 	<title>Recherche d'une commune</title>
 	<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha384-5AkRS45j4ukf+JbWAfHL8P4onPA9p0KwwP7pUdjSQA3ss9edbJUJc/XcYAiheSSz" crossorigin="anonymous"></script>
 	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha256-uOhwxdKyl3LxDJ+pppPIuJaqyFQO1nAePMYwTGg/69s=" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" integrity="sha384-vgWxHUi68PbWkctJaiKtZ+DAc3NcJ8UhpJ6PAAYwHftVoKv39AzRxtfapqZtthzI" crossorigin="anonymous"></script>
 	<style>
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
@@ -534,6 +534,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+ 		<li>version 1.14a du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
