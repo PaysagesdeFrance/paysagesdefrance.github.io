@@ -254,9 +254,10 @@ function debounce(func, delay) {
 
 
 function validateText(text) {
-    const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ '-]+$/; // Permet les lettres, les espaces, les apostrophes et les traits d'union
+    const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9 ',-]+$/; // Permet les lettres, les chiffres, les espaces, les apostrophes, les virgules et les tirets
     return regex.test(text);
 }
+
 
 function escapeHTML(str) {
     return str.replace(/[&<>"']/g, function(match) {
@@ -270,6 +271,7 @@ function escapeHTML(str) {
         return escapeChars[match];
     });
 }
+
 
 function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240730-125205/elus-maires.csv";
@@ -425,21 +427,23 @@ function fetchData(selectedCodeCommune) {
 
             // Validation et échappement des données avant insertion dans le DOM
             if (Number.isInteger(population)) {
-                document.getElementById('populationInfo').textContent = `${escapeHTML(population.toString())} habitants`;
+                document.getElementById('populationInfo').textContent = escapeHTML(population.toString()) + ' habitants';
             } else {
                 document.getElementById('populationInfo').textContent = 'Données non disponibles';
             }
 
             if (nomEpci && validateText(nomEpci)) {
-                document.getElementById('epciInfo').textContent = `${escapeHTML(nomEpci)} – (SIREN : ${escapeHTML(codeEpci)})`;
+                document.getElementById('epciInfo').textContent = escapeHTML(nomEpci) + ' – (SIREN : ' + escapeHTML(codeEpci) + ')';
             } else {
                 document.getElementById('epciInfo').textContent = 'EPCI non disponible';
             }
 
             // Récupération des informations complémentaires sur les élus et les adresses
+
+            
             fetchNomEluOuPresident("maire", codeCommune);
             fetchAdresseData(codeCommune, "mairie");
-            
+
             if (codeEpci && codeEpci !== "200054781") {
                 fetchAdresseData(codeEpci, "epci");
                 fetchNomEluOuPresident("president", codeEpci);
@@ -537,7 +541,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14d du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14e du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
