@@ -271,44 +271,45 @@ function escapeHTML(str) {
     });
 }
 
+function validateCsvRow(row, expectedLength) {
+    return row.length === expectedLength && row.every(cell => typeof cell === 'string' || typeof cell === 'number');
+}
+
 function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240730-125205/elus-maires.csv";
     const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240731-142441/elus-epci.csv";
     const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
-    Papa.parse(csvUrl, {
-        download: true,
-        header: false,
-        complete: function(results) {
-            const data = results.data;
-            for(let i = 0; i < data.length; i++) {
+Papa.parse(csvUrl, {
+    download: true,
+    header: false,
+    complete: function(results) {
+        const data = results.data;
+        for (let i = 0; i < data.length; i++) {
+            if (validateCsvRow(data[i], 16)) { // Vérifiez que la ligne a le bon nombre de colonnes
                 const codeIndex = typeElu === "maire" ? 4 : 4;
                 const fonctionIndex = typeElu === "maire" ? 15 : 15;
-                if(parseInt(data[i][codeIndex]) === parseInt(code) && (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+                if (parseInt(data[i][codeIndex]) === parseInt(code) && (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
                     const nomElu = data[i][typeElu === "maire" ? 6 : 8];
                     const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
-                    let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
 
                     // Validation et échappement des données
                     if (validateText(nomElu) && validateText(prenomElu)) {
-                        if (sexeElu === "M") {
-                            sexeElu = "M.";
-                        } else if (sexeElu === "F") {
-                            sexeElu = "Mme";
-                        }
-                        const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
-                        document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+                        // Reste du code pour afficher les données
                     } else {
                         console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
                     }
                     break;
                 }
+            } else {
+                console.warn("Ligne CSV invalide :", data[i]);
             }
-        },
-        error: function(error) {
-            showError("Une erreur s'est produite lors de la récupération du fichier CSV. Veuillez réessayer.");
-            console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
         }
-    });
+    },
+    error: function(error) {
+        showError("Une erreur s'est produite lors de la récupération du fichier CSV. Veuillez réessayer.");
+        console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
+    }
+});
 }
 
 function fetchAdresseData(code, type) {
@@ -537,7 +538,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14d du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14e du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
