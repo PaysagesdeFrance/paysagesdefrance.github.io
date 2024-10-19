@@ -328,7 +328,15 @@ function fetchAdresseData(code, type) {
 
         if (mairieRecord && mairieRecord.adresse) {
             const adresseData = JSON.parse(mairieRecord.adresse);
-            const adresseMairie = `${adresseData[0].numero_voie || ''} ${adresseData[0].complement1 || ''} ${adresseData[0].complement2 || ''} ${adresseData[0].service_distribution || ''} ${adresseData[0].code_postal || ''} ${adresseData[0].nom_commune || ''}`.trim();
+            // Construire l'adresse avec des tirets entre les différents éléments
+            const adresseMairie = [
+                adresseData[0].numero_voie || '',
+                adresseData[0].complement1 || '',
+                adresseData[0].complement2 || '',
+                adresseData[0].service_distribution || '',
+                adresseData[0].code_postal || '',
+                adresseData[0].nom_commune || ''
+            ].filter(Boolean).join(' - '); // Ajoute un tiret entre les champs non vides
 
             // Affichage de l'adresse, validation souple
             if (adresseMairie) {
@@ -364,6 +372,7 @@ function fetchAdresseData(code, type) {
         showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
     });
 }
+
 
 
 
@@ -541,7 +550,7 @@ function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.14e du 19/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.14f du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.11g du 03/09/2024 : Résolution d'un bug - suppression de l'integrity de Axios</li>
