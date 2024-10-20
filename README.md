@@ -8,8 +8,8 @@
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
 	<title>Recherche d'une commune</title>
-	<script defer src="/lib/papaparse.min.js"></script>
-<script src="/lib/axios.min.js"></script>
+	<script defer src="papaparse.min.js"></script>
+<script src="axios.min.js"></script>
 	<style>
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
@@ -637,7 +637,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15k du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
