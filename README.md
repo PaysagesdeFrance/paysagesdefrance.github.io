@@ -324,7 +324,7 @@ function fetchCommunes(communeName) {
             communeList.innerHTML = ''; // Vide la liste des résultats précédents
             data.forEach(function(commune) {
                 const listItem = document.createElement("li");
-                listItem.textContent = `${commune.nom} (${commune.codeDepartement})`;
+                listItem.textContent = `${escapeHTML(commune.nom)} (${escapeHTML(commune.codeDepartement)})`;
                 listItem.addEventListener("click", function() {
                     selectedCodeCommune = commune.code;
                     communeInput.value = commune.nom;
@@ -631,7 +631,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15g du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15h du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
