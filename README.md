@@ -163,6 +163,20 @@ const infosElement = document.getElementById("infos");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
 
+function handleSearch() {
+    const nomCommune = communeInput.value.trim();
+    infosElement.textContent = '';
+    
+    if (selectedCodeCommune) {
+        fetchData(selectedCodeCommune);
+        document.querySelectorAll("table").forEach(table => {
+            table.style.display = "table";
+        });
+    } else {
+        showError('Veuillez entrer le nom d\'une commune.');
+    }
+}
+
 function showError(message) {
     infosElement.textContent = message;
     console.error("Détails de l'erreur :", message);
@@ -264,19 +278,7 @@ document.addEventListener("click", function(event) {
     }
 });
 
-rechercherBtn.addEventListener("click", function() {
-    const nomCommune = communeInput.value.trim();
-    infosElement.textContent = '';
-    if (selectedCodeCommune) {
-        fetchData(selectedCodeCommune);
-        document.querySelectorAll("table").forEach(table => {
-            table.style.display = "table";
-        });
-    } else {
-        showError('Veuillez entrer le nom d\'une commune.');
-    }
-});
-
+rechercherBtn.addEventListener("click", handleSearch);
 
 function validateText(text, maxLength = 100) {
     const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9 ',-]+$/; // Permet les lettres, chiffres, espaces, apostrophes, virgules et tirets
@@ -581,7 +583,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15b du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15c du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
