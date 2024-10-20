@@ -375,9 +375,14 @@ document.addEventListener("click", function(event) {
 rechercherBtn.addEventListener("click", handleSearch);
 
 function validateText(text, maxLength = 100) {
-    const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9 ',-]+$/; // Permet les lettres, chiffres, espaces, apostrophes, virgules et tirets
-    return regex.test(text) && text.length > 0 && text.length <= maxLength;
+    const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*$/;
+    // Ce regex autorise des lettres, chiffres, espaces, apostrophes et tirets, 
+    // mais interdit qu'ils apparaissent en début ou en fin, ou se suivent.
+
+    // Vérifie si le texte est valide et respecte les contraintes de longueur
+    return regex.test(text.trim()) && text.length > 0 && text.length <= maxLength;
 }
+
 
 
 function escapeHTML(str) {
@@ -625,7 +630,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15e du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15f du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
