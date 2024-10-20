@@ -272,9 +272,10 @@ function handleSearch() {
 }
 
 function showError(message) {
-    infosElement.textContent = message;
+    infosElement.textContent = message || "Une erreur s'est produite. Veuillez réessayer.";
     console.error("Détails de l'erreur :", message);
 }
+
 
 
 function hideCommuneList() {
@@ -630,7 +631,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15f du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15g du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
