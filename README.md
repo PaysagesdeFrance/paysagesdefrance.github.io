@@ -190,12 +190,18 @@ function debounce(func, delay) {
 
 communeInput.addEventListener("input", debounce(function() {
     var communeName = this.value;
+    if (!validateText(communeName, 50)) { // Limite de longueur à 50 caractères
+        showError("Le nom de la commune contient des caractères invalides ou est trop long.");
+        hideCommuneList();
+        return;
+    }
     if (communeName.length >= 1) {
         fetchCommunes(communeName);
     } else {
         hideCommuneList();
     }
 }, 300));
+
 
 function fetchCommunes(communeName) {
     fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`)
@@ -272,9 +278,9 @@ rechercherBtn.addEventListener("click", function() {
 });
 
 
-function validateText(text) {
-    const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9 ',-]+$/; // Permet les lettres, les chiffres, les espaces, les apostrophes, les virgules et les tirets
-    return regex.test(text);
+function validateText(text, maxLength = 100) {
+    const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9 ',-]+$/; // Permet les lettres, chiffres, espaces, apostrophes, virgules et tirets
+    return regex.test(text) && text.length > 0 && text.length <= maxLength;
 }
 
 
@@ -448,36 +454,39 @@ function validateApiResponse(data, expectedFields) {
 
 async function fetchData(selectedCodeCommune) {
     const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
-    
+
     try {
         const response = await axios.get(apiUrl);
         const data = response.data;
 
+        // Vérification de la structure et des champs de la réponse API
         if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci', 'siren'])) {
             const codeCommune = data[0].code;
             const population = data[0].population;
             const epci = data[0].epci;
             const nomEpci = epci ? epci.nom : 'Non disponible';
             const codeEpci = data[0].codeEpci;
-            sirenCommune = data[0].siren;
+            const sirenCommune = data[0].siren;
 
-            // Validation et échappement des données avant insertion dans le DOM
-            if (Number.isInteger(population)) {
+            // Validation et affichage des données de la population
+            if (Number.isInteger(population) && population >= 0) {
                 document.getElementById('populationInfo').textContent = escapeHTML(population.toString()) + ' habitants';
             } else {
                 document.getElementById('populationInfo').textContent = 'Données non disponibles';
             }
 
+            // Validation et affichage des données de l'EPCI
             if (nomEpci && validateText(nomEpci)) {
                 document.getElementById('epciInfo').textContent = escapeHTML(nomEpci) + ' – (SIREN : ' + escapeHTML(codeEpci) + ')';
             } else {
                 document.getElementById('epciInfo').textContent = 'EPCI non disponible';
             }
 
-            // Récupération des informations complémentaires sur les élus et les adresses
+            // Récupération des informations sur le maire et la mairie
             fetchNomEluOuPresident("maire", codeCommune);
             fetchAdresseData(codeCommune, "mairie");
 
+            // Récupération des informations sur l'EPCI et le président si le code EPCI est valide
             if (codeEpci && codeEpci !== "200054781") {
                 fetchAdresseData(codeEpci, "epci");
                 fetchNomEluOuPresident("president", codeEpci);
@@ -488,10 +497,10 @@ async function fetchData(selectedCodeCommune) {
             // Récupération des informations sur les compétences PLU
             const pluResponse = await axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu');
             const lines = pluResponse.data.split('\n');
-            const line = lines.find(line => line.match(`^${codeEpci},`));
+            const line = lines.find(line => line.startsWith(`${codeEpci},`));
             if (line) {
                 const uuValues = line.split(',');
-                const numAssocie = uuValues[1].toString();
+                const numAssocie = uuValues[1];
                 let message = "";
                 if (numAssocie === "0") {
                     message = "non";
@@ -508,22 +517,22 @@ async function fetchData(selectedCodeCommune) {
             // Récupération des informations sur les unités urbaines
             const inseeResponse = await axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee');
             const inseeLines = inseeResponse.data.split('\n');
-            const inseeLine = inseeLines.find(line => line.match(`^${codeCommune},`));
+            const inseeLine = inseeLines.find(line => line.startsWith(`${codeCommune},`));
             if (inseeLine) {
                 const values = inseeLine.split(',');
-                let numUniteUrbaine = values[1].toString().substring(0, 5);
+                const numUniteUrbaine = values[1].substring(0, 5);
                 const uuResponse = await axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu');
                 const uuLines = uuResponse.data.split('\n');
                 const uuLine = uuLines.find(uuLine => uuLine.includes(`${numUniteUrbaine},`));
                 if (uuLine) {
                     const uuValues = uuLine.split(',');
-                    const numAssocie = uuValues[1].toString();
+                    const numAssocie = parseInt(uuValues[1], 10);
                     let populationUrbainMessage = "";
                     if (numAssocie <= 5) {
                         populationUrbainMessage = "inférieure à 100000 habitants";
-                    } else if (numAssocie == 8) {
+                    } else if (numAssocie === 8) {
                         populationUrbainMessage = "unité urbaine de Paris";
-                    } else if (numAssocie == 6 || numAssocie == 7) {
+                    } else if (numAssocie === 6 || numAssocie === 7) {
                         populationUrbainMessage = "supérieure à 100000 habitants";
                     } else {
                         populationUrbainMessage = "Aucune condition spécifiée";
@@ -536,13 +545,15 @@ async function fetchData(selectedCodeCommune) {
                 document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
             }
         } else {
-            showError('Aucune commune trouvée avec ce nom.');
+            // Si les données ne sont pas au format attendu ou sont manquantes
+            showError('Aucune commune trouvée avec ce nom ou les données sont invalides.');
         }
     } catch (error) {
         console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
         showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
     }
 }
+
 
 	});
 	</script>
@@ -562,6 +573,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+ 		<li>version 1.15a du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
