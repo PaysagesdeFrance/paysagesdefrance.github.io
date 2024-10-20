@@ -163,6 +163,29 @@ const infosElement = document.getElementById("infos");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
 
+// Sous-fonction pour gérer les données de la compétence PLU
+async function handlePluData(codeEpci) {
+    const pluResponse = await axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu');
+    const lines = pluResponse.data.split('\n');
+    const line = lines.find(line => line.startsWith(`${codeEpci},`));
+    if (line) {
+        const uuValues = line.split(',');
+        const numAssocie = uuValues[1];
+        let message = "";
+        if (numAssocie === "0") {
+            message = "non";
+        } else if (numAssocie === "1") {
+            message = "oui";
+        } else {
+            message = "Valeur inconnue";
+        }
+        document.getElementById('competencePLU').textContent = escapeHTML(message);
+    } else {
+        document.getElementById('competencePLU').textContent = "Information non disponible";
+    }
+}
+
+
 // Sous-fonction pour gérer les données de population
 function handlePopulationData(data) {
     const population = data[0].population;
@@ -543,13 +566,36 @@ async function fetchData(selectedCodeCommune) {
         // Vérification de la structure et des champs de la réponse API
         if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci', 'siren'])) {
             const codeCommune = data[0].code;
+            const population = data[0].population;
+            const epci = data[0].epci;
+            const nomEpci = epci ? epci.nom : 'Non disponible';
+            const codeEpci = data[0].codeEpci;
+            const sirenCommune = data[0].siren;
 
-            // Appeler les sous-fonctions pour traiter les différentes parties des données
+            // Affichage des données de la population
             handlePopulationData(data);
+
+            // Affichage des données de l'EPCI
             handleEpciData(data);
+
+            // Récupération des informations sur le maire et la mairie
             handleMaireData(codeCommune);
+
+            // Récupération des informations sur l'unité urbaine
             await handleUniteUrbaineData(codeCommune);
+
+            // Récupération des informations sur les compétences PLU
+            if (codeEpci) {
+                await handlePluData(codeEpci);
+            }
+
+            // Affichage supplémentaire pour les cas particuliers de l'EPCI
+            if (codeEpci && codeEpci === "200054781") {
+                document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
+            }
+
         } else {
+            // Si les données ne sont pas au format attendu ou sont manquantes
             showError('Aucune commune trouvée avec ce nom ou les données sont invalides.');
         }
     } catch (error) {
@@ -557,6 +603,7 @@ async function fetchData(selectedCodeCommune) {
         showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
     }
 }
+
 
 
 
@@ -578,7 +625,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15d du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15e du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
