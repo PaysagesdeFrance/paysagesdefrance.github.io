@@ -3,13 +3,13 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' https://geo.api.gouv.fr https://api-lannuaire.service-public.fr; frame-ancestors 'none';">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' ; connect-src 'self' https://geo.api.gouv.fr https://api-lannuaire.service-public.fr; frame-ancestors 'none';">
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
 	<title>Recherche d'une commune</title>
-	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha384-D/t0ZMqQW31H3az8ktEiNb39wyKnS82iFY52QPACM+IjKW3jDUhyIgh2PApRqJZs" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" integrity="sha384-BSfV8fZD1qtU+7KBLfwU6gmcvPJpmwSoXe28kfEv6tS2XTcI4RYmu9GIrKLrhA4y" crossorigin="anonymous"></script>
+	<script defer src="/lib/papaparse.min.js"></script>
+<script src="/lib/axios.min.js"></script>
 	<style>
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
@@ -637,7 +637,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15j du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15k du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
