@@ -431,9 +431,7 @@ function fetchAdresseCommune(sirenCommune) {
 
             // Affichage de l'adresse, validation souple
             if (adresseMairie) {
-                const escapedString = escapeHTML(adresseMairie).replace("&#39;", "'");
-document.getElementById('adressemairie').textContent = escapedString;
-
+                document.getElementById('adressemairie').textContent = escapeHTML(adresseMairie);
             } else {
                 console.warn("Adresse vide ou non valide :", adresseMairie);
             }
@@ -585,7 +583,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15e du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15c du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
