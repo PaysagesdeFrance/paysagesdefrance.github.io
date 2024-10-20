@@ -188,6 +188,12 @@ async function handlePluData(codeEpci) {
 
 // Sous-fonction pour gérer les données de population
 function handlePopulationData(data) {
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0].population !== 'number') {
+        showError('Les données de population sont invalides ou indisponibles.');
+        document.getElementById('populationInfo').textContent = 'Données non disponibles';
+        return;
+    }
+    
     const population = data[0].population;
     if (Number.isInteger(population) && population >= 0) {
         document.getElementById('populationInfo').textContent = escapeHTML(population.toString()) + ' habitants';
@@ -195,6 +201,7 @@ function handlePopulationData(data) {
         document.getElementById('populationInfo').textContent = 'Données non disponibles';
     }
 }
+
 
 // Sous-fonction pour gérer les données EPCI
 function handleEpciData(data) {
@@ -421,21 +428,20 @@ function fetchNomEluOuPresident(typeElu, code) {
                     let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
 
                     // Validation et échappement des données avant l'affichage
-                    if (validateText(nomElu) && validateText(prenomElu)) {
-                        if (sexeElu === "M") {
-                            sexeElu = "M.";
-                        } else if (sexeElu === "F") {
-                            sexeElu = "Mme";
-                        } else {
-                            sexeElu = ""; // Valeur par défaut en cas de sexe non valide
-                        }
-
-                        const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
-                        document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
-                    } else {
-                        console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
-                        showError("Les informations de l'élu sont invalides.");
-                    }
+if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
+    if (sexeElu === "M") {
+        sexeElu = "M.";
+    } else if (sexeElu === "F") {
+        sexeElu = "Mme";
+    } else {
+        sexeElu = ""; // Valeur par défaut en cas de sexe non valide
+    }
+    const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
+    document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+} else {
+    console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
+    showError("Les informations de l'élu sont invalides.");
+}
                     break; // Arrête la boucle une fois l'élu trouvé
                 }
             }
@@ -631,7 +637,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15h du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15j du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
