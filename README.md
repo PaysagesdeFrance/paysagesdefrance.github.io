@@ -308,35 +308,43 @@ function fetchNomEluOuPresident(typeElu, code) {
         complete: function(results) {
             const data = results.data;
             for(let i = 0; i < data.length; i++) {
-                const codeIndex = typeElu === "maire" ? 4 : 4;
-                const fonctionIndex = typeElu === "maire" ? 15 : 15;
-                if(parseInt(data[i][codeIndex]) === parseInt(code) && (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+                const codeIndex = 4;
+                const fonctionIndex = 15;
+                
+                if(parseInt(data[i][codeIndex]) === parseInt(code) &&
+                   (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+
                     const nomElu = data[i][typeElu === "maire" ? 6 : 8];
                     const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
                     let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
 
-                    // Validation et échappement des données
+                    // Validation et échappement des données avant l'affichage
                     if (validateText(nomElu) && validateText(prenomElu)) {
                         if (sexeElu === "M") {
                             sexeElu = "M.";
                         } else if (sexeElu === "F") {
                             sexeElu = "Mme";
+                        } else {
+                            sexeElu = ""; // Valeur par défaut en cas de sexe non valide
                         }
+
                         const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
                         document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
                     } else {
                         console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
+                        showError("Les informations de l'élu sont invalides.");
                     }
-                    break;
+                    break; // Arrête la boucle une fois l'élu trouvé
                 }
             }
         },
         error: function(error) {
             showError("Une erreur s'est produite lors de la récupération du fichier CSV. Veuillez réessayer.");
-            console.error("Une erreur s'est produite lors de la récupération du fichier CSV :", error);
+            console.error("Erreur lors de la récupération du fichier CSV :", error);
         }
     });
 }
+
 
 async function fetchAdresseData(code, type) {
     const isMairie = type === 'mairie';
@@ -573,7 +581,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15a du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.15b du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
