@@ -188,12 +188,12 @@ async function handlePluData(codeEpci) {
 
 // Sous-fonction pour gérer les données de population
 function handlePopulationData(data) {
-    if (!Array.isArray(data) || data.length === 0 || typeof data[0].population !== 'number') {
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
         showError('Les données de population sont invalides ou indisponibles.');
         document.getElementById('populationInfo').textContent = 'Données non disponibles';
         return;
     }
-    
+
     const population = data[0].population;
     if (Number.isInteger(population) && population >= 0) {
         document.getElementById('populationInfo').textContent = escapeHTML(population.toString()) + ' habitants';
@@ -201,6 +201,7 @@ function handlePopulationData(data) {
         document.getElementById('populationInfo').textContent = 'Données non disponibles';
     }
 }
+
 
 
 // Sous-fonction pour gérer les données EPCI
@@ -637,7 +638,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.16a du 21/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.16b du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
