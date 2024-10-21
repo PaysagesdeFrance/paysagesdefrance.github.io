@@ -280,8 +280,8 @@ function handleSearch() {
 }
 
 function showError(message) {
-    infosElement.textContent = message || "Une erreur s'est produite. Veuillez réessayer.";
-    console.error("Détails de l'erreur :", message);
+    infosElement.textContent = "Une erreur s'est produite. Veuillez réessayer."; // Message générique pour l'utilisateur
+    console.error("Détails de l'erreur :", message); // Conserver les détails dans la console pour les développeurs
 }
 
 
@@ -380,10 +380,10 @@ function fetchCommunes(communeName) {
             });
             showCommuneList(); // Affiche la liste des suggestions
         })
-        .catch(error => {
-            showError("Une erreur s'est produite lors de la recherche des communes. Veuillez réessayer.");
-            console.error("Détails de l'erreur :", error);
-        });
+.catch(error => {
+    showError("Une erreur s'est produite lors de la recherche."); // Message générique
+    console.error("Détails de l'erreur :", error); // Détails spécifiques dans la console
+});
 }
 
 
@@ -571,9 +571,9 @@ function fetchAdresseCommune(sirenCommune) {
             infosElement.innerHTML += "Aucune information sur la Mairie trouvée.";
         }
     }).catch(error => {
-        console.error("Erreur lors de la récupération des données :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-    });
+    showError("Une erreur s'est produite lors de la recherche."); // Message générique
+    console.error("Détails de l'erreur :", error); // Détails spécifiques dans la console
+});
 }
 
 
@@ -650,7 +650,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.16c du 21/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.16d du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
