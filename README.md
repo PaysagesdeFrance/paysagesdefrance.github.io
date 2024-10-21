@@ -474,7 +474,15 @@ async function fetchAdresseData(code, type) {
 
     try {
         const response = await fetch(apiUrl);
+        // Vérification du statut de la réponse
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
+        }
         const data = await response.json();
+
+        if (!Array.isArray(data.results) || data.results.length === 0) {
+            throw new Error("Données d'adresse non disponibles ou format inattendu.");
+        }
 
         const mairieRecord = data.results.find(record => {
             const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
@@ -486,7 +494,6 @@ async function fetchAdresseData(code, type) {
 
         if (mairieRecord && mairieRecord.adresse) {
             const adresseData = JSON.parse(mairieRecord.adresse);
-            // Construire l'adresse avec des tirets entre les différents éléments
             const adresseMairie = [
                 adresseData[0].numero_voie || '',
                 adresseData[0].complement1 || '',
@@ -494,14 +501,11 @@ async function fetchAdresseData(code, type) {
                 adresseData[0].service_distribution || '',
                 adresseData[0].code_postal || '',
                 adresseData[0].nom_commune || ''
-            ].filter(Boolean).join(' - '); // Ajoute un tiret entre les champs non vides
+            ].filter(Boolean).join(' - ');
 
-            // Affichage de l'adresse, validation souple
             if (adresseMairie) {
                 const infoText = type === "mairie" ? "adressemairie" : "adresseEpci";
                 document.getElementById(infoText).textContent = escapeHTML(adresseMairie);
-            } else {
-                console.warn("Adresse vide ou non valide :", adresseMairie);
             }
 
             if (mairieRecord.adresse_courriel) {
@@ -519,17 +523,14 @@ async function fetchAdresseData(code, type) {
                 }
             }
         } else {
-            if (isMairie) {
-                fetchAdresseCommune(sirenCommune);
-            } else {
-                infosElement.innerHTML += `Aucune information sur l'EPCI trouvée.`;
-            }
+            throw new Error("Aucune information sur la Mairie ou l'EPCI trouvée.");
         }
     } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
         showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
     }
 }
+
 
 
 
@@ -650,7 +651,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.16d du 21/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.16e du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
