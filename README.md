@@ -329,8 +329,19 @@ function fetchCommunes(communeName) {
             return response.json();
         })
         .then(data => {
+            // Validation des données retournées par l'API
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error("Les données retournées par l'API sont invalides ou vides.");
+            }
+
             communeList.innerHTML = ''; // Vide la liste des résultats précédents
             data.forEach(function(commune) {
+                // Validation des champs nécessaires pour chaque commune
+                if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
+                    console.warn("Données de la commune invalides : ", commune);
+                    return; // Ignore les entrées invalides
+                }
+
                 const listItem = document.createElement("li");
                 listItem.textContent = `${escapeHTML(commune.nom)} (${escapeHTML(commune.codeDepartement)})`;
                 listItem.addEventListener("click", function() {
@@ -338,7 +349,7 @@ function fetchCommunes(communeName) {
                     communeInput.value = commune.nom;
                     hideCommuneList(); // Masque la liste des suggestions
                     infosElement.textContent = '';
-                    
+
                     // Réinitialise les informations affichées
                     document.getElementById('resultatCommune').textContent = '';
                     document.getElementById('populationInfo').textContent = '';
@@ -353,13 +364,13 @@ function fetchCommunes(communeName) {
                     document.getElementById('courrielEpci').textContent = '';
                     document.getElementById('siteEpci').textContent = '';
                     document.getElementById('competencePLU').textContent = '';
-                    
+
                     const resultatCommune = document.getElementById('resultatCommune');
                     const h2Element = document.createElement('h2');
                     h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
                     resultatCommune.textContent = ''; // Efface le contenu précédent
                     resultatCommune.appendChild(h2Element);
-                    
+
                     // Met le focus sur le bouton rechercher si la recherche a abouti
                     if (resultatCommune.textContent.trim() !== "") {
                         rechercherBtn.focus();
@@ -374,6 +385,7 @@ function fetchCommunes(communeName) {
             console.error("Détails de l'erreur :", error);
         });
 }
+
 
 document.addEventListener("click", function(event) {
     if (!communeInput.contains(event.target) && !communeList.contains(event.target)) {
@@ -638,7 +650,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.16b du 21/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.16c du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
