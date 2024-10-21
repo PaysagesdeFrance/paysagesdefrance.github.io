@@ -265,7 +265,7 @@ async function handleUniteUrbaineData(codeCommune) {
 
 
 function handleSearch() {
-    const nomCommune = communeInput.value.trim();
+    const nomCommune = escapeHTML(communeInput.value.trim());
     infosElement.textContent = '';
     
     if (selectedCodeCommune) {
@@ -637,7 +637,8 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.16a du 21/10/2024 : Amélioration de la sécurité</li>
+   		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
   		<li>version 1.12f du 17/10/2024 : Amélioration de la sécurité</li>
