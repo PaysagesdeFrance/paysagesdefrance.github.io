@@ -591,12 +591,19 @@ async function fetchData(selectedCodeCommune) {
 
         // Vérification de la structure et des champs de la réponse API
         if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci', 'siren'])) {
-            const codeCommune = data[0].code;
-            const population = data[0].population;
-            const epci = data[0].epci;
-            const nomEpci = epci ? epci.nom : 'Non disponible';
-            const codeEpci = data[0].codeEpci;
-            const sirenCommune = data[0].siren;
+const expectedFields = ['code', 'population', 'epci', 'siren', 'codeEpci'];
+if (!validateApiResponse(data[0], expectedFields)) {
+    showError("Les données récupérées sont incomplètes ou invalides.");
+    return;
+}
+
+const codeCommune = data[0].code;
+const population = data[0].population;
+const epci = data[0].epci;
+const nomEpci = epci ? epci.nom : 'Non disponible';
+const codeEpci = data[0].codeEpci;
+const sirenCommune = data[0].siren;
+
 
             // Affichage des données de la population
             handlePopulationData(data);
@@ -651,7 +658,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.16e du 21/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.16f du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
