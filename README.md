@@ -537,44 +537,74 @@ async function fetchAdresseData(code, type) {
 
 function fetchAdresseCommune(sirenCommune) {
     const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?where=startswith(siret,"${sirenCommune}")`;
-    fetch(apiUrl).then(response => response.json()).then(data => {
+fetch(apiUrl)
+    .then(response => {
+        // Vérification du statut de la réponse
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
+        }
+        // Retourne les données JSON si le statut est correct
+        return response.json();
+    })
+    .then(data => {
+        // Vérifie que les données sont présentes et bien formatées
+        if (!data || !Array.isArray(data.results) || data.results.length === 0) {
+            throw new Error("Les données de l'API sont invalides ou manquantes.");
+        }
+
+        // Recherche des informations sur la mairie dans les données
         const mairieRecord = data.results.find(record => {
             const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
             return (
-                pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")
+                pivotData.some(item => item.type_service_local === "mairie") && 
+                record.nom.startsWith("Mairie - ")
             );
         });
 
-        if (mairieRecord && mairieRecord.adresse) {
-            const adresseData = JSON.parse(mairieRecord.adresse);
-            const adresseMairie = `${adresseData[0].numero_voie || ''} ${adresseData[0].complement1 || ''} ${adresseData[0].complement2 || ''} ${adresseData[0].service_distribution || ''} ${adresseData[0].code_postal || ''} ${adresseData[0].nom_commune || ''}`.trim();
-
-            // Affichage de l'adresse, validation souple
-            if (adresseMairie) {
-                document.getElementById('adressemairie').textContent = escapeHTML(adresseMairie);
-            } else {
-                console.warn("Adresse vide ou non valide :", adresseMairie);
-            }
-
-            if (mairieRecord.adresse_courriel) {
-                document.getElementById('courrielmairie').textContent = escapeHTML(mairieRecord.adresse_courriel);
-            }
-
-            const siteInternetJSON = mairieRecord.site_internet;
-            if (siteInternetJSON) {
-                const siteInternetData = JSON.parse(siteInternetJSON);
-                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-                if (siteInternet) {
-                    document.getElementById('sitemairie').innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
-                }
-            }
-        } else {
-            infosElement.innerHTML += "Aucune information sur la Mairie trouvée.";
+        // Vérifie si un enregistrement valide de la mairie a été trouvé
+        if (!mairieRecord) {
+            throw new Error("Aucune donnée valide trouvée pour la mairie.");
         }
-    }).catch(error => {
-    showError("Une erreur s'est produite lors de la recherche."); // Message générique
-    console.error("Détails de l'erreur :", error); // Détails spécifiques dans la console
-});
+
+        // Traitement des données de la mairie
+        const adresseData = JSON.parse(mairieRecord.adresse);
+        const adresseMairie = [
+            adresseData[0].numero_voie || '',
+            adresseData[0].complement1 || '',
+            adresseData[0].complement2 || '',
+            adresseData[0].service_distribution || '',
+            adresseData[0].code_postal || '',
+            adresseData[0].nom_commune || ''
+        ].filter(Boolean).join(' - ');
+
+        // Affichage de l'adresse si elle est valide
+        if (adresseMairie) {
+            document.getElementById('adressemairie').textContent = escapeHTML(adresseMairie);
+        } else {
+            console.warn("Adresse vide ou non valide :", adresseMairie);
+        }
+
+        // Affichage du courriel de la mairie si disponible
+        if (mairieRecord.adresse_courriel) {
+            document.getElementById('courrielmairie').textContent = escapeHTML(mairieRecord.adresse_courriel);
+        }
+
+        // Affichage du site internet de la mairie si disponible
+        const siteInternetJSON = mairieRecord.site_internet;
+        if (siteInternetJSON) {
+            const siteInternetData = JSON.parse(siteInternetJSON);
+            const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+            if (siteInternet) {
+                document.getElementById('sitemairie').innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
+            }
+        }
+    })
+    .catch(error => {
+        // Gestion des erreurs avec un message utilisateur générique
+        console.error("Erreur lors de la récupération des données :", error);
+        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+    });
+
 }
 
 
@@ -658,7 +688,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.16f du 21/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
 		<li>version 1.13h du 18/10/2024 : Amélioration de la sécurité</li>
