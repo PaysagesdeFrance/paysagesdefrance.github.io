@@ -196,7 +196,12 @@ function handlePopulationData(data) {
 
     const population = data[0].population;
     if (Number.isInteger(population) && population >= 0) {
-        document.getElementById('populationInfo').textContent = escapeHTML(population.toString()) + ' habitants';
+        // Vérifiez également que la valeur est raisonnable (par exemple, moins de 100 millions)
+        if (population <= 100000000) {
+            document.getElementById('populationInfo').textContent = escapeHTML(population.toString()) + ' habitants';
+        } else {
+            document.getElementById('populationInfo').textContent = 'Données non disponibles';
+        }
     } else {
         document.getElementById('populationInfo').textContent = 'Données non disponibles';
     }
@@ -204,19 +209,25 @@ function handlePopulationData(data) {
 
 
 
+
 // Sous-fonction pour gérer les données EPCI
 function handleEpciData(data) {
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
+        showError('Les données de l\'EPCI sont invalides ou indisponibles.');
+        document.getElementById('epciInfo').textContent = 'Données non disponibles';
+        return;
+    }
+
     const epci = data[0].epci;
-    const nomEpci = epci ? epci.nom : 'Non disponible';
+    const nomEpci = epci.nom || 'Non disponible';
     const codeEpci = data[0].codeEpci;
 
-    if (nomEpci && validateText(nomEpci)) {
+    if (validateText(nomEpci)) {
         document.getElementById('epciInfo').textContent = escapeHTML(nomEpci) + ' – (SIREN : ' + escapeHTML(codeEpci) + ')';
     } else {
         document.getElementById('epciInfo').textContent = 'EPCI non disponible';
     }
 
-    // Si le code EPCI est valide, récupérer les informations EPCI et président
     if (codeEpci && codeEpci !== "200054781") {
         fetchAdresse(codeEpci, "epci");
         fetchNomEluOuPresident("president", codeEpci);
@@ -224,6 +235,7 @@ function handleEpciData(data) {
         document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
     }
 }
+
 
 // Sous-fonction pour gérer les informations sur le maire
 function handleMaireData(codeCommune) {
@@ -407,17 +419,21 @@ function validateText(text, maxLength = 100) {
 
 
 function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, function(match) {
+    return str.replace(/[&<>"'`/\\]/g, function(match) {
         const escapeChars = {
             '&': '&amp;',
             '<': '&lt;',
             '>': '&gt;',
             '"': '&quot;',
-            "'": '&#39;'
+            "'": '&#39;',
+            '`': '&#96;',
+            '/': '&#x2F;',
+            '\\': '&#92;'
         };
         return escapeChars[match];
     });
 }
+
 
 
 function fetchNomEluOuPresident(typeElu, code) {
@@ -622,7 +638,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.17a du 24/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
