@@ -218,7 +218,7 @@ function handleEpciData(data) {
 
     // Si le code EPCI est valide, récupérer les informations EPCI et président
     if (codeEpci && codeEpci !== "200054781") {
-        fetchAdresseData(codeEpci, "epci");
+        fetchAdresse(codeEpci, "epci");
         fetchNomEluOuPresident("president", codeEpci);
     } else {
         document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
@@ -228,7 +228,7 @@ function handleEpciData(data) {
 // Sous-fonction pour gérer les informations sur le maire
 function handleMaireData(codeCommune) {
     fetchNomEluOuPresident("maire", codeCommune);
-    fetchAdresseData(codeCommune, "mairie");
+    fetchAdresse(codeCommune, "mairie");
 }
 
 // Sous-fonction pour gérer les données de l'unité urbaine
@@ -466,15 +466,13 @@ if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(
     });
 }
 
-
-async function fetchAdresseData(code, type) {
+async function fetchAdresse(code, type) {
     const isMairie = type === 'mairie';
     const endpoint = isMairie ? `code_insee_commune%3A%22${code}%22` : `siren%3A%22${code}%22`;
     const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
 
     try {
         const response = await fetch(apiUrl);
-        // Vérification du statut de la réponse
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
@@ -484,7 +482,8 @@ async function fetchAdresseData(code, type) {
             throw new Error("Données d'adresse non disponibles ou format inattendu.");
         }
 
-        const mairieRecord = data.results.find(record => {
+        // Recherche d'un enregistrement valide pour la mairie ou l'EPCI
+        const record = data.results.find(record => {
             const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
             return (
                 (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || 
@@ -492,9 +491,10 @@ async function fetchAdresseData(code, type) {
             );
         });
 
-        if (mairieRecord && mairieRecord.adresse) {
-            const adresseData = JSON.parse(mairieRecord.adresse);
-            const adresseMairie = [
+        // Si un enregistrement valide est trouvé, traiter les données
+        if (record && record.adresse) {
+            const adresseData = JSON.parse(record.adresse);
+            const adresseComplete = [
                 adresseData[0].numero_voie || '',
                 adresseData[0].complement1 || '',
                 adresseData[0].complement2 || '',
@@ -503,26 +503,32 @@ async function fetchAdresseData(code, type) {
                 adresseData[0].nom_commune || ''
             ].filter(Boolean).join(' - ');
 
-            if (adresseMairie) {
-                const infoText = type === "mairie" ? "adressemairie" : "adresseEpci";
-                document.getElementById(infoText).textContent = escapeHTML(adresseMairie);
+            // Affichage de l'adresse si elle est valide
+            if (adresseComplete) {
+                const infoText = isMairie ? "adressemairie" : "adresseEpci";
+                document.getElementById(infoText).textContent = escapeHTML(adresseComplete);
+            } else {
+                console.warn("Adresse vide ou non valide :", adresseComplete);
             }
 
-            if (mairieRecord.adresse_courriel) {
-                const infoText = type === "mairie" ? "courrielmairie" : "courrielEpci";
-                document.getElementById(infoText).textContent = escapeHTML(mairieRecord.adresse_courriel);
+            // Affichage du courriel de la mairie ou de l'EPCI si disponible
+            if (record.adresse_courriel) {
+                const infoText = isMairie ? "courrielmairie" : "courrielEpci";
+                document.getElementById(infoText).textContent = escapeHTML(record.adresse_courriel);
             }
 
-            const siteInternetJSON = mairieRecord.site_internet;
+            // Affichage du site internet de la mairie ou de l'EPCI si disponible
+            const siteInternetJSON = record.site_internet;
             if (siteInternetJSON) {
                 const siteInternetData = JSON.parse(siteInternetJSON);
                 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-                const infoText = type === "mairie" ? "sitemairie" : "siteEpci";
+                const infoText = isMairie ? "sitemairie" : "siteEpci";
                 if (siteInternet) {
                     document.getElementById(infoText).innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
                 }
             }
         } else {
+            // Message d'erreur si aucune information n'est trouvée
             throw new Error("Aucune information sur la Mairie ou l'EPCI trouvée.");
         }
     } catch (error) {
@@ -534,78 +540,6 @@ async function fetchAdresseData(code, type) {
 
 
 
-
-function fetchAdresseCommune(sirenCommune) {
-    const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?where=startswith(siret,"${sirenCommune}")`;
-fetch(apiUrl)
-    .then(response => {
-        // Vérification du statut de la réponse
-        if (!response.ok) {
-            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
-        }
-        // Retourne les données JSON si le statut est correct
-        return response.json();
-    })
-    .then(data => {
-        // Vérifie que les données sont présentes et bien formatées
-        if (!data || !Array.isArray(data.results) || data.results.length === 0) {
-            throw new Error("Les données de l'API sont invalides ou manquantes.");
-        }
-
-        // Recherche des informations sur la mairie dans les données
-        const mairieRecord = data.results.find(record => {
-            const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-            return (
-                pivotData.some(item => item.type_service_local === "mairie") && 
-                record.nom.startsWith("Mairie - ")
-            );
-        });
-
-        // Vérifie si un enregistrement valide de la mairie a été trouvé
-        if (!mairieRecord) {
-            throw new Error("Aucune donnée valide trouvée pour la mairie.");
-        }
-
-        // Traitement des données de la mairie
-        const adresseData = JSON.parse(mairieRecord.adresse);
-        const adresseMairie = [
-            adresseData[0].numero_voie || '',
-            adresseData[0].complement1 || '',
-            adresseData[0].complement2 || '',
-            adresseData[0].service_distribution || '',
-            adresseData[0].code_postal || '',
-            adresseData[0].nom_commune || ''
-        ].filter(Boolean).join(' - ');
-
-        // Affichage de l'adresse si elle est valide
-        if (adresseMairie) {
-            document.getElementById('adressemairie').textContent = escapeHTML(adresseMairie);
-        } else {
-            console.warn("Adresse vide ou non valide :", adresseMairie);
-        }
-
-        // Affichage du courriel de la mairie si disponible
-        if (mairieRecord.adresse_courriel) {
-            document.getElementById('courrielmairie').textContent = escapeHTML(mairieRecord.adresse_courriel);
-        }
-
-        // Affichage du site internet de la mairie si disponible
-        const siteInternetJSON = mairieRecord.site_internet;
-        if (siteInternetJSON) {
-            const siteInternetData = JSON.parse(siteInternetJSON);
-            const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-            if (siteInternet) {
-                document.getElementById('sitemairie').innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
-            }
-        }
-    })
-    .catch(error => {
-        // Gestion des erreurs avec un message utilisateur générique
-        console.error("Erreur lors de la récupération des données :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
-    });
-
-}
 
 
 function validateApiResponse(data, expectedFields) {
@@ -688,6 +622,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+ 		<li>version 1.17a du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.14u du 19/10/2024 : Amélioration de la sécurité</li>
