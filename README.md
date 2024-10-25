@@ -188,7 +188,7 @@ function parseCSV(csvText) {
                 }
             } else if (char === ',' && !insideQuotes) {
                 // Fin d'une colonne
-                columns.push(currentColumn.trim());
+                columns.push(currentColumn);
                 currentColumn = '';
             } else {
                 // Ajoute le caractère courant à la colonne en cours
@@ -197,11 +197,13 @@ function parseCSV(csvText) {
         }
 
         // Ajoute la dernière colonne de la ligne
-        columns.push(currentColumn.trim());
+        columns.push(currentColumn);
 
-        return columns;
-    }).filter(row => row.length > 1); // Filtre les lignes qui ont moins de deux colonnes
+        // Retourne les colonnes après avoir retiré les espaces superflus
+        return columns.map(col => col.trim());
+    }).filter(row => row.length > 1);
 }
+
 
 
 
@@ -500,7 +502,6 @@ function fetchNomEluOuPresident(typeElu, code) {
 
             for (let i = 0; i < data.length; i++) {
                 const row = data[i];
-                // Vérifiez que la ligne contient suffisamment de colonnes avant d'y accéder
                 if (row.length < 16) {
                     continue;
                 }
@@ -508,7 +509,6 @@ function fetchNomEluOuPresident(typeElu, code) {
                 const codeIndex = 4;
                 const fonctionIndex = 15;
 
-                // Comparaison stricte du code
                 if (row[codeIndex] && row[codeIndex].trim() === code.toString() &&
                     (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
 
@@ -520,7 +520,7 @@ function fetchNomEluOuPresident(typeElu, code) {
                         sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                         const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
                         document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
-                        break; // Arrête la boucle après avoir trouvé le bon élu
+                        break;
                     } else {
                         console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
                         showError("Les informations de l'élu sont invalides.");
@@ -533,6 +533,7 @@ function fetchNomEluOuPresident(typeElu, code) {
             console.error("Erreur lors de la récupération du fichier CSV :", error);
         });
 }
+
 
 
 
@@ -695,7 +696,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18g du 25/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18h du 25/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
