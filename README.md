@@ -165,16 +165,25 @@ const infosElement = document.getElementById("infos");
 function parseCSV(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
     return lines.map(line => {
-        // Utilise une expression régulière pour diviser les colonnes tout en gérant les guillemets
         const columns = [];
         let match;
-        const regex = /("([^"]*)"|[^",]*)(,|$)/g;
+        const regex = /"([^"]*)"|([^",]*)(,|$)/g;
+
+        // Réinitialise la recherche sur chaque ligne
         while ((match = regex.exec(line)) !== null) {
-            columns.push(match[2] ? match[2] : match[1].trim());
+            // Si la colonne correspond à une valeur entre guillemets
+            if (match[1] !== undefined) {
+                columns.push(match[1].trim());
+            }
+            // Si la colonne correspond à une valeur non entre guillemets
+            else if (match[2] !== undefined) {
+                columns.push(match[2].trim());
+            }
         }
         return columns;
     });
 }
+
 
 
 
@@ -469,7 +478,6 @@ function fetchNomEluOuPresident(typeElu, code) {
                 const codeIndex = 4;
                 const fonctionIndex = 15;
 
-                // Vérifiez si le code correspond à la valeur recherchée
                 if (data[i][codeIndex] && parseInt(data[i][codeIndex]) === parseInt(code) &&
                     (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
 
@@ -477,12 +485,11 @@ function fetchNomEluOuPresident(typeElu, code) {
                     const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
                     let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
 
-                    // Validation et affichage
                     if (nomElu && prenomElu && validateText(nomElu) && validateText(prenomElu)) {
                         sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                         const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
                         document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
-                        break; // Arrête la boucle après avoir trouvé le bon élu
+                        break;
                     } else {
                         console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
                         showError("Les informations de l'élu sont invalides.");
@@ -654,7 +661,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18b du 25/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18c du 25/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
