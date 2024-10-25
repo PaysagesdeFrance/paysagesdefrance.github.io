@@ -180,9 +180,16 @@ function parseCSV(csvText) {
                 columns.push(match[2].trim());
             }
         }
+
+        // Ajoute une vérification pour s'assurer que la ligne a été correctement analysée
+        if (columns.length === 0) {
+            console.warn("Ligne CSV vide ou malformée : ", line);
+        }
+
         return columns;
-    });
+    }).filter(row => row.length > 0); // Filtre les lignes vides
 }
+
 
 
 
@@ -661,7 +668,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18c du 25/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18d du 25/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
