@@ -162,14 +162,20 @@ const infosElement = document.getElementById("infos");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
 
-  function parseCSV(csvText) {
+function parseCSV(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
     return lines.map(line => {
-        // Divise les lignes en colonnes en gérant les guillemets et les virgules
-        const columns = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-        return columns ? columns.map(col => col.replace(/^"|"$/g, '').trim()) : [];
+        // Utilise une expression régulière pour diviser les colonnes tout en gérant les guillemets
+        const columns = [];
+        let match;
+        const regex = /("([^"]*)"|[^",]*)(,|$)/g;
+        while ((match = regex.exec(line)) !== null) {
+            columns.push(match[2] ? match[2] : match[1].trim());
+        }
+        return columns;
     });
 }
+
 
 
 // Sous-fonction pour gérer les données de la compétence PLU
@@ -463,23 +469,24 @@ function fetchNomEluOuPresident(typeElu, code) {
                 const codeIndex = 4;
                 const fonctionIndex = 15;
 
-                if (parseInt(data[i][codeIndex]) === parseInt(code) &&
+                // Vérifiez si le code correspond à la valeur recherchée
+                if (data[i][codeIndex] && parseInt(data[i][codeIndex]) === parseInt(code) &&
                     (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
 
                     const nomElu = data[i][typeElu === "maire" ? 6 : 8];
                     const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
                     let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
 
-                    // Validation et échappement des données avant l'affichage
-                    if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
+                    // Validation et affichage
+                    if (nomElu && prenomElu && validateText(nomElu) && validateText(prenomElu)) {
                         sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                         const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
                         document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+                        break; // Arrête la boucle après avoir trouvé le bon élu
                     } else {
                         console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
                         showError("Les informations de l'élu sont invalides.");
                     }
-                    break; // Arrête la boucle une fois l'élu trouvé
                 }
             }
         })
@@ -488,6 +495,7 @@ function fetchNomEluOuPresident(typeElu, code) {
             console.error("Erreur lors de la récupération du fichier CSV :", error);
         });
 }
+
 
 
 async function fetchAdresse(code, type) {
@@ -646,7 +654,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18a du 25/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18b du 25/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
