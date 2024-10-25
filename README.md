@@ -164,31 +164,45 @@ const infosElement = document.getElementById("infos");
 
 function parseCSV(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
+
     return lines.map(line => {
         const columns = [];
-        let match;
-        const regex = /"([^"]*)"|([^",]*)(,|$)/g;
+        let currentColumn = '';
+        let insideQuotes = false;
 
-        // Réinitialise la recherche sur chaque ligne
-        while ((match = regex.exec(line)) !== null) {
-            // Si la colonne correspond à une valeur entre guillemets
-            if (match[1] !== undefined) {
-                columns.push(match[1].trim());
-            }
-            // Si la colonne correspond à une valeur non entre guillemets
-            else if (match[2] !== undefined) {
-                columns.push(match[2].trim());
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = i < line.length - 1 ? line[i + 1] : null;
+
+            if (char === '"' && !insideQuotes) {
+                // Début des guillemets
+                insideQuotes = true;
+            } else if (char === '"' && insideQuotes) {
+                if (nextChar === '"') {
+                    // Doubles guillemets à l'intérieur des guillemets, ajoute un guillemet
+                    currentColumn += '"';
+                    i++; // Ignore le guillemet suivant
+                } else {
+                    // Fin des guillemets
+                    insideQuotes = false;
+                }
+            } else if (char === ',' && !insideQuotes) {
+                // Fin d'une colonne
+                columns.push(currentColumn.trim());
+                currentColumn = '';
+            } else {
+                // Ajoute le caractère courant à la colonne en cours
+                currentColumn += char;
             }
         }
 
-        // Ajoute une vérification pour s'assurer que la ligne a été correctement analysée
-        if (columns.length === 0) {
-            console.warn("Ligne CSV vide ou malformée : ", line);
-        }
+        // Ajoute la dernière colonne de la ligne
+        columns.push(currentColumn.trim());
 
         return columns;
     }).filter(row => row.length > 0); // Filtre les lignes vides
 }
+
 
 
 
@@ -482,6 +496,11 @@ function fetchNomEluOuPresident(typeElu, code) {
         .then(csvText => {
             const data = parseCSV(csvText);
             for (let i = 0; i < data.length; i++) {
+                // Vérifiez que la ligne contient suffisamment de colonnes avant d'y accéder
+                if (data[i].length < 16) {
+                    continue;
+                }
+
                 const codeIndex = 4;
                 const fonctionIndex = 15;
 
@@ -509,6 +528,7 @@ function fetchNomEluOuPresident(typeElu, code) {
             console.error("Erreur lors de la récupération du fichier CSV :", error);
         });
 }
+
 
 
 
@@ -668,7 +688,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18d du 25/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18e du 25/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
