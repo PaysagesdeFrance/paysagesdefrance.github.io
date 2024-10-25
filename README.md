@@ -164,7 +164,6 @@ const infosElement = document.getElementById("infos");
 
 function parseCSV(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
-
     return lines.map(line => {
         const columns = [];
         let currentColumn = '';
@@ -175,33 +174,28 @@ function parseCSV(csvText) {
             const nextChar = i < line.length - 1 ? line[i + 1] : null;
 
             if (char === '"' && !insideQuotes) {
-                // Début des guillemets
                 insideQuotes = true;
             } else if (char === '"' && insideQuotes) {
                 if (nextChar === '"') {
-                    // Doubles guillemets à l'intérieur des guillemets, ajoute un guillemet
                     currentColumn += '"';
                     i++; // Ignore le guillemet suivant
                 } else {
-                    // Fin des guillemets
                     insideQuotes = false;
                 }
             } else if (char === ',' && !insideQuotes) {
-                // Fin d'une colonne
                 columns.push(currentColumn.trim());
                 currentColumn = '';
             } else {
-                // Ajoute le caractère courant à la colonne en cours
                 currentColumn += char;
             }
         }
 
-        // Ajoute la dernière colonne de la ligne
         columns.push(currentColumn.trim());
 
         return columns;
-    }).filter(row => row.length > 0); // Filtre les lignes vides
+    }).filter(row => row.length > 0);
 }
+
 
 
 
@@ -495,21 +489,22 @@ function fetchNomEluOuPresident(typeElu, code) {
         })
         .then(csvText => {
             const data = parseCSV(csvText);
+
             for (let i = 0; i < data.length; i++) {
-                // Vérifiez que la ligne contient suffisamment de colonnes avant d'y accéder
-                if (data[i].length < 16) {
+                const row = data[i];
+                if (row.length < 16) {
                     continue;
                 }
 
                 const codeIndex = 4;
                 const fonctionIndex = 15;
 
-                if (data[i][codeIndex] && parseInt(data[i][codeIndex]) === parseInt(code) &&
-                    (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+                if (row[codeIndex] && row[codeIndex].trim() === code.toString() &&
+                    (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
 
-                    const nomElu = data[i][typeElu === "maire" ? 6 : 8];
-                    const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
-                    let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
+                    const nomElu = row[typeElu === "maire" ? 6 : 8];
+                    const prenomElu = row[typeElu === "maire" ? 7 : 9];
+                    let sexeElu = row[typeElu === "maire" ? 8 : 10];
 
                     if (nomElu && prenomElu && validateText(nomElu) && validateText(prenomElu)) {
                         sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
@@ -528,6 +523,7 @@ function fetchNomEluOuPresident(typeElu, code) {
             console.error("Erreur lors de la récupération du fichier CSV :", error);
         });
 }
+
 
 
 
@@ -688,7 +684,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18e du 25/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18f du 25/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
