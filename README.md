@@ -161,15 +161,6 @@ const infosElement = document.getElementById("infos");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
 
-  // Fonction utilitaire pour valider les données API
-function validateApiResponse(data, requiredFields) {
-    if (!Array.isArray(data) || data.length === 0) {
-        return false;
-    }
-    return requiredFields.every(field => field in data[0]);
-}
-
-
 // Fonction pour télécharger et lire les données CSV
 async function fetchCsvData(url) {
     try {
@@ -230,7 +221,7 @@ async function handlePluData(codeEpci) {
 
 // Sous-fonction pour gérer les données de population
 function handlePopulationData(data) {
-    if (!validateApiResponse(data, ['population'])) {
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
         showError('Les données de population sont invalides ou indisponibles.');
         document.getElementById('populationInfo').textContent = 'Données non disponibles';
         return;
@@ -254,7 +245,7 @@ function handlePopulationData(data) {
 
 // Sous-fonction pour gérer les données EPCI
 function handleEpciData(data) {
-    if (!validateApiResponse(data, ['epci', 'codeEpci'])) {
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
         showError('Les données de l\'EPCI sont invalides ou indisponibles.');
         document.getElementById('epciInfo').textContent = 'Données non disponibles';
         return;
@@ -288,6 +279,7 @@ function handleMaireData(codeCommune) {
 // Sous-fonction pour gérer les données de l'unité urbaine
 async function handleUniteUrbaineData(codeCommune) {
     try {
+        // Remplacement d'Axios par fetch pour la première requête
         const inseeResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee');
         if (!inseeResponse.ok) {
             throw new Error(`Erreur réseau : ${inseeResponse.status} ${inseeResponse.statusText}`);
@@ -296,41 +288,40 @@ async function handleUniteUrbaineData(codeCommune) {
         const inseeLines = inseeText.split('\n');
         const inseeLine = inseeLines.find(line => line.startsWith(`${codeCommune},`));
 
-        if (!inseeLine) {
-            document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
-            return;
-        }
+        if (inseeLine) {
+            const values = inseeLine.split(',');
+            const numUniteUrbaine = values[1].substring(0, 5);
 
-        const values = inseeLine.split(',');
-        const numUniteUrbaine = values[1].substring(0, 5);
+            // Remplacement d'Axios par fetch pour la seconde requête
+            const uuResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu');
+            if (!uuResponse.ok) {
+                throw new Error(`Erreur réseau : ${uuResponse.status} ${uuResponse.statusText}`);
+            }
+            const uuText = await uuResponse.text();
+            const uuLines = uuText.split('\n');
+            const uuLine = uuLines.find(uuLine => uuLine.includes(`${numUniteUrbaine},`));
 
-        const uuResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu');
-        if (!uuResponse.ok) {
-            throw new Error(`Erreur réseau : ${uuResponse.status} ${uuResponse.statusText}`);
-        }
-        const uuText = await uuResponse.text();
-        const uuLines = uuText.split('\n');
-        const uuLine = uuLines.find(line => line.startsWith(`${numUniteUrbaine},`));
+            if (uuLine) {
+                const uuValues = uuLine.split(',');
+                const numAssocie = parseInt(uuValues[1], 10);
+                let populationUrbainMessage = "";
 
-        if (!uuLine) {
-            document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
-            return;
-        }
-
-        const uuValues = uuLine.split(',');
-        const numAssocie = parseInt(uuValues[1], 10);
-        let populationUrbainMessage = "";
-
-        if (numAssocie <= 5) {
-            populationUrbainMessage = "inférieure à 100000 habitants";
-        } else if (numAssocie === 8) {
-            populationUrbainMessage = "unité urbaine de Paris";
-        } else if (numAssocie === 6 || numAssocie === 7) {
-            populationUrbainMessage = "supérieure à 100000 habitants";
+                if (numAssocie <= 5) {
+                    populationUrbainMessage = "inférieure à 100000 habitants";
+                } else if (numAssocie === 8) {
+                    populationUrbainMessage = "unité urbaine de Paris";
+                } else if (numAssocie === 6 || numAssocie === 7) {
+                    populationUrbainMessage = "supérieure à 100000 habitants";
+                } else {
+                    populationUrbainMessage = "Aucune condition spécifiée";
+                }
+                document.getElementById('popUrbaineInfo').textContent = escapeHTML(populationUrbainMessage);
+            } else {
+                document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
+            }
         } else {
-            populationUrbainMessage = "Aucune condition spécifiée";
+            document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
         }
-        document.getElementById('popUrbaineInfo').textContent = escapeHTML(populationUrbainMessage);
     } catch (error) {
         console.error("Une erreur s'est produite lors de la récupération des données :", error);
         showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
@@ -689,7 +680,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18m du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18k du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
