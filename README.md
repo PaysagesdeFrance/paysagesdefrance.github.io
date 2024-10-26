@@ -506,7 +506,7 @@ async function fetchNomEluOuPresident(typeElu, code) {
     let found = false;
     for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        const codeIndex = 4; // L'index de la colonne du code dans le CSV (à adapter si nécessaire)
+        const codeIndex = 4; // L'index de la colonne du code dans le CSV
 
         // Vérification du format de la ligne
         if (row.length < 14) {
@@ -515,8 +515,8 @@ async function fetchNomEluOuPresident(typeElu, code) {
         }
 
         if (parseInt(row[codeIndex]) === parseInt(code)) {
-            const nomElu = row[6];
-            const prenomElu = row[7];
+            const nomElu = typeElu === "maire" ? row[6] : row[7];
+            const prenomElu = typeElu === "maire" ? row[7] : row[8];
             let sexeElu = row[8];
 
             if (nomElu && prenomElu && validateText(nomElu) && validateText(prenomElu)) {
@@ -687,7 +687,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18g du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18h du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
