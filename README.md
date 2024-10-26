@@ -178,7 +178,6 @@ async function fetchCsvData(url) {
     }
 }
 
-
 // Fonction pour parser les données CSV
 function parseCsv(text) {
     const lines = text.trim().split('\n');
@@ -500,28 +499,37 @@ async function fetchNomEluOuPresident(typeElu, code) {
     }
 
     // Vérification des données récupérées
+    console.log("Données CSV récupérées :", data); // Debug
+
     let found = false;
     for (let i = 0; i < data.length; i++) {
+        const row = data[i];
         const codeIndex = 4; // L'index de la colonne du code dans le CSV
         const fonctionIndex = 15; // L'index de la colonne fonction dans le CSV
 
-        if (parseInt(data[i][codeIndex]) === parseInt(code) &&
-            (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+        // Vérification du format de la ligne
+        if (row.length < 16) {
+            console.warn("Ligne CSV inattendue (nombre de colonnes insuffisant) :", row);
+            continue;
+        }
 
-            const nomElu = data[i][typeElu === "maire" ? 6 : 8];
-            const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
-            let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
+        if (parseInt(row[codeIndex]) === parseInt(code) &&
+            (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
+
+            const nomElu = row[typeElu === "maire" ? 6 : 8];
+            const prenomElu = row[typeElu === "maire" ? 7 : 9];
+            let sexeElu = row[typeElu === "maire" ? 8 : 10];
 
             if (nomElu && prenomElu && validateText(nomElu) && validateText(prenomElu)) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
                 document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+                console.log(`Élu trouvé : ${sexeElu} ${nomElu} ${prenomElu}`); // Debug
                 found = true;
+                break; // Arrêter la boucle après avoir trouvé l'élu correspondant
             } else {
-                console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
-                showError("Les informations de l'élu sont invalides.");
+                console.warn("Données de l'élu invalides ou format inattendu : ", nomElu, prenomElu);
             }
-            break; // Arrêter la boucle après avoir trouvé l'élu correspondant
         }
     }
 
@@ -680,7 +688,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18d du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18e du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
