@@ -9,7 +9,6 @@
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
 	<title>Recherche d'une commune</title>
 	<script defer src="papaparse.min.js"></script>
-<script src="axios.min.js"></script>
 	<style>
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
@@ -566,24 +565,17 @@ async function fetchData(selectedCodeCommune) {
     const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
 
     try {
-        const response = await axios.get(apiUrl);
-        const data = response.data;
+        // Remplacement de axios par fetch pour l'appel API
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
 
-        // Vérification de la structure et des champs de la réponse API
+        // Vérification des données reçues
         if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci', 'siren'])) {
-const expectedFields = ['code', 'population', 'epci', 'siren', 'codeEpci'];
-if (!validateApiResponse(data[0], expectedFields)) {
-    showError("Les données récupérées sont incomplètes ou invalides.");
-    return;
-}
-
-const codeCommune = data[0].code;
-const population = data[0].population;
-const epci = data[0].epci;
-const nomEpci = epci ? epci.nom : 'Non disponible';
-const codeEpci = data[0].codeEpci;
-const sirenCommune = data[0].siren;
-
+            const codeCommune = data[0].code;
+            const codeEpci = data[0].codeEpci;
 
             // Affichage des données de la population
             handlePopulationData(data);
@@ -591,7 +583,7 @@ const sirenCommune = data[0].siren;
             // Affichage des données de l'EPCI
             handleEpciData(data);
 
-            // Récupération des informations sur le maire et la mairie
+            // Récupération des informations sur le maire
             handleMaireData(codeCommune);
 
             // Récupération des informations sur l'unité urbaine
@@ -606,16 +598,17 @@ const sirenCommune = data[0].siren;
             if (codeEpci && codeEpci === "200054781") {
                 document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
             }
-
         } else {
             // Si les données ne sont pas au format attendu ou sont manquantes
             showError('Aucune commune trouvée avec ce nom ou les données sont invalides.');
         }
     } catch (error) {
+        // Gestion des erreurs lors de la récupération des données
         console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
         showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
     }
 }
+
 
 
 
@@ -638,6 +631,7 @@ const sirenCommune = data[0].siren;
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+ 		<li>version 1.18a du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
