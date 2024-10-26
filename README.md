@@ -482,7 +482,7 @@ function validateText(text, maxLength = 100) {
         return false;
     }
     // Vérifier l'absence de chaînes dangereuses
-    const forbiddenPatterns = /(<script>|<\/script>|javascript:|onerror\s*=|onload\s*=)/i;
+    const forbiddenPatterns = /(<\/?script.*?>|javascript:|onerror\s*=|onload\s*=)/i;
     if (forbiddenPatterns.test(text)) {
         return false;
     }
@@ -546,7 +546,7 @@ async function fetchNomEluOuPresident(typeElu, code) {
             if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
-                document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
                 found = true;
                 break; // Arrêter la boucle une fois l'élu trouvé
             } else {
@@ -717,7 +717,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18s du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
