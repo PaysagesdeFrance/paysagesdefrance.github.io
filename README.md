@@ -262,7 +262,7 @@ function handleEpciData(data) {
     const codeEpci = data[0].codeEpci;
 
     if (validateText(nomEpci)) {
-        document.getElementById('epciInfo').textContent = escapeHTML(nomEpci) + ' – (SIREN : ' + escapeHTML(codeEpci) + ')';
+        document.getElementById('epciInfo').textContent = `${escapeHTML(nomEpci)} – (SIREN : ${escapeHTML(codeEpci)})`;
     } else {
         document.getElementById('epciInfo').textContent = 'EPCI non disponible';
     }
@@ -717,7 +717,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18r du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18s du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
