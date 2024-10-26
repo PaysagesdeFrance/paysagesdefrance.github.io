@@ -162,6 +162,29 @@ const infosElement = document.getElementById("infos");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
 
+// Fonction pour télécharger et lire les données CSV
+async function fetchCsvData(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
+        }
+        const text = await response.text();
+        return parseCsv(text);
+    } catch (error) {
+        console.error("Erreur lors de la récupération du fichier CSV :", error);
+        showError("Une erreur s'est produite lors de la récupération du fichier CSV.");
+        return null;
+    }
+}
+
+
+// Fonction pour parser les données CSV
+function parseCsv(text) {
+    const lines = text.trim().split('\n');
+    return lines.map(line => line.split(','));
+}
+
 // Sous-fonction pour gérer les données de la compétence PLU
 async function handlePluData(codeEpci) {
     try {
@@ -320,9 +343,11 @@ function handleSearch() {
     }
 }
 
+// Fonction pour afficher les messages d'erreur
 function showError(message) {
-    infosElement.textContent = "Une erreur s'est produite. Veuillez réessayer."; // Message générique pour l'utilisateur
-    console.error("Détails de l'erreur :", message); // Conserver les détails dans la console pour les développeurs
+    const infosElement = document.getElementById("infos");
+    infosElement.textContent = "Une erreur s'est produite. Veuillez réessayer.";
+    console.error("Détails de l'erreur :", message);
 }
 
 
@@ -438,15 +463,12 @@ rechercherBtn.addEventListener("click", handleSearch);
 
 function validateText(text, maxLength = 100) {
     const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*$/;
-    // Ce regex autorise des lettres, chiffres, espaces, apostrophes et tirets, 
-    // mais interdit qu'ils apparaissent en début ou en fin, ou se suivent.
-
-    // Vérifie si le texte est valide et respecte les contraintes de longueur
     return regex.test(text.trim()) && text.length > 0 && text.length <= maxLength;
 }
 
 
 
+// Fonction d'échappement des caractères spéciaux pour éviter les injections XSS
 function escapeHTML(str) {
     return str.replace(/[&<>"'`/\\]/g, function(match) {
         const escapeChars = {
@@ -464,51 +486,36 @@ function escapeHTML(str) {
 }
 
 
-
-function fetchNomEluOuPresident(typeElu, code) {
+// Fonction pour récupérer les données des élus (maire ou président)
+async function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240730-125205/elus-maires.csv";
     const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240731-142441/elus-epci.csv";
     const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
-    Papa.parse(csvUrl, {
-        download: true,
-        header: false,
-        complete: function(results) {
-            const data = results.data;
-            for(let i = 0; i < data.length; i++) {
-                const codeIndex = 4;
-                const fonctionIndex = 15;
-                
-                if(parseInt(data[i][codeIndex]) === parseInt(code) &&
-                   (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+    
+    const data = await fetchCsvData(csvUrl);
+    if (!data) return;
 
-                    const nomElu = data[i][typeElu === "maire" ? 6 : 8];
-                    const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
-                    let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
+    for (let i = 0; i < data.length; i++) {
+        const codeIndex = 4; // L'index de la colonne du code dans le CSV
+        const fonctionIndex = 15; // L'index de la colonne fonction dans le CSV
 
-                    // Validation et échappement des données avant l'affichage
-if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
-    if (sexeElu === "M") {
-        sexeElu = "M.";
-    } else if (sexeElu === "F") {
-        sexeElu = "Mme";
-    } else {
-        sexeElu = ""; // Valeur par défaut en cas de sexe non valide
-    }
-    const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
-    document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
-} else {
-    console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
-    showError("Les informations de l'élu sont invalides.");
-}
-                    break; // Arrête la boucle une fois l'élu trouvé
-                }
+        if (parseInt(data[i][codeIndex]) === parseInt(code) &&
+            (typeElu === "maire" || data[i][fonctionIndex] === "Président du conseil communautaire")) {
+
+            const nomElu = data[i][typeElu === "maire" ? 6 : 8];
+            const prenomElu = data[i][typeElu === "maire" ? 7 : 9];
+            let sexeElu = data[i][typeElu === "maire" ? 8 : 10];
+
+            if (nomElu && prenomElu && validateText(nomElu) && validateText(prenomElu)) {
+                sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
+                const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
+                document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+            } else {
+                showError("Les informations de l'élu sont invalides.");
             }
-        },
-        error: function(error) {
-            showError("Une erreur s'est produite lors de la récupération du fichier CSV. Veuillez réessayer.");
-            console.error("Erreur lors de la récupération du fichier CSV :", error);
+            break; // Arrêter la boucle après avoir trouvé l'élu correspondant
         }
-    });
+    }
 }
 
 async function fetchAdresse(code, type) {
@@ -660,7 +667,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18b du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18c du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
