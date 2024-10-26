@@ -185,6 +185,7 @@ function parseCsv(text) {
     return lines.map(line => line.split(','));
 }
 
+
 // Sous-fonction pour gérer les données de la compétence PLU
 async function handlePluData(codeEpci) {
     try {
@@ -346,7 +347,7 @@ function handleSearch() {
 // Fonction pour afficher les messages d'erreur
 function showError(message) {
     const infosElement = document.getElementById("infos");
-    infosElement.textContent = "Une erreur s'est produite. Veuillez réessayer.";
+    infosElement.textContent = message; // Afficher le message d'erreur passé en argument
     console.error("Détails de l'erreur :", message);
 }
 
@@ -493,8 +494,13 @@ async function fetchNomEluOuPresident(typeElu, code) {
     const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
     
     const data = await fetchCsvData(csvUrl);
-    if (!data) return;
+    if (!data) {
+        showError("Les données du CSV sont introuvables.");
+        return;
+    }
 
+    // Vérification des données récupérées
+    let found = false;
     for (let i = 0; i < data.length; i++) {
         const codeIndex = 4; // L'index de la colonne du code dans le CSV
         const fonctionIndex = 15; // L'index de la colonne fonction dans le CSV
@@ -510,11 +516,18 @@ async function fetchNomEluOuPresident(typeElu, code) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
                 document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+                found = true;
             } else {
+                console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
                 showError("Les informations de l'élu sont invalides.");
             }
             break; // Arrêter la boucle après avoir trouvé l'élu correspondant
         }
+    }
+
+    if (!found) {
+        console.warn("Aucun élu correspondant trouvé pour le code :", code);
+        showError("Le nom de l'élu n'a pas été trouvé.");
     }
 }
 
@@ -667,7 +680,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18c du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18d du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
