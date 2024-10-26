@@ -387,6 +387,7 @@ communeInput.addEventListener("input", debounce(function() {
 }, 300));
 
 
+
 function fetchCommunes(communeName) {
     fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`)
         .then(response => {
@@ -463,15 +464,26 @@ document.addEventListener("click", function(event) {
 rechercherBtn.addEventListener("click", handleSearch);
 
 function validateText(text, maxLength = 100) {
+    // Renforcer le regex pour n'autoriser que certains caractères et éviter les séquences douteuses
     const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*$/;
-    return regex.test(text.trim()) && text.length > 0 && text.length <= maxLength;
+    // Vérifier la longueur, les caractères valides, et éviter les séquences interdites
+    if (!regex.test(text.trim()) || text.length === 0 || text.length > maxLength) {
+        return false;
+    }
+    // Vérifier l'absence de chaînes dangereuses
+    const forbiddenPatterns = /(<script>|<\/script>|javascript:|onerror\s*=|onload\s*=)/i;
+    if (forbiddenPatterns.test(text)) {
+        return false;
+    }
+    return true;
 }
+
 
 
 
 // Fonction d'échappement des caractères spéciaux pour éviter les injections XSS
 function escapeHTML(str) {
-    return str.replace(/[&<>"'`/\\]/g, function(match) {
+    return str.replace(/[&<>"'`/\\(){}]/g, function(match) {
         const escapeChars = {
             '&': '&amp;',
             '<': '&lt;',
@@ -480,11 +492,16 @@ function escapeHTML(str) {
             "'": '&#39;',
             '`': '&#96;',
             '/': '&#x2F;',
-            '\\': '&#92;'
+            '\\': '&#92;',
+            '(': '&#40;',
+            ')': '&#41;',
+            '{': '&#123;',
+            '}': '&#125;'
         };
         return escapeChars[match];
     });
 }
+
 
 
 // Fonction pour récupérer les données des élus (maire ou président)
@@ -680,7 +697,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18k du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18m du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
