@@ -489,6 +489,7 @@ function escapeHTML(str) {
 
 
 // Fonction pour récupérer les données des élus (maire ou président)
+// Fonction pour récupérer les données des élus (maire ou président)
 async function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240730-125205/elus-maires.csv";
     const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240731-142441/elus-epci.csv";
@@ -500,34 +501,30 @@ async function fetchNomEluOuPresident(typeElu, code) {
         return;
     }
 
-    // Vérification des données récupérées
-    console.log("Données CSV récupérées :", data); // Debug
-
     let found = false;
     for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        const codeIndex = 4; // L'index de la colonne du code dans le CSV
+        const codeIndex = 4; // Colonne pour le code INSEE ou SIREN
+        const fonctionIndex = 15; // Colonne pour la fonction (président)
 
-        // Vérification du format de la ligne
-        if (row.length < 14) {
-            console.warn("Ligne CSV inattendue (nombre de colonnes insuffisant) :", row);
-            continue;
-        }
+        // Vérifier si la ligne correspond au code et, pour le président, à la bonne fonction
+        if (parseInt(row[codeIndex]) === parseInt(code) &&
+            (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
 
-        if (parseInt(row[codeIndex]) === parseInt(code)) {
-            const nomElu = typeElu === "maire" ? row[6] : row[7];
-            const prenomElu = typeElu === "maire" ? row[7] : row[8];
-            let sexeElu = row[8];
+            const nomElu = row[typeElu === "maire" ? 6 : 8];
+            const prenomElu = row[typeElu === "maire" ? 7 : 9];
+            let sexeElu = row[typeElu === "maire" ? 8 : 10];
 
-            if (nomElu && prenomElu && validateText(nomElu) && validateText(prenomElu)) {
+            // Validation des données avant l'affichage
+            if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
                 document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
-                console.log(`Élu trouvé : ${sexeElu} ${nomElu} ${prenomElu}`); // Debug
                 found = true;
-                break; // Arrêter la boucle après avoir trouvé l'élu correspondant
+                break; // Arrêter la boucle une fois l'élu trouvé
             } else {
-                console.warn("Données de l'élu invalides ou format inattendu : ", nomElu, prenomElu);
+                console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
+                showError("Les informations de l'élu sont invalides.");
             }
         }
     }
@@ -687,7 +684,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18h du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18j du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
