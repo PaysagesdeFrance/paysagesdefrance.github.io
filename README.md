@@ -620,7 +620,14 @@ async function fetchAdresse(code, type) {
                 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
                 const infoText = isMairie ? "sitemairie" : "siteEpci";
                 if (siteInternet) {
-                    document.getElementById(infoText).innerHTML = `<a href="${escapeHTML(siteInternet)}" target="_blank">${escapeHTML(siteInternet)}</a>`;
+                    // Création d'un lien de manière sécurisée
+const anchorElement = document.createElement("a");
+anchorElement.href = siteInternet;
+anchorElement.textContent = siteInternet;
+anchorElement.target = "_blank";
+document.getElementById(infoText).textContent = ''; // Efface le contenu précédent
+document.getElementById(infoText).appendChild(anchorElement);
+
                 }
             }
         } else {
@@ -708,7 +715,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18p du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18q du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
