@@ -170,7 +170,10 @@ async function fetchCsvData(url) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
         const text = await response.text();
-        return parseCsv(text); // Appel avec le séparateur par défaut ";"
+        const data = parseCsv(text); // Appel avec le séparateur par défaut ";"
+        
+        // Ignorer la première ligne (en-tête)
+        return data.slice(1);
     } catch (error) {
         console.error("Erreur lors de la récupération du fichier CSV :", error);
         showError("Une erreur s'est produite lors de la récupération du fichier CSV.");
@@ -183,7 +186,6 @@ function parseCsv(text, separator = ';') {
     const lines = text.trim().split('\n');
     return lines.map(line => line.split(separator));
 }
-
 
 // Sous-fonction pour gérer les données de la compétence PLU
 async function handlePluData(codeEpci) {
@@ -504,21 +506,18 @@ async function fetchNomEluOuPresident(typeElu, code) {
     let found = false;
     for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        const codeIndex = 4; // L'index de la colonne du code dans le CSV
-        const fonctionIndex = 15; // L'index de la colonne fonction dans le CSV
+        const codeIndex = 4; // L'index de la colonne du code dans le CSV (à adapter si nécessaire)
 
         // Vérification du format de la ligne
-        if (row.length < 16) {
+        if (row.length < 14) {
             console.warn("Ligne CSV inattendue (nombre de colonnes insuffisant) :", row);
             continue;
         }
 
-        if (parseInt(row[codeIndex]) === parseInt(code) &&
-            (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
-
-            const nomElu = row[typeElu === "maire" ? 6 : 8];
-            const prenomElu = row[typeElu === "maire" ? 7 : 9];
-            let sexeElu = row[typeElu === "maire" ? 8 : 10];
+        if (parseInt(row[codeIndex]) === parseInt(code)) {
+            const nomElu = row[6];
+            const prenomElu = row[7];
+            let sexeElu = row[8];
 
             if (nomElu && prenomElu && validateText(nomElu) && validateText(prenomElu)) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
@@ -688,7 +687,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18f du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18g du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
