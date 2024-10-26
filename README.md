@@ -170,7 +170,7 @@ async function fetchCsvData(url) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
         const text = await response.text();
-        return parseCsv(text);
+        return parseCsv(text); // Appel avec le séparateur par défaut ";"
     } catch (error) {
         console.error("Erreur lors de la récupération du fichier CSV :", error);
         showError("Une erreur s'est produite lors de la récupération du fichier CSV.");
@@ -179,9 +179,9 @@ async function fetchCsvData(url) {
 }
 
 // Fonction pour parser les données CSV
-function parseCsv(text) {
+function parseCsv(text, separator = ';') {
     const lines = text.trim().split('\n');
-    return lines.map(line => line.split(','));
+    return lines.map(line => line.split(separator));
 }
 
 
@@ -688,7 +688,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18e du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18f du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
