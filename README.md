@@ -164,7 +164,9 @@ const infosElement = document.getElementById("infos");
 // Fonction pour télécharger et lire les données CSV
 async function fetchCsvData(url) {
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+    method: 'GET'
+});
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
@@ -189,7 +191,9 @@ function parseCsv(text, separator = ';') {
 // Sous-fonction pour gérer les données de la compétence PLU
 async function handlePluData(codeEpci) {
     try {
-        const pluResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu');
+        const pluResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu', {
+    method: 'GET'
+});
         if (!pluResponse.ok) {
             throw new Error(`Erreur réseau : ${pluResponse.status} ${pluResponse.statusText}`);
         }
@@ -280,7 +284,9 @@ function handleMaireData(codeCommune) {
 async function handleUniteUrbaineData(codeCommune) {
     try {
         // Remplacement d'Axios par fetch pour la première requête
-        const inseeResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee');
+        const inseeResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee', {
+    method: 'GET'
+});
         if (!inseeResponse.ok) {
             throw new Error(`Erreur réseau : ${inseeResponse.status} ${inseeResponse.statusText}`);
         }
@@ -293,7 +299,9 @@ async function handleUniteUrbaineData(codeCommune) {
             const numUniteUrbaine = values[1].substring(0, 5);
 
             // Remplacement d'Axios par fetch pour la seconde requête
-            const uuResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu');
+            const uuResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu', {
+    method: 'GET'
+});
             if (!uuResponse.ok) {
                 throw new Error(`Erreur réseau : ${uuResponse.status} ${uuResponse.statusText}`);
             }
@@ -558,7 +566,9 @@ async function fetchAdresse(code, type) {
     const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
 
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl, {
+    method: 'GET'
+});
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
@@ -698,7 +708,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18n du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18p du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
