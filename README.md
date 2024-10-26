@@ -175,7 +175,7 @@ async function fetchCsvData(url) {
         return data.slice(1);
     } catch (error) {
         console.error("Erreur lors de la récupération du fichier CSV :", error);
-        showError("Une erreur s'est produite lors de la récupération du fichier CSV.");
+        showError();
         return null;
     }
 }
@@ -213,7 +213,7 @@ async function handlePluData(codeEpci) {
         }
     } catch (error) {
         console.error("Erreur lors de la récupération des données PLU :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+        showError();
     }
 }
 
@@ -222,7 +222,7 @@ async function handlePluData(codeEpci) {
 // Sous-fonction pour gérer les données de population
 function handlePopulationData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
-        showError('Les données de population sont invalides ou indisponibles.');
+        showError();
         document.getElementById('populationInfo').textContent = 'Données non disponibles';
         return;
     }
@@ -246,7 +246,7 @@ function handlePopulationData(data) {
 // Sous-fonction pour gérer les données EPCI
 function handleEpciData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
-        showError('Les données de l\'EPCI sont invalides ou indisponibles.');
+        showError();
         document.getElementById('epciInfo').textContent = 'Données non disponibles';
         return;
     }
@@ -324,7 +324,7 @@ async function handleUniteUrbaineData(codeCommune) {
         }
     } catch (error) {
         console.error("Une erreur s'est produite lors de la récupération des données :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+        showError();
     }
 }
 
@@ -345,11 +345,12 @@ function handleSearch() {
 }
 
 // Fonction pour afficher les messages d'erreur
-function showError(message) {
+function showError(userMessage = "Une erreur s'est produite. Veuillez réessayer plus tard.") {
     const infosElement = document.getElementById("infos");
-    infosElement.textContent = message; // Afficher le message d'erreur passé en argument
-    console.error("Détails de l'erreur :", message);
+    infosElement.textContent = userMessage; // Message générique affiché à l'utilisateur
+    console.error("Détails de l'erreur :", new Error().stack); // Enregistrer les détails dans la console pour le débogage
 }
+
 
 
 
@@ -375,7 +376,7 @@ function debounce(func, delay) {
 communeInput.addEventListener("input", debounce(function() {
     var communeName = this.value;
     if (!validateText(communeName, 50)) { // Limite de longueur à 50 caractères
-        showError("Le nom de la commune contient des caractères invalides ou est trop long.");
+        showError();
         hideCommuneList();
         return;
     }
@@ -449,7 +450,7 @@ function fetchCommunes(communeName) {
             showCommuneList(); // Affiche la liste des suggestions
         })
 .catch(error => {
-    showError("Une erreur s'est produite lors de la recherche."); // Message générique
+    showError(); // Message générique
     console.error("Détails de l'erreur :", error); // Détails spécifiques dans la console
 });
 }
@@ -513,7 +514,7 @@ async function fetchNomEluOuPresident(typeElu, code) {
     
     const data = await fetchCsvData(csvUrl);
     if (!data) {
-        showError("Les données du CSV sont introuvables.");
+        showError();
         return;
     }
 
@@ -540,14 +541,14 @@ async function fetchNomEluOuPresident(typeElu, code) {
                 break; // Arrêter la boucle une fois l'élu trouvé
             } else {
                 console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
-                showError("Les informations de l'élu sont invalides.");
+                showError();
             }
         }
     }
 
     if (!found) {
         console.warn("Aucun élu correspondant trouvé pour le code :", code);
-        showError("Le nom de l'élu n'a pas été trouvé.");
+        showError();
     }
 }
 
@@ -618,7 +619,7 @@ async function fetchAdresse(code, type) {
         }
     } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+        showError();
     }
 }
 
@@ -670,12 +671,12 @@ async function fetchData(selectedCodeCommune) {
             }
         } else {
             // Si les données ne sont pas au format attendu ou sont manquantes
-            showError('Aucune commune trouvée avec ce nom ou les données sont invalides.');
+            showError();
         }
     } catch (error) {
         // Gestion des erreurs lors de la récupération des données
         console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
-        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
+        showError();
     }
 }
 
@@ -697,7 +698,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18m du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18n du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
