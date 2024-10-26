@@ -235,7 +235,9 @@ function handlePopulationData(data) {
     if (Number.isInteger(population) && population >= 0) {
         // Vérifiez également que la valeur est raisonnable (par exemple, moins de 100 millions)
         if (population <= 100000000) {
-            document.getElementById('populationInfo').textContent = escapeHTML(population.toString()) + ' habitants';
+            // Ligne à ajouter ou remplacer
+document.getElementById('populationInfo').textContent = `${escapeHTML(population.toString())} habitants`;
+
         } else {
             document.getElementById('populationInfo').textContent = 'Données non disponibles';
         }
@@ -715,7 +717,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18q du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18r du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
