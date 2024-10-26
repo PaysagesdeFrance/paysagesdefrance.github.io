@@ -164,25 +164,35 @@ const infosElement = document.getElementById("infos");
 
 // Sous-fonction pour gérer les données de la compétence PLU
 async function handlePluData(codeEpci) {
-    const pluResponse = await axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu');
-    const lines = pluResponse.data.split('\n');
-    const line = lines.find(line => line.startsWith(`${codeEpci},`));
-    if (line) {
-        const uuValues = line.split(',');
-        const numAssocie = uuValues[1];
-        let message = "";
-        if (numAssocie === "0") {
-            message = "non";
-        } else if (numAssocie === "1") {
-            message = "oui";
-        } else {
-            message = "Valeur inconnue";
+    try {
+        const pluResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu');
+        if (!pluResponse.ok) {
+            throw new Error(`Erreur réseau : ${pluResponse.status} ${pluResponse.statusText}`);
         }
-        document.getElementById('competencePLU').textContent = escapeHTML(message);
-    } else {
-        document.getElementById('competencePLU').textContent = "Information non disponible";
+        const pluText = await pluResponse.text();
+        const lines = pluText.split('\n');
+        const line = lines.find(line => line.startsWith(`${codeEpci},`));
+        if (line) {
+            const uuValues = line.split(',');
+            const numAssocie = uuValues[1];
+            let message = "";
+            if (numAssocie === "0") {
+                message = "non";
+            } else if (numAssocie === "1") {
+                message = "oui";
+            } else {
+                message = "Valeur inconnue";
+            }
+            document.getElementById('competencePLU').textContent = escapeHTML(message);
+        } else {
+            document.getElementById('competencePLU').textContent = "Information non disponible";
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération des données PLU :", error);
+        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
     }
 }
+
 
 
 // Sous-fonction pour gérer les données de population
@@ -244,36 +254,56 @@ function handleMaireData(codeCommune) {
 
 // Sous-fonction pour gérer les données de l'unité urbaine
 async function handleUniteUrbaineData(codeCommune) {
-    const inseeResponse = await axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee');
-    const inseeLines = inseeResponse.data.split('\n');
-    const inseeLine = inseeLines.find(line => line.startsWith(`${codeCommune},`));
-    if (inseeLine) {
-        const values = inseeLine.split(',');
-        const numUniteUrbaine = values[1].substring(0, 5);
-        const uuResponse = await axios.get('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu');
-        const uuLines = uuResponse.data.split('\n');
-        const uuLine = uuLines.find(uuLine => uuLine.includes(`${numUniteUrbaine},`));
-        if (uuLine) {
-            const uuValues = uuLine.split(',');
-            const numAssocie = parseInt(uuValues[1], 10);
-            let populationUrbainMessage = "";
-            if (numAssocie <= 5) {
-                populationUrbainMessage = "inférieure à 100000 habitants";
-            } else if (numAssocie === 8) {
-                populationUrbainMessage = "unité urbaine de Paris";
-            } else if (numAssocie === 6 || numAssocie === 7) {
-                populationUrbainMessage = "supérieure à 100000 habitants";
-            } else {
-                populationUrbainMessage = "Aucune condition spécifiée";
-            }
-            document.getElementById('popUrbaineInfo').textContent = escapeHTML(populationUrbainMessage);
-        } else {
-            document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
+    try {
+        // Remplacement d'Axios par fetch pour la première requête
+        const inseeResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee');
+        if (!inseeResponse.ok) {
+            throw new Error(`Erreur réseau : ${inseeResponse.status} ${inseeResponse.statusText}`);
         }
-    } else {
-        document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
+        const inseeText = await inseeResponse.text();
+        const inseeLines = inseeText.split('\n');
+        const inseeLine = inseeLines.find(line => line.startsWith(`${codeCommune},`));
+
+        if (inseeLine) {
+            const values = inseeLine.split(',');
+            const numUniteUrbaine = values[1].substring(0, 5);
+
+            // Remplacement d'Axios par fetch pour la seconde requête
+            const uuResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu');
+            if (!uuResponse.ok) {
+                throw new Error(`Erreur réseau : ${uuResponse.status} ${uuResponse.statusText}`);
+            }
+            const uuText = await uuResponse.text();
+            const uuLines = uuText.split('\n');
+            const uuLine = uuLines.find(uuLine => uuLine.includes(`${numUniteUrbaine},`));
+
+            if (uuLine) {
+                const uuValues = uuLine.split(',');
+                const numAssocie = parseInt(uuValues[1], 10);
+                let populationUrbainMessage = "";
+
+                if (numAssocie <= 5) {
+                    populationUrbainMessage = "inférieure à 100000 habitants";
+                } else if (numAssocie === 8) {
+                    populationUrbainMessage = "unité urbaine de Paris";
+                } else if (numAssocie === 6 || numAssocie === 7) {
+                    populationUrbainMessage = "supérieure à 100000 habitants";
+                } else {
+                    populationUrbainMessage = "Aucune condition spécifiée";
+                }
+                document.getElementById('popUrbaineInfo').textContent = escapeHTML(populationUrbainMessage);
+            } else {
+                document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
+            }
+        } else {
+            document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
+        }
+    } catch (error) {
+        console.error("Une erreur s'est produite lors de la récupération des données :", error);
+        showError("Une erreur s'est produite lors de la récupération des données. Veuillez réessayer.");
     }
 }
+
 
 
 function handleSearch() {
@@ -631,7 +661,7 @@ async function fetchData(selectedCodeCommune) {
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.18a du 26/10/2024 : Amélioration de la sécurité</li>
+ 		<li>version 1.18b du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
    		<li>version 1.15m du 20/10/2024 : Amélioration de la sécurité</li>
