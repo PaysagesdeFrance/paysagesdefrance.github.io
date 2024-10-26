@@ -657,7 +657,6 @@ async function fetchData(selectedCodeCommune) {
 	<hr> <b>Librairies :</b>
 	<ul style="list-style-type:square">
 		<li><a href="https://cdnjs.com/libraries/PapaParse" target="_blank">https://cdnjs.com/libraries/PapaParse</a> – version 5.4.1</li>
-  		<li><a href="https://cdn.jsdelivr.net/npm/axios/dist/" target="_blank">https://cdn.jsdelivr.net/npm/axios/dist/</a> – version 1.7.7</li>
   	</ul>
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
