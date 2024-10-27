@@ -7,6 +7,7 @@
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
+	<script src="https://cdn.jsdelivr.net/npm/validator@13.9.0/validator.min.js"></script>
 	<title>Recherche d'une commune</title>
 	<style>
 	body {
@@ -452,16 +453,19 @@ document.addEventListener("click", function(event) {
 rechercherBtn.addEventListener("click", handleSearch);
 
 function validateText(text, maxLength = 100) {
-    const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*$/;
-    if (!regex.test(text.trim()) || text.length === 0 || text.length > maxLength) {
+    if (!validator.isLength(text, { min: 1, max: maxLength })) {
         return false;
     }
-    const forbiddenPatterns = /(<\/?script.*?>|javascript:|onerror\s*=|onload\s*=)/i;
-    if (forbiddenPatterns.test(text)) {
+    if (!validator.isAlphanumeric(text, 'fr-FR', { ignore: " '-" })) {
         return false;
     }
     return true;
 }
+
+function sanitizeText(text) {
+    return validator.escape(text);
+}
+
 
 
 function escapeHTML(str) {
@@ -512,7 +516,7 @@ async function fetchNomEluOuPresident(typeElu, code) {
             if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
-document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+document.getElementById(infoText).textContent = `${sexeElu} ${sanitizeText(nomElu)} ${sanitizeText(prenomElu)}`;
                 found = true;
                 break;
             } else {
@@ -567,14 +571,14 @@ async function fetchAdresse(code, type) {
 
             if (adresseComplete) {
                 const infoText = isMairie ? "adressemairie" : "adresseEpci";
-                document.getElementById(infoText).textContent = escapeHTML(adresseComplete);
+                document.getElementById(infoText).textContent = sanitizeText(adresseComplete);
             } else {
                 console.warn("Adresse vide ou non valide :", adresseComplete);
             }
 
             if (record.adresse_courriel) {
                 const infoText = isMairie ? "courrielmairie" : "courrielEpci";
-                document.getElementById(infoText).textContent = escapeHTML(record.adresse_courriel);
+                document.getElementById(infoText).textContent = sanitizeText(record.adresse_courriel);
             }
 
             const siteInternetJSON = record.site_internet;
@@ -861,7 +865,7 @@ const infosElement = document.getElementById("infos");
 function updateElementText(elementId, text) {
     const element = document.getElementById(elementId);
     if (element && typeof text === 'string') {
-        element.textContent = escapeHTML(text);
+        element.textContent = sanitizeText(text);
     } else {
         element.textContent = 'Données non disponibles';
     }
@@ -913,7 +917,7 @@ async function handlePluData(codeEpci) {
             } else {
                 message = "Valeur inconnue";
             }
-            document.getElementById('competencePLU').textContent = escapeHTML(message);
+            document.getElementById('competencePLU').textContent = sanitizeText(message);
         } else {
             document.getElementById('competencePLU').textContent = "Information non disponible";
         }
@@ -1023,7 +1027,7 @@ async function handleUniteUrbaineData(codeCommune) {
 
 
 function handleSearch() {
-    const nomCommune = escapeHTML(communeInput.value.trim());
+    const nomCommune = sanitizeText(communeInput.value.trim());
     infosElement.textContent = '';
     
     if (selectedCodeCommune) {
@@ -1099,7 +1103,7 @@ async function fetchCommunes(communeName) {
             }
 
             const listItem = document.createElement("li");
-            listItem.textContent = `${escapeHTML(commune.nom)} (${escapeHTML(commune.codeDepartement)})`;
+            listItem.textContent = `${sanitizeText(commune.nom)} (${sanitizeText(commune.codeDepartement)})`;
             listItem.addEventListener("click", function() {
                 selectedCodeCommune = commune.code;
                 communeInput.value = commune.nom;
@@ -1161,25 +1165,7 @@ function validateText(text, maxLength = 100) {
 }
 
 
-function escapeHTML(str) {
-    return str.replace(/[&<>"'`/\\(){}]/g, function(match) {
-        const escapeChars = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;',
-            '`': '&#96;',
-            '/': '&#x2F;',
-            '\\': '&#92;',
-            '(': '&#40;',
-            ')': '&#41;',
-            '{': '&#123;',
-            '}': '&#125;'
-        };
-        return escapeChars[match];
-    });
-}
+
 
 
 async function fetchNomEluOuPresident(typeElu, code) {
@@ -1354,7 +1340,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.19c du 27/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.19d du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
