@@ -160,11 +160,27 @@ const communeInput = document.getElementById("communeInput");
 const communeList = document.getElementById("commune-list");
 const rechercherBtn = document.getElementById("rechercherBtn");
 const infosElement = document.getElementById("infos");
+		const elements = {
+    populationInfo: document.getElementById('populationInfo'),
+    popUrbaineInfo: document.getElementById('popUrbaineInfo'),
+    epciInfo: document.getElementById('epciInfo'),
+    nomdumaire: document.getElementById('nomdumaire'),
+    adressemairie: document.getElementById('adressemairie'),
+    courrielmairie: document.getElementById('courrielmairie'),
+    sitemairie: document.getElementById('sitemairie'),
+    nomdupresident: document.getElementById('nomdupresident'),
+    adresseEpci: document.getElementById('adresseEpci'),
+    courrielEpci: document.getElementById('courrielEpci'),
+    siteEpci: document.getElementById('siteEpci'),
+    competencePLU: document.getElementById('competencePLU'),
+    resultatCommune: document.getElementById('resultatCommune'),
+    infos: document.getElementById('infos')
+};
 		let lastSearchTimeout;
 		let selectedCodeCommune;
 		
 function updateElementText(elementId, text) {
-    const element = document.getElementById(elementId);
+    const element = elements.elementId;
     if (element && typeof text === 'string') {
         element.textContent = sanitizeText(text);
     } else {
@@ -218,9 +234,9 @@ async function handlePluData(codeEpci) {
             } else {
                 message = "Valeur inconnue";
             }
-            document.getElementById('competencePLU').textContent = sanitizeText(message);
+            elements.competencePLU.textContent = sanitizeText(message);
         } else {
-            document.getElementById('competencePLU').textContent = "Information non disponible";
+            elements.competencePLU.textContent = "Information non disponible";
         }
     } catch (error) {
         console.error("Erreur lors de la récupération des données PLU :", error);
@@ -313,12 +329,12 @@ async function handleUniteUrbaineData(codeCommune) {
                 } else {
                     populationUrbainMessage = "Aucune condition spécifiée";
                 }
-                document.getElementById('popUrbaineInfo').textContent = sanitizeText(populationUrbainMessage);
+                elements.popUrbaineInfo.textContent = sanitizeText(populationUrbainMessage);
             } else {
-                document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
+                elements.popUrbaineInfo.textContent = "hors unité urbaine";
             }
         } else {
-            document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
+            elements.popUrbaineInfo.textContent = "Information non disponible";
         }
     } catch (error) {
         console.error("Une erreur s'est produite lors de la récupération des données :", error);
@@ -343,7 +359,7 @@ function handleSearch() {
 
 
 function showError(userMessage = "Une erreur s'est produite. Veuillez réessayer plus tard.") {
-    const infosElement = document.getElementById("infos");
+    const infosElement = elements.infos;
     infosElement.textContent = userMessage;
     console.error("Détails de l'erreur :", new Error().stack);
 }
@@ -411,21 +427,11 @@ async function fetchCommunes(communeName) {
                 hideCommuneList();
                 infosElement.textContent = '';
 
-                document.getElementById('resultatCommune').textContent = '';
-                document.getElementById('populationInfo').textContent = '';
-                document.getElementById('popUrbaineInfo').textContent = '';
-                document.getElementById('epciInfo').textContent = '';
-                document.getElementById('nomdumaire').textContent = '';
-                document.getElementById('adressemairie').textContent = '';
-                document.getElementById('courrielmairie').textContent = '';
-                document.getElementById('sitemairie').textContent = '';
-                document.getElementById('nomdupresident').textContent = '';
-                document.getElementById('adresseEpci').textContent = '';
-                document.getElementById('courrielEpci').textContent = '';
-                document.getElementById('siteEpci').textContent = '';
-                document.getElementById('competencePLU').textContent = '';
+Object.values(elements).forEach(element => {
+    if (element) element.textContent = '';
+});
 
-                const resultatCommune = document.getElementById('resultatCommune');
+                const resultatCommune = elements.resultatCommune;
                 const h2Element = document.createElement('h2');
                 h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
                 resultatCommune.textContent = '';
@@ -504,7 +510,7 @@ async function fetchNomEluOuPresident(typeElu, code) {
             if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateInput(nomElu,'text') && validateInput(prenomElu,'text')) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
-document.getElementById(infoText).textContent = `${sexeElu} ${sanitizeText(nomElu)} ${sanitizeText(prenomElu)}`;
+elements.infoText.textContent = `${sexeElu} ${sanitizeText(nomElu)} ${sanitizeText(prenomElu)}`;
                 found = true;
                 break;
             } else {
@@ -559,14 +565,14 @@ async function fetchAdresse(code, type) {
 
             if (adresseComplete) {
                 const infoText = isMairie ? "adressemairie" : "adresseEpci";
-                document.getElementById(infoText).textContent = sanitizeText(adresseComplete);
+                elements.infoText.textContent = sanitizeText(adresseComplete);
             } else {
                 console.warn("Adresse vide ou non valide :", adresseComplete);
             }
 
             if (record.adresse_courriel) {
                 const infoText = isMairie ? "courrielmairie" : "courrielEpci";
-                document.getElementById(infoText).textContent = sanitizeText(record.adresse_courriel);
+                elements.infoText.textContent = sanitizeText(record.adresse_courriel);
             }
 
             const siteInternetJSON = record.site_internet;
@@ -579,8 +585,8 @@ const anchorElement = document.createElement("a");
 anchorElement.href = siteInternet;
 anchorElement.textContent = siteInternet;
 anchorElement.target = "_blank";
-document.getElementById(infoText).textContent = '';
-document.getElementById(infoText).appendChild(anchorElement);
+elements.infoText.textContent = '';
+elements.infoText.appendChild(anchorElement);
 
                 }
             }
@@ -622,7 +628,7 @@ async function fetchData(selectedCodeCommune) {
             ]);
 
             if (codeEpci && codeEpci === "200054781") {
-                document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
+                elements.epciInfo.textContent = `Métropole du Grand Paris – dépend d'un EPT`;
             }
         } else {
             showError();
@@ -649,7 +655,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.19h du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
