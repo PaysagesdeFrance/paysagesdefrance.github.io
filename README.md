@@ -384,7 +384,14 @@ communeInput.addEventListener("input", debounce(function() {
 
 async function fetchCommunes(communeName) {
     try {
-        const response = await fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`);
+        const response = await fetch('https://geo.api.gouv.fr/communes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nom: communeName, limit: 13 })
+        });
+
         if (!response.ok) {
             throw new Error("Erreur réseau lors de la récupération des communes.");
         }
@@ -441,6 +448,7 @@ async function fetchCommunes(communeName) {
         console.error("Détails de l'erreur :", error);
     }
 }
+
 
 
 document.addEventListener("click", function(event) {
@@ -657,7 +665,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.19c du 27/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.19d du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
