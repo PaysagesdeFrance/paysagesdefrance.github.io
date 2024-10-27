@@ -399,71 +399,70 @@ communeInput.addEventListener("input", debounce(function() {
 
 
 
-function fetchCommunes(communeName) {
-    fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Erreur réseau lors de la récupération des communes.");
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Validation des données retournées par l'API
-            if (!Array.isArray(data) || data.length === 0) {
-                throw new Error("Les données retournées par l'API sont invalides ou vides.");
+async function fetchCommunes(communeName) {
+    try {
+        const response = await fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`);
+        if (!response.ok) {
+            throw new Error("Erreur réseau lors de la récupération des communes.");
+        }
+        const data = await response.json();
+
+        // Validation des données retournées par l'API
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new Error("Les données retournées par l'API sont invalides ou vides.");
+        }
+
+        communeList.innerHTML = ''; // Vide la liste des résultats précédents
+        data.forEach(function(commune) {
+            // Validation des champs nécessaires pour chaque commune
+            if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
+                console.warn("Données de la commune invalides : ", commune);
+                return; // Ignore les entrées invalides
             }
 
-            communeList.innerHTML = ''; // Vide la liste des résultats précédents
-            data.forEach(function(commune) {
-                // Validation des champs nécessaires pour chaque commune
-                if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
-                    console.warn("Données de la commune invalides : ", commune);
-                    return; // Ignore les entrées invalides
+            const listItem = document.createElement("li");
+            listItem.textContent = `${escapeHTML(commune.nom)} (${escapeHTML(commune.codeDepartement)})`;
+            listItem.addEventListener("click", function() {
+                selectedCodeCommune = commune.code;
+                communeInput.value = commune.nom;
+                hideCommuneList(); // Masque la liste des suggestions
+                infosElement.textContent = '';
+
+                // Réinitialise les informations affichées
+                document.getElementById('resultatCommune').textContent = '';
+                document.getElementById('populationInfo').textContent = '';
+                document.getElementById('popUrbaineInfo').textContent = '';
+                document.getElementById('epciInfo').textContent = '';
+                document.getElementById('nomdumaire').textContent = '';
+                document.getElementById('adressemairie').textContent = '';
+                document.getElementById('courrielmairie').textContent = '';
+                document.getElementById('sitemairie').textContent = '';
+                document.getElementById('nomdupresident').textContent = '';
+                document.getElementById('adresseEpci').textContent = '';
+                document.getElementById('courrielEpci').textContent = '';
+                document.getElementById('siteEpci').textContent = '';
+                document.getElementById('competencePLU').textContent = '';
+
+                const resultatCommune = document.getElementById('resultatCommune');
+                const h2Element = document.createElement('h2');
+                h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
+                resultatCommune.textContent = ''; // Efface le contenu précédent
+                resultatCommune.appendChild(h2Element);
+
+                // Met le focus sur le bouton rechercher si la recherche a abouti
+                if (resultatCommune.textContent.trim() !== "") {
+                    rechercherBtn.focus();
                 }
-
-                const listItem = document.createElement("li");
-                listItem.textContent = `${escapeHTML(commune.nom)} (${escapeHTML(commune.codeDepartement)})`;
-                listItem.addEventListener("click", function() {
-                    selectedCodeCommune = commune.code;
-                    communeInput.value = commune.nom;
-                    hideCommuneList(); // Masque la liste des suggestions
-                    infosElement.textContent = '';
-
-                    // Réinitialise les informations affichées
-                    document.getElementById('resultatCommune').textContent = '';
-                    document.getElementById('populationInfo').textContent = '';
-                    document.getElementById('popUrbaineInfo').textContent = '';
-                    document.getElementById('epciInfo').textContent = '';
-                    document.getElementById('nomdumaire').textContent = '';
-                    document.getElementById('adressemairie').textContent = '';
-                    document.getElementById('courrielmairie').textContent = '';
-                    document.getElementById('sitemairie').textContent = '';
-                    document.getElementById('nomdupresident').textContent = '';
-                    document.getElementById('adresseEpci').textContent = '';
-                    document.getElementById('courrielEpci').textContent = '';
-                    document.getElementById('siteEpci').textContent = '';
-                    document.getElementById('competencePLU').textContent = '';
-
-                    const resultatCommune = document.getElementById('resultatCommune');
-                    const h2Element = document.createElement('h2');
-                    h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
-                    resultatCommune.textContent = ''; // Efface le contenu précédent
-                    resultatCommune.appendChild(h2Element);
-
-                    // Met le focus sur le bouton rechercher si la recherche a abouti
-                    if (resultatCommune.textContent.trim() !== "") {
-                        rechercherBtn.focus();
-                    }
-                });
-                communeList.appendChild(listItem); // Ajoute l'élément à la liste
             });
-            showCommuneList(); // Affiche la liste des suggestions
-        })
-.catch(error => {
-    showError(); // Message générique
-    console.error("Détails de l'erreur :", error); // Détails spécifiques dans la console
-});
+            communeList.appendChild(listItem); // Ajoute l'élément à la liste
+        });
+        showCommuneList(); // Affiche la liste des suggestions
+    } catch (error) {
+        showError(); // Message générique
+        console.error("Détails de l'erreur :", error); // Détails spécifiques dans la console
+    }
 }
+
 
 
 document.addEventListener("click", function(event) {
@@ -717,6 +716,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+ 		<li>version 1.19a du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
