@@ -171,7 +171,6 @@ function updateElementText(elementId, text) {
 }
 
 
-// Fonction pour télécharger et lire les données CSV
 async function fetchCsvData(url) {
     try {
         const response = await fetch(url, {
@@ -181,9 +180,7 @@ async function fetchCsvData(url) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
         const text = await response.text();
-        const data = parseCsv(text); // Appel avec le séparateur par défaut ";"
-        
-        // Ignorer la première ligne (en-tête)
+        const data = parseCsv(text);
         return data.slice(1);
     } catch (error) {
         console.error("Erreur lors de la récupération du fichier CSV :", error);
@@ -192,13 +189,11 @@ async function fetchCsvData(url) {
     }
 }
 
-// Fonction pour parser les données CSV
 function parseCsv(text, separator = ';') {
     const lines = text.trim().split('\n');
     return lines.map(line => line.split(separator));
 }
 
-// Sous-fonction pour gérer les données de la compétence PLU
 async function handlePluData(codeEpci) {
     try {
         const pluResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu', {
@@ -232,8 +227,6 @@ async function handlePluData(codeEpci) {
 }
 
 
-
-// Sous-fonction pour gérer les données de population
 function handlePopulationData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
         showError();
@@ -251,9 +244,6 @@ function handlePopulationData(data) {
 
 
 
-
-
-// Sous-fonction pour gérer les données EPCI
 function handleEpciData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
         showError();
@@ -277,16 +267,13 @@ function handleEpciData(data) {
 
 
 
-// Sous-fonction pour gérer les informations sur le maire
 function handleMaireData(codeCommune) {
     fetchNomEluOuPresident("maire", codeCommune);
     fetchAdresse(codeCommune, "mairie");
 }
 
-// Sous-fonction pour gérer les données de l'unité urbaine
 async function handleUniteUrbaineData(codeCommune) {
     try {
-        // Remplacement d'Axios par fetch pour la première requête
         const inseeResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee', {
     method: 'GET'
 });
@@ -300,8 +287,6 @@ async function handleUniteUrbaineData(codeCommune) {
         if (inseeLine) {
             const values = inseeLine.split(',');
             const numUniteUrbaine = values[1].substring(0, 5);
-
-            // Remplacement d'Axios par fetch pour la seconde requête
             const uuResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu', {
     method: 'GET'
 });
@@ -340,7 +325,6 @@ async function handleUniteUrbaineData(codeCommune) {
 }
 
 
-
 function handleSearch() {
     const nomCommune = escapeHTML(communeInput.value.trim());
     infosElement.textContent = '';
@@ -355,14 +339,12 @@ function handleSearch() {
     }
 }
 
-// Fonction pour afficher les messages d'erreur
+
 function showError(userMessage = "Une erreur s'est produite. Veuillez réessayer plus tard.") {
     const infosElement = document.getElementById("infos");
-    infosElement.textContent = userMessage; // Message générique affiché à l'utilisateur
-    console.error("Détails de l'erreur :", new Error().stack); // Enregistrer les détails dans la console pour le débogage
+    infosElement.textContent = userMessage;
+    console.error("Détails de l'erreur :", new Error().stack);
 }
-
-
 
 
 function hideCommuneList() {
@@ -386,7 +368,7 @@ function debounce(func, delay) {
 
 communeInput.addEventListener("input", debounce(function() {
     var communeName = this.value;
-    if (!validateText(communeName, 50)) { // Limite de longueur à 50 caractères
+    if (!validateText(communeName, 50)) {
         showError();
         hideCommuneList();
         return;
@@ -408,17 +390,15 @@ async function fetchCommunes(communeName) {
         }
         const data = await response.json();
 
-        // Validation des données retournées par l'API
         if (!Array.isArray(data) || data.length === 0) {
             throw new Error("Les données retournées par l'API sont invalides ou vides.");
         }
 
-        communeList.innerHTML = ''; // Vide la liste des résultats précédents
+        communeList.innerHTML = '';
         data.forEach(function(commune) {
-            // Validation des champs nécessaires pour chaque commune
             if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
                 console.warn("Données de la commune invalides : ", commune);
-                return; // Ignore les entrées invalides
+                return;
             }
 
             const listItem = document.createElement("li");
@@ -426,10 +406,9 @@ async function fetchCommunes(communeName) {
             listItem.addEventListener("click", function() {
                 selectedCodeCommune = commune.code;
                 communeInput.value = commune.nom;
-                hideCommuneList(); // Masque la liste des suggestions
+                hideCommuneList();
                 infosElement.textContent = '';
 
-                // Réinitialise les informations affichées
                 document.getElementById('resultatCommune').textContent = '';
                 document.getElementById('populationInfo').textContent = '';
                 document.getElementById('popUrbaineInfo').textContent = '';
@@ -447,23 +426,21 @@ async function fetchCommunes(communeName) {
                 const resultatCommune = document.getElementById('resultatCommune');
                 const h2Element = document.createElement('h2');
                 h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
-                resultatCommune.textContent = ''; // Efface le contenu précédent
+                resultatCommune.textContent = '';
                 resultatCommune.appendChild(h2Element);
 
-                // Met le focus sur le bouton rechercher si la recherche a abouti
                 if (resultatCommune.textContent.trim() !== "") {
                     rechercherBtn.focus();
                 }
             });
-            communeList.appendChild(listItem); // Ajoute l'élément à la liste
+            communeList.appendChild(listItem);
         });
-        showCommuneList(); // Affiche la liste des suggestions
+        showCommuneList();
     } catch (error) {
-        showError(); // Message générique
-        console.error("Détails de l'erreur :", error); // Détails spécifiques dans la console
+        showError();
+        console.error("Détails de l'erreur :", error);
     }
 }
-
 
 
 document.addEventListener("click", function(event) {
@@ -475,13 +452,10 @@ document.addEventListener("click", function(event) {
 rechercherBtn.addEventListener("click", handleSearch);
 
 function validateText(text, maxLength = 100) {
-    // Renforcer le regex pour n'autoriser que certains caractères et éviter les séquences douteuses
     const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*$/;
-    // Vérifier la longueur, les caractères valides, et éviter les séquences interdites
     if (!regex.test(text.trim()) || text.length === 0 || text.length > maxLength) {
         return false;
     }
-    // Vérifier l'absence de chaînes dangereuses
     const forbiddenPatterns = /(<\/?script.*?>|javascript:|onerror\s*=|onload\s*=)/i;
     if (forbiddenPatterns.test(text)) {
         return false;
@@ -490,9 +464,6 @@ function validateText(text, maxLength = 100) {
 }
 
 
-
-
-// Fonction d'échappement des caractères spéciaux pour éviter les injections XSS
 function escapeHTML(str) {
     return str.replace(/[&<>"'`/\\(){}]/g, function(match) {
         const escapeChars = {
@@ -514,9 +485,6 @@ function escapeHTML(str) {
 }
 
 
-
-// Fonction pour récupérer les données des élus (maire ou président)
-// Fonction pour récupérer les données des élus (maire ou président)
 async function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240730-125205/elus-maires.csv";
     const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240731-142441/elus-epci.csv";
@@ -531,10 +499,9 @@ async function fetchNomEluOuPresident(typeElu, code) {
     let found = false;
     for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        const codeIndex = 4; // Colonne pour le code INSEE ou SIREN
-        const fonctionIndex = 15; // Colonne pour la fonction (président)
+        const codeIndex = 4;
+        const fonctionIndex = 15;
 
-        // Vérifier si la ligne correspond au code et, pour le président, à la bonne fonction
         if (parseInt(row[codeIndex]) === parseInt(code) &&
             (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
 
@@ -542,13 +509,12 @@ async function fetchNomEluOuPresident(typeElu, code) {
             const prenomElu = row[typeElu === "maire" ? 7 : 9];
             let sexeElu = row[typeElu === "maire" ? 8 : 10];
 
-            // Validation des données avant l'affichage
             if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
 document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
                 found = true;
-                break; // Arrêter la boucle une fois l'élu trouvé
+                break;
             } else {
                 console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
                 showError();
@@ -580,7 +546,6 @@ async function fetchAdresse(code, type) {
             throw new Error("Données d'adresse non disponibles ou format inattendu.");
         }
 
-        // Recherche d'un enregistrement valide pour la mairie ou l'EPCI
         const record = data.results.find(record => {
             const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
             return (
@@ -589,7 +554,6 @@ async function fetchAdresse(code, type) {
             );
         });
 
-        // Si un enregistrement valide est trouvé, traiter les données
         if (record && record.adresse) {
             const adresseData = JSON.parse(record.adresse);
             const adresseComplete = [
@@ -601,7 +565,6 @@ async function fetchAdresse(code, type) {
                 adresseData[0].nom_commune || ''
             ].filter(Boolean).join(' - ');
 
-            // Affichage de l'adresse si elle est valide
             if (adresseComplete) {
                 const infoText = isMairie ? "adressemairie" : "adresseEpci";
                 document.getElementById(infoText).textContent = escapeHTML(adresseComplete);
@@ -609,31 +572,27 @@ async function fetchAdresse(code, type) {
                 console.warn("Adresse vide ou non valide :", adresseComplete);
             }
 
-            // Affichage du courriel de la mairie ou de l'EPCI si disponible
             if (record.adresse_courriel) {
                 const infoText = isMairie ? "courrielmairie" : "courrielEpci";
                 document.getElementById(infoText).textContent = escapeHTML(record.adresse_courriel);
             }
 
-            // Affichage du site internet de la mairie ou de l'EPCI si disponible
             const siteInternetJSON = record.site_internet;
             if (siteInternetJSON) {
                 const siteInternetData = JSON.parse(siteInternetJSON);
                 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
                 const infoText = isMairie ? "sitemairie" : "siteEpci";
                 if (siteInternet) {
-                    // Création d'un lien de manière sécurisée
 const anchorElement = document.createElement("a");
 anchorElement.href = siteInternet;
 anchorElement.textContent = siteInternet;
 anchorElement.target = "_blank";
-document.getElementById(infoText).textContent = ''; // Efface le contenu précédent
+document.getElementById(infoText).textContent = '';
 document.getElementById(infoText).appendChild(anchorElement);
 
                 }
             }
         } else {
-            // Message d'erreur si aucune information n'est trouvée
             throw new Error("Aucune information sur la Mairie ou l'EPCI trouvée.");
         }
     } catch (error) {
@@ -641,10 +600,6 @@ document.getElementById(infoText).appendChild(anchorElement);
         showError();
     }
 }
-
-
-
-
 
 
 function validateApiResponse(data, expectedFields) {
@@ -655,56 +610,41 @@ async function fetchData(selectedCodeCommune) {
     const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
 
     try {
-        // Remplacement de axios par fetch pour l'appel API
         const response = await fetch(apiUrl);
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
 
-        // Vérification des données reçues
         if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci', 'siren'])) {
             const codeCommune = data[0].code;
             const codeEpci = data[0].codeEpci;
 
-            // Affichage des données de la population
             handlePopulationData(data);
-
-            // Affichage des données de l'EPCI
             handleEpciData(data);
-
-            // Récupération des informations sur le maire
             handleMaireData(codeCommune);
 
-            // Récupération des informations sur l'unité urbaine
             await handleUniteUrbaineData(codeCommune);
 
-            // Récupération des informations sur les compétences PLU
             if (codeEpci) {
                 await handlePluData(codeEpci);
             }
 
-            // Affichage supplémentaire pour les cas particuliers de l'EPCI
             if (codeEpci && codeEpci === "200054781") {
                 document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
             }
         } else {
-            // Si les données ne sont pas au format attendu ou sont manquantes
             showError();
         }
     } catch (error) {
-        // Gestion des erreurs lors de la récupération des données
         console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
         showError();
     }
 }
-
-
-
-
-
 	});
 	</script>
+
+
 	<hr> <b>Sources :</b>
 	<ul style="list-style-type:square">
 		<li>(1) API gouvernementale : <a href="https://geo.api.gouv.fr/decoupage-administratif/communes" target="_blank">https://geo.api.gouv.fr/decoupage-administratif/communes</a></li>
