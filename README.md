@@ -152,250 +152,497 @@
 		</tr>
 	</table>
 	<br>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const communeInput = document.getElementById("communeInput");
-        const communeList = document.getElementById("commune-list");
-        const rechercherBtn = document.getElementById("rechercherBtn");
-        const infosElement = document.getElementById("infos");
-        let selectedCodeCommune;
+	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+const communeInput = document.getElementById("communeInput");
+const communeList = document.getElementById("commune-list");
+const rechercherBtn = document.getElementById("rechercherBtn");
+const infosElement = document.getElementById("infos");
+		let lastSearchTimeout;
+		let selectedCodeCommune;
+		
+function updateElementText(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element && typeof text === 'string') {
+        element.textContent = escapeHTML(text);
+    } else {
+        element.textContent = 'Données non disponibles';
+    }
+}
 
-        // Met à jour le texte d'un élément en échappant les caractères spéciaux
-        function updateElementText(elementId, text = 'Données non disponibles') {
-            const element = document.getElementById(elementId);
-            element.textContent = element && typeof text === 'string' ? escapeHTML(text) : text;
+
+async function fetchCsvData(url) {
+    try {
+        const response = await fetch(url, {
+    method: 'GET'
+});
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
+        const text = await response.text();
+        const data = parseCsv(text);
+        return data.slice(1);
+    } catch (error) {
+        console.error("Erreur lors de la récupération du fichier CSV :", error);
+        showError();
+        return null;
+    }
+}
 
-        // Récupère des données à partir d'une URL et gère les erreurs
-        async function fetchData(url, parseData) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
-                return parseData ? await parseData(await response.text()) : await response.json();
-            } catch (error) {
-                console.error("Erreur lors de la récupération des données :", error);
-                showError();
-                return null;
-            }
+function parseCsv(text, separator = ';') {
+    const lines = text.trim().split('\n');
+    return lines.map(line => line.split(separator));
+}
+
+async function handlePluData(codeEpci) {
+    try {
+        const pluResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu', {
+    method: 'GET'
+});
+        if (!pluResponse.ok) {
+            throw new Error(`Erreur réseau : ${pluResponse.status} ${pluResponse.statusText}`);
         }
-
-        // Affiche un message d'erreur
-        function showError(userMessage = "Une erreur s'est produite. Veuillez réessayer plus tard.") {
-            infosElement.textContent = userMessage;
-            console.error("Détails de l'erreur :", new Error().stack);
-        }
-
-        // Gère les données de population
-        function handlePopulationData(data) {
-            if (Array.isArray(data) && data.length > 0 && typeof data[0].population === 'number') {
-                updateElementText('populationInfo', `${data[0].population} habitants`);
+        const pluText = await pluResponse.text();
+        const lines = pluText.split('\n');
+        const line = lines.find(line => line.startsWith(`${codeEpci},`));
+        if (line) {
+            const uuValues = line.split(',');
+            const numAssocie = uuValues[1];
+            let message = "";
+            if (numAssocie === "0") {
+                message = "non";
+            } else if (numAssocie === "1") {
+                message = "oui";
             } else {
-                showError();
+                message = "Valeur inconnue";
             }
+            document.getElementById('competencePLU').textContent = escapeHTML(message);
+        } else {
+            document.getElementById('competencePLU').textContent = "Information non disponible";
         }
+    } catch (error) {
+        console.error("Erreur lors de la récupération des données PLU :", error);
+        showError();
+    }
+}
 
-        // Gère les données EPCI
-        function handleEpciData(data) {
-            if (Array.isArray(data) && data.length > 0 && data[0].epci) {
-                const { nom, codeEpci } = data[0].epci;
-                updateElementText('epciInfo', `${nom || 'Non disponible'} – (SIREN : ${codeEpci})`);
-                if (codeEpci && codeEpci !== "200054781") {
-                    fetchAdresse(codeEpci, "epci");
-                    fetchNomEluOuPresident("president", codeEpci);
+
+function handlePopulationData(data) {
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
+        showError();
+        updateElementText('populationInfo', 'Données non disponibles');
+        return;
+    }
+
+    const population = data[0].population;
+    if (Number.isInteger(population) && population >= 0 && population <= 100000000) {
+        updateElementText('populationInfo', `${population} habitants`);
+    } else {
+        updateElementText('populationInfo', 'Données non disponibles');
+    }
+}
+
+
+
+function handleEpciData(data) {
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
+        showError();
+        updateElementText('epciInfo', 'Données non disponibles');
+        return;
+    }
+
+    const epci = data[0].epci;
+    const nomEpci = epci.nom || 'Non disponible';
+    const codeEpci = data[0].codeEpci;
+
+    updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
+
+    if (codeEpci && codeEpci !== "200054781") {
+        fetchAdresse(codeEpci, "epci");
+        fetchNomEluOuPresident("president", codeEpci);
+    } else {
+        updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
+    }
+}
+
+
+
+function handleMaireData(codeCommune) {
+    fetchNomEluOuPresident("maire", codeCommune);
+    fetchAdresse(codeCommune, "mairie");
+}
+
+async function handleUniteUrbaineData(codeCommune) {
+    try {
+        const inseeResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee', {
+    method: 'GET'
+});
+        if (!inseeResponse.ok) {
+            throw new Error(`Erreur réseau : ${inseeResponse.status} ${inseeResponse.statusText}`);
+        }
+        const inseeText = await inseeResponse.text();
+        const inseeLines = inseeText.split('\n');
+        const inseeLine = inseeLines.find(line => line.startsWith(`${codeCommune},`));
+
+        if (inseeLine) {
+            const values = inseeLine.split(',');
+            const numUniteUrbaine = values[1].substring(0, 5);
+            const uuResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu', {
+    method: 'GET'
+});
+            if (!uuResponse.ok) {
+                throw new Error(`Erreur réseau : ${uuResponse.status} ${uuResponse.statusText}`);
+            }
+            const uuText = await uuResponse.text();
+            const uuLines = uuText.split('\n');
+            const uuLine = uuLines.find(uuLine => uuLine.includes(`${numUniteUrbaine},`));
+
+            if (uuLine) {
+                const uuValues = uuLine.split(',');
+                const numAssocie = parseInt(uuValues[1], 10);
+                let populationUrbainMessage = "";
+
+                if (numAssocie <= 5) {
+                    populationUrbainMessage = "inférieure à 100000 habitants";
+                } else if (numAssocie === 8) {
+                    populationUrbainMessage = "unité urbaine de Paris";
+                } else if (numAssocie === 6 || numAssocie === 7) {
+                    populationUrbainMessage = "supérieure à 100000 habitants";
                 } else {
-                    updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
+                    populationUrbainMessage = "Aucune condition spécifiée";
                 }
+                document.getElementById('popUrbaineInfo').textContent = escapeHTML(populationUrbainMessage);
             } else {
-                showError();
+                document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
             }
+        } else {
+            document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
+        }
+    } catch (error) {
+        console.error("Une erreur s'est produite lors de la récupération des données :", error);
+        showError();
+    }
+}
+
+
+function handleSearch() {
+    const nomCommune = escapeHTML(communeInput.value.trim());
+    infosElement.textContent = '';
+    
+    if (selectedCodeCommune) {
+        fetchData(selectedCodeCommune);
+        document.querySelectorAll("table").forEach(table => {
+            table.style.display = "table";
+        });
+    } else {
+        showError('Veuillez entrer le nom d\'une commune.');
+    }
+}
+
+
+function showError(userMessage = "Une erreur s'est produite. Veuillez réessayer plus tard.") {
+    const infosElement = document.getElementById("infos");
+    infosElement.textContent = userMessage;
+    console.error("Détails de l'erreur :", new Error().stack);
+}
+
+
+function hideCommuneList() {
+    communeList.innerHTML = '';
+    communeList.style.display = 'none';
+}
+
+function showCommuneList() {
+    communeList.style.display = 'block';
+}
+
+function debounce(func, delay) {
+    let debounceTimer;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func.apply(context, args), delay);
+    };
+}
+
+communeInput.addEventListener("input", debounce(function() {
+    var communeName = this.value;
+    if (!validateText(communeName, 50)) {
+        showError();
+        hideCommuneList();
+        return;
+    }
+    if (communeName.length >= 1) {
+        fetchCommunes(communeName);
+    } else {
+        hideCommuneList();
+    }
+}, 300));
+
+
+
+async function fetchCommunes(communeName) {
+    try {
+        const response = await fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`);
+        if (!response.ok) {
+            throw new Error("Erreur réseau lors de la récupération des communes.");
+        }
+        const data = await response.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new Error("Les données retournées par l'API sont invalides ou vides.");
         }
 
-        // Réinitialise les informations sur la commune
-        function resetCommuneInfo() {
-            ['resultatCommune', 'populationInfo', 'popUrbaineInfo', 'epciInfo', 'nomdumaire', 'adressemairie', 'courrielmairie', 'sitemairie', 'nomdupresident', 'adresseEpci', 'courrielEpci', 'siteEpci', 'competencePLU']
-            .forEach(id => updateElementText(id));
-        }
-
-        // Gère la recherche
-        async function handleSearch() {
-            const nomCommune = escapeHTML(communeInput.value.trim());
-            if (selectedCodeCommune) {
-                const data = await fetchData(`https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`);
-                if (data && validateApiResponse(data, ['code', 'population', 'epci', 'siren'])) {
-                    handlePopulationData(data);
-                    handleEpciData(data);
-                    await handleUniteUrbaineData(data[0].code);
-                    if (data[0].codeEpci) {
-                        await handlePluData(data[0].codeEpci);
-                    }
-                } else {
-                    showError();
-                }
-            } else {
-                showError('Veuillez entrer le nom d\'une commune.');
+        communeList.innerHTML = '';
+        data.forEach(function(commune) {
+            if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
+                console.warn("Données de la commune invalides : ", commune);
+                return;
             }
-        }
 
-        // Récupère les communes correspondant au nom donné
-        async function fetchCommunes(communeName) {
-            try {
-                const data = await fetchData(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`);
-                communeList.innerHTML = '';
-                data.forEach(commune => {
-                    const { nom, codeDepartement, code } = commune;
-                    if (typeof nom === 'string' && typeof codeDepartement === 'string' && typeof code === 'string') {
-                        const listItem = document.createElement("li");
-                        listItem.textContent = `${escapeHTML(nom)} (${escapeHTML(codeDepartement)})`;
-                        listItem.addEventListener("click", () => {
-                            selectedCodeCommune = code;
-                            communeInput.value = nom;
-                            hideCommuneList();
-                            resetCommuneInfo();
-                            const h2Element = document.createElement('h2');
-                            h2Element.textContent = `– ${nom} (${codeDepartement}) – code INSEE ${selectedCodeCommune}`;
-                            document.getElementById('resultatCommune').textContent = '';
-                            document.getElementById('resultatCommune').appendChild(h2Element);
-                            rechercherBtn.focus();
-                        });
-                        communeList.appendChild(listItem);
-                    }
-                });
-                communeList.style.display = 'block';
-            } catch (error) {
-                showError();
-            }
-        }
-
-        // Débouncer la saisie de l'utilisateur
-        function debounce(func, delay) {
-            let debounceTimer;
-            return function() {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => func.apply(this, arguments), delay);
-            };
-        }
-
-        // Écouteur d'événements pour la saisie de la commune
-        communeInput.addEventListener("input", debounce(function() {
-            const communeName = this.value.trim();
-            if (validateText(communeName, 50)) {
-                communeName.length >= 1 ? fetchCommunes(communeName) : hideCommuneList();
-            } else {
-                showError();
+            const listItem = document.createElement("li");
+            listItem.textContent = `${escapeHTML(commune.nom)} (${escapeHTML(commune.codeDepartement)})`;
+            listItem.addEventListener("click", function() {
+                selectedCodeCommune = commune.code;
+                communeInput.value = commune.nom;
                 hideCommuneList();
+                infosElement.textContent = '';
+
+                document.getElementById('resultatCommune').textContent = '';
+                document.getElementById('populationInfo').textContent = '';
+                document.getElementById('popUrbaineInfo').textContent = '';
+                document.getElementById('epciInfo').textContent = '';
+                document.getElementById('nomdumaire').textContent = '';
+                document.getElementById('adressemairie').textContent = '';
+                document.getElementById('courrielmairie').textContent = '';
+                document.getElementById('sitemairie').textContent = '';
+                document.getElementById('nomdupresident').textContent = '';
+                document.getElementById('adresseEpci').textContent = '';
+                document.getElementById('courrielEpci').textContent = '';
+                document.getElementById('siteEpci').textContent = '';
+                document.getElementById('competencePLU').textContent = '';
+
+                const resultatCommune = document.getElementById('resultatCommune');
+                const h2Element = document.createElement('h2');
+                h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
+                resultatCommune.textContent = '';
+                resultatCommune.appendChild(h2Element);
+
+                if (resultatCommune.textContent.trim() !== "") {
+                    rechercherBtn.focus();
+                }
+            });
+            communeList.appendChild(listItem);
+        });
+        showCommuneList();
+    } catch (error) {
+        showError();
+        console.error("Détails de l'erreur :", error);
+    }
+}
+
+
+document.addEventListener("click", function(event) {
+    if (!communeInput.contains(event.target) && !communeList.contains(event.target)) {
+        hideCommuneList();
+    }
+});
+
+rechercherBtn.addEventListener("click", handleSearch);
+
+function validateText(text, maxLength = 100) {
+    const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:[ '-][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*$/;
+    if (!regex.test(text.trim()) || text.length === 0 || text.length > maxLength) {
+        return false;
+    }
+    const forbiddenPatterns = /(<\/?script.*?>|javascript:|onerror\s*=|onload\s*=)/i;
+    if (forbiddenPatterns.test(text)) {
+        return false;
+    }
+    return true;
+}
+
+
+function escapeHTML(str) {
+    return str.replace(/[&<>"'`/\\(){}]/g, function(match) {
+        const escapeChars = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '`': '&#96;',
+            '/': '&#x2F;',
+            '\\': '&#92;',
+            '(': '&#40;',
+            ')': '&#41;',
+            '{': '&#123;',
+            '}': '&#125;'
+        };
+        return escapeChars[match];
+    });
+}
+
+
+async function fetchNomEluOuPresident(typeElu, code) {
+    const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240730-125205/elus-maires.csv";
+    const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240731-142441/elus-epci.csv";
+    const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
+    
+    const data = await fetchCsvData(csvUrl);
+    if (!data) {
+        showError();
+        return;
+    }
+
+    let found = false;
+    for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        const codeIndex = 4;
+        const fonctionIndex = 15;
+
+        if (parseInt(row[codeIndex]) === parseInt(code) &&
+            (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
+
+            const nomElu = row[typeElu === "maire" ? 6 : 8];
+            const prenomElu = row[typeElu === "maire" ? 7 : 9];
+            let sexeElu = row[typeElu === "maire" ? 8 : 10];
+
+            if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
+                sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
+                const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
+document.getElementById(infoText).textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
+                found = true;
+                break;
+            } else {
+                console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
+                showError();
             }
-        }, 300));
+        }
+    }
 
-        // Cache la liste des communes
-        function hideCommuneList() {
-            communeList.style.display = 'none';
+    if (!found) {
+        console.warn("Aucun élu correspondant trouvé pour le code :", code);
+        showError();
+    }
+}
+
+async function fetchAdresse(code, type) {
+    const isMairie = type === 'mairie';
+    const endpoint = isMairie ? `code_insee_commune%3A%22${code}%22` : `siren%3A%22${code}%22`;
+    const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
+
+    try {
+        const response = await fetch(apiUrl, {
+    method: 'GET'
+});
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
+
+        if (!Array.isArray(data.results) || data.results.length === 0) {
+            throw new Error("Données d'adresse non disponibles ou format inattendu.");
         }
 
-        // Écouteur d'événements pour le bouton de recherche
-        rechercherBtn.addEventListener("click", handleSearch);
+        const record = data.results.find(record => {
+            const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
+            return (
+                (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || 
+                (!isMairie && pivotData.some(item => item.type_service_local === "epci"))
+            );
+        });
 
-        // Validation du texte saisi
-        function validateText(text, maxLength = 100) {
-            const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9\s'-]+$/;
-            const forbiddenPatterns = /(<\/?script.*?>|javascript:|onerror\s*=|onload\s*=)/i;
-            return regex.test(text) && text.length > 0 && text.length <= maxLength && !forbiddenPatterns.test(text);
-        }
+        if (record && record.adresse) {
+            const adresseData = JSON.parse(record.adresse);
+            const adresseComplete = [
+                adresseData[0].numero_voie || '',
+                adresseData[0].complement1 || '',
+                adresseData[0].complement2 || '',
+                adresseData[0].service_distribution || '',
+                adresseData[0].code_postal || '',
+                adresseData[0].nom_commune || ''
+            ].filter(Boolean).join(' - ');
 
-        // Échappe les caractères spéciaux pour éviter les injections XSS
-        function escapeHTML(str) {
-            return str.replace(/[&<>"'`/\\(){}]/g, match => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;',
-                '`': '&#96;',
-                '/': '&#x2F;',
-                '\\': '&#92;',
-                '(': '&#40;',
-                ')': '&#41;',
-                '{': '&#123;',
-                '}': '&#125;'
-            }[match]));
-        }
+            if (adresseComplete) {
+                const infoText = isMairie ? "adressemairie" : "adresseEpci";
+                document.getElementById(infoText).textContent = escapeHTML(adresseComplete);
+            } else {
+                console.warn("Adresse vide ou non valide :", adresseComplete);
+            }
 
-        // Récupère le nom de l'élu ou président
-        async function fetchNomEluOuPresident(typeElu, code) {
-            const csvUrl = typeElu === "maire" 
-                ? "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240730-125205/elus-maires.csv" 
-                : "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20240731-142441/elus-epci.csv";
-            const data = await fetchCsvData(csvUrl);
-            if (data) {
-                const row = data.find(row => parseInt(row[4]) === parseInt(code) && (typeElu === "maire" || row[15] === "Président du conseil communautaire"));
-                if (row) {
-                    const nomElu = row[typeElu === "maire" ? 6 : 8];
-                    const prenomElu = row[typeElu === "maire" ? 7 : 9];
-                    const sexeElu = row[typeElu === "maire" ? 8 : 10] === "M" ? "M." : (row[typeElu === "maire" ? 8 : 10] === "F" ? "Mme" : "");
-                    if (validateText(nomElu) && validateText(prenomElu)) {
-                        document.getElementById(typeElu === "maire" ? "nomdumaire" : "nomdupresident").textContent = `${sexeElu} ${escapeHTML(nomElu)} ${escapeHTML(prenomElu)}`;
-                    } else {
-                        showError();
-                    }
-                } else {
-                    showError();
+            if (record.adresse_courriel) {
+                const infoText = isMairie ? "courrielmairie" : "courrielEpci";
+                document.getElementById(infoText).textContent = escapeHTML(record.adresse_courriel);
+            }
+
+            const siteInternetJSON = record.site_internet;
+            if (siteInternetJSON) {
+                const siteInternetData = JSON.parse(siteInternetJSON);
+                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+                const infoText = isMairie ? "sitemairie" : "siteEpci";
+                if (siteInternet) {
+const anchorElement = document.createElement("a");
+anchorElement.href = siteInternet;
+anchorElement.textContent = siteInternet;
+anchorElement.target = "_blank";
+document.getElementById(infoText).textContent = '';
+document.getElementById(infoText).appendChild(anchorElement);
+
                 }
             }
+        } else {
+            throw new Error("Aucune information sur la Mairie ou l'EPCI trouvée.");
         }
+    } catch (error) {
+        console.error("Erreur lors de la récupération des données :", error);
+        showError();
+    }
+}
 
-        // Récupère l'adresse d'une commune ou d'un EPCI
-        async function fetchAdresse(code, type) {
-            const endpoint = type === "mairie" ? `communes/${code}/mairie` : `epci/${code}`;
-            const apiUrl = `https://api.datalocale.fr/v1/adresses/${endpoint}`;
-            const data = await fetchData(apiUrl);
-            if (data && Array.isArray(data.records) && data.records.length > 0) {
-                const { adresse, courriel, site } = data.records[0].fields || {};
-                if (adresse) updateElementText(type === 'mairie' ? 'adressemairie' : 'adresseEpci', adresse);
-                if (courriel) updateElementText(type === 'mairie' ? 'courrielmairie' : 'courrielEpci', courriel);
-                if (site) updateElementText(type === 'mairie' ? 'sitemairie' : 'siteEpci', site);
-            } else {
-                showError();
+
+function validateApiResponse(data, expectedFields) {
+    return expectedFields.every(field => field in data);
+}
+
+async function fetchData(selectedCodeCommune) {
+    const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
+
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
+
+        if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci', 'siren'])) {
+            const codeCommune = data[0].code;
+            const codeEpci = data[0].codeEpci;
+
+            handlePopulationData(data);
+            handleEpciData(data);
+            handleMaireData(codeCommune);
+
+            await handleUniteUrbaineData(codeCommune);
+
+            if (codeEpci) {
+                await handlePluData(codeEpci);
             }
-        }
 
-        // Gère les données de l'unité urbaine
-        async function handleUniteUrbaineData(codeCommune) {
-            const apiUrl = `https://api.insee.fr/ugp/rest/communes/${codeCommune}/unite-urbaine`;
-            const data = await fetchData(apiUrl);
-            if (data && Array.isArray(data.uniteUrbaine) && typeof data.uniteUrbaine[0].population === 'number') {
-                updateElementText('popUrbaineInfo', `Population : ${data.uniteUrbaine[0].population}`);
-            } else {
-                showError();
+            if (codeEpci && codeEpci === "200054781") {
+                document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
             }
+        } else {
+            showError();
         }
-
-        // Gère les données PLU
-        async function handlePluData(codeEpci) {
-            const apiUrl = `https://api.datalocale.fr/v1/plu/epci/${codeEpci}`;
-            const data = await fetchData(apiUrl);
-            if (data && Array.isArray(data.plu) && typeof data.plu[0].intitule === 'string') {
-                const plu = data.plu[0].intitule;
-                updateElementText('competencePLU', plu || 'Non spécifié');
-            } else {
-                showError();
-            }
-        }
-
-        // Valide la réponse API
-        function validateApiResponse(data, requiredFields) {
-            return requiredFields.every(field => field in data[0]);
-        }
-
-        // Fonction de récupération de données CSV
-        async function fetchCsvData(url) {
-            const data = await fetchData(url, async (text) => {
-                return text.split('\n').map(row => row.split(';'));
-            });
-            return data;
-        }
-    });
-</script>
-
-
+    } catch (error) {
+        console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
+        showError();
+    }
+}
+	});
+	</script>
 
 
 	<hr> <b>Sources :</b>
@@ -410,7 +657,7 @@
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.19e du 27/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.19c du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
