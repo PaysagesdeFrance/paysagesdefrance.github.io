@@ -370,7 +370,7 @@ function debounce(func, delay) {
 
 communeInput.addEventListener("input", debounce(function() {
     var communeName = this.value;
-    if (!validateText(communeName, 50)) {
+    if (!validateInput(communeName, 'text', 50)) {
         showError();
         hideCommuneList();
         return;
@@ -453,15 +453,24 @@ document.addEventListener("click", function(event) {
 
 rechercherBtn.addEventListener("click", handleSearch);
 
-function validateText(text, maxLength = 100) {
+// Nouvelle fonction de validation centralisée
+function validateInput(text, type = 'text', maxLength = 100) {
     if (!validator.isLength(text, { min: 1, max: maxLength })) {
         return false;
     }
-    if (!validator.isAlphanumeric(text, 'fr-FR', { ignore: " '-" })) {
-        return false;
+
+    switch (type) {
+        case 'text':
+            return validator.isAlphanumeric(text, 'fr-FR', { ignore: " '-" });
+        case 'number':
+            return validator.isNumeric(text);
+        case 'email':
+            return validator.isEmail(text);
+        default:
+            return false;
     }
-    return true;
 }
+
 
 function sanitizeText(text) {
     return validator.escape(text);
@@ -492,7 +501,7 @@ async function fetchNomEluOuPresident(typeElu, code) {
             const prenomElu = row[typeElu === "maire" ? 7 : 9];
             let sexeElu = row[typeElu === "maire" ? 8 : 10];
 
-            if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateText(nomElu) && validateText(prenomElu)) {
+            if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateInput(nomElu,'text') && validateInput(prenomElu,'text')) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
 document.getElementById(infoText).textContent = `${sexeElu} ${sanitizeText(nomElu)} ${sanitizeText(prenomElu)}`;
@@ -640,7 +649,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.19f du 27/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
