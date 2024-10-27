@@ -603,15 +603,14 @@ async function fetchData(selectedCodeCommune) {
             const codeCommune = data[0].code;
             const codeEpci = data[0].codeEpci;
 
-            handlePopulationData(data);
-            handleEpciData(data);
-            handleMaireData(codeCommune);
-
-            await handleUniteUrbaineData(codeCommune);
-
-            if (codeEpci) {
-                await handlePluData(codeEpci);
-            }
+            // Utilisation de Promise.all pour exécuter les fonctions en parallèle
+            await Promise.all([
+                handlePopulationData(data),
+                handleEpciData(data),
+                handleMaireData(codeCommune),
+                handleUniteUrbaineData(codeCommune),
+                codeEpci ? handlePluData(codeEpci) : Promise.resolve()
+            ]);
 
             if (codeEpci && codeEpci === "200054781") {
                 document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
@@ -624,6 +623,7 @@ async function fetchData(selectedCodeCommune) {
         showError();
     }
 }
+
 	});
 	</script>
 
@@ -640,7 +640,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.19d du 27/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.19e du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
