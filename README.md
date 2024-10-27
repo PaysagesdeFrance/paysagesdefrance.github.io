@@ -160,6 +160,16 @@ const rechercherBtn = document.getElementById("rechercherBtn");
 const infosElement = document.getElementById("infos");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
+		
+function updateElementText(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element && typeof text === 'string') {
+        element.textContent = escapeHTML(text);
+    } else {
+        element.textContent = 'Données non disponibles';
+    }
+}
+
 
 // Fonction pour télécharger et lire les données CSV
 async function fetchCsvData(url) {
@@ -227,24 +237,18 @@ async function handlePluData(codeEpci) {
 function handlePopulationData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
         showError();
-        document.getElementById('populationInfo').textContent = 'Données non disponibles';
+        updateElementText('populationInfo', 'Données non disponibles');
         return;
     }
 
     const population = data[0].population;
-    if (Number.isInteger(population) && population >= 0) {
-        // Vérifiez également que la valeur est raisonnable (par exemple, moins de 100 millions)
-        if (population <= 100000000) {
-            // Ligne à ajouter ou remplacer
-document.getElementById('populationInfo').textContent = `${escapeHTML(population.toString())} habitants`;
-
-        } else {
-            document.getElementById('populationInfo').textContent = 'Données non disponibles';
-        }
+    if (Number.isInteger(population) && population >= 0 && population <= 100000000) {
+        updateElementText('populationInfo', `${population} habitants`);
     } else {
-        document.getElementById('populationInfo').textContent = 'Données non disponibles';
+        updateElementText('populationInfo', 'Données non disponibles');
     }
 }
+
 
 
 
@@ -253,7 +257,7 @@ document.getElementById('populationInfo').textContent = `${escapeHTML(population
 function handleEpciData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
         showError();
-        document.getElementById('epciInfo').textContent = 'Données non disponibles';
+        updateElementText('epciInfo', 'Données non disponibles');
         return;
     }
 
@@ -261,19 +265,16 @@ function handleEpciData(data) {
     const nomEpci = epci.nom || 'Non disponible';
     const codeEpci = data[0].codeEpci;
 
-    if (validateText(nomEpci)) {
-        document.getElementById('epciInfo').textContent = `${escapeHTML(nomEpci)} – (SIREN : ${escapeHTML(codeEpci)})`;
-    } else {
-        document.getElementById('epciInfo').textContent = 'EPCI non disponible';
-    }
+    updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
 
     if (codeEpci && codeEpci !== "200054781") {
         fetchAdresse(codeEpci, "epci");
         fetchNomEluOuPresident("president", codeEpci);
     } else {
-        document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
+        updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
     }
 }
+
 
 
 // Sous-fonction pour gérer les informations sur le maire
@@ -716,7 +717,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.19a du 27/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.19b du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
