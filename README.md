@@ -7,7 +7,7 @@
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
-	<script src="https://cdn.jsdelivr.net/npm/validator@13.9.0/validator.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/validator@13.12.0/validator.min.js"></script>
 
 	<title>Recherche d'une commune</title>
 	<style>
@@ -640,7 +640,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.19e du 27/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.19f du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.16g du 21/10/2024 : Amélioration de la sécurité</li>
