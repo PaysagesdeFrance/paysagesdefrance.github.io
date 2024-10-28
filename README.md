@@ -252,7 +252,7 @@ function handlePopulationData(data) {
 
 
 
-async function handleEpciData(data) {
+function handleEpciData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
         showError();
         updateElementText('epciInfo', 'Données non disponibles');
@@ -266,17 +266,18 @@ async function handleEpciData(data) {
     updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
 
     if (codeEpci && codeEpci !== "200054781") {
-        await fetchDataFromCsv('adresse', codeEpci);
-        await fetchDataFromCsv('president', codeEpci);
-        await handlePluData(codeEpci); // Ajout pour appeler correctement handlePluData
+        fetchAdresse(codeEpci, "epci");
+        fetchNomEluOuPresident("president", codeEpci);
     } else {
         updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
     }
 }
 
-async function handleMaireData(codeCommune) {
-    await fetchDataFromCsv('maire', codeCommune);
-    await fetchDataFromCsv('adresse', codeCommune);
+
+
+function handleMaireData(codeCommune) {
+    fetchNomEluOuPresident("maire", codeCommune);
+    fetchAdresse(codeCommune, "mairie");
 }
 
 async function handleUniteUrbaineData(codeCommune) {
@@ -461,69 +462,33 @@ document.addEventListener("click", function(event) {
 
 function handleAdresseData(data, type) {
     const isMairie = type === 'mairie';
-    const records = data.results;
-
-    if (!Array.isArray(records) || records.length === 0) {
-        showError("Données d'adresse non disponibles ou format inattendu.");
-        return;
-    }
-
-    // Trouver l'enregistrement correspondant à la mairie ou à l'EPCI
-    const record = records.find(record => {
+    const record = data.results.find(record => {
         const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-        return (
-            (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) ||
-            (!isMairie && pivotData.some(item => item.type_service_local === "epci"))
-        );
+        return (isMairie && pivotData.some(item => item.type_service_local === "mairie")) || 
+               (!isMairie && pivotData.some(item => item.type_service_local === "epci"));
     });
 
     if (record && record.adresse) {
-        try {
-            // Traitement de l'adresse
-            const adresseData = JSON.parse(record.adresse);
-            const adresseComplete = [
-                adresseData[0].numero_voie || '',
-                adresseData[0].complement1 || '',
-                adresseData[0].complement2 || '',
-                adresseData[0].service_distribution || '',
-                adresseData[0].code_postal || '',
-                adresseData[0].nom_commune || ''
-            ].filter(Boolean).join(' - ');
+        const adresseData = JSON.parse(record.adresse);
+        const adresseComplete = [
+            adresseData[0].numero_voie || '',
+            adresseData[0].complement1 || '',
+            adresseData[0].complement2 || '',
+            adresseData[0].service_distribution || '',
+            adresseData[0].code_postal || '',
+            adresseData[0].nom_commune || ''
+        ].filter(Boolean).join(' - ');
 
-            const adresseElementId = isMairie ? "adressemairie" : "adresseEpci";
-            updateElement(adresseElementId, adresseComplete);
-
-            // Mise à jour du courriel
-            const courrielElementId = isMairie ? "courrielmairie" : "courrielEpci";
-            updateElement(courrielElementId, record.adresse_courriel || "Données non disponibles");
-
-            // Traitement du site internet
-            if (record.site_internet) {
-                const siteInternetData = JSON.parse(record.site_internet);
-                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-                const siteElementId = isMairie ? "sitemairie" : "siteEpci";
-                if (siteInternet) {
-                    const anchorElement = document.createElement("a");
-                    anchorElement.href = siteInternet;
-                    anchorElement.textContent = siteInternet;
-                    anchorElement.target = "_blank";
-                    document.getElementById(siteElementId).textContent = '';
-                    document.getElementById(siteElementId).appendChild(anchorElement);
-                }
-            }
-        } catch (error) {
-            console.error("Erreur lors du traitement des données d'adresse :", error);
-            showError("Impossible de traiter les informations d'adresse.");
+        updateElement("adressemairie", adresseComplete);
+        updateElement("courrielmairie", record.adresse_courriel);
+        if (record.site_internet) {
+            const siteInternet = JSON.parse(record.site_internet)[0].valeur;
+            updateElement("sitemairie", siteInternet);
         }
     } else {
-        showError("Aucune information sur la Mairie ou l'EPCI trouvée.");
+        showError("Aucune information sur l'adresse trouvée.");
     }
 }
-
-
-
-
-
 
 
 rechercherBtn.addEventListener("click", handleSearch);
@@ -563,49 +528,17 @@ async function fetchDataFromCsv(type, code) {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
         
-        if (type === 'adresse') {
-            const data = await response.json();
-            handleAdresseData(data, type);
-        } else {
-            const text = await response.text();
-            const csvData = parseCsv(text);
-            handleEluData(csvData, type, code);
-        }
+        const data = type === 'adresse' ? await response.json() : await response.text();
+        return type === 'adresse' ? handleAdresseData(data, type) : parseCsv(data);
     } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
         showError();
+        return null;
     }
 }
 
-function handleEluData(data, type, code) {
-    let found = false;
-    const codeIndex = 4; // Index du code INSEE ou SIREN selon le type de fichier CSV
-    const nomIndex = type === 'maire' ? 6 : 8;
-    const prenomIndex = type === 'maire' ? 7 : 9;
-    const sexeIndex = type === 'maire' ? 8 : 10;
 
-    for (let i = 0; i < data.length; i++) {
-        const row = data[i];
-        if (parseInt(row[codeIndex]) === parseInt(code)) {
-            const nomElu = row[nomIndex];
-            const prenomElu = row[prenomIndex];
-            let sexeElu = row[sexeIndex];
-            
-            if (nomElu && prenomElu) {
-                sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
-                const elementId = type === 'maire' ? "nomdumaire" : "nomdupresident";
-                updateElement(elementId, `${sexeElu} ${sanitizeText(nomElu)} ${sanitizeText(prenomElu)}`);
-                found = true;
-                break;
-            }
-        }
-    }
 
-    if (!found) {
-        const elementId = type === 'maire' ? "nomdumaire" : "nomdupresident";
-        updateElement(elementId, "Données non disponibles");
-    }
-}
 
 
 function validateApiResponse(data, expectedFields) {
@@ -662,7 +595,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.20f du 28/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.20a du 28/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
