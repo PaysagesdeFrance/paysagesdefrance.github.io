@@ -468,29 +468,39 @@ function handleAdresseData(data, type) {
     });
 
     if (record && record.adresse) {
-        const adresseData = JSON.parse(record.adresse);
-        const adresseComplete = [
-            adresseData[0].numero_voie || '',
-            adresseData[0].complement1 || '',
-            adresseData[0].complement2 || '',
-            adresseData[0].service_distribution || '',
-            adresseData[0].code_postal || '',
-            adresseData[0].nom_commune || ''
-        ].filter(Boolean).join(' - ');
+        try {
+            const adresseData = JSON.parse(record.adresse);
+            const adresseComplete = [
+                adresseData[0].numero_voie || '',
+                adresseData[0].complement1 || '',
+                adresseData[0].complement2 || '',
+                adresseData[0].service_distribution || '',
+                adresseData[0].code_postal || '',
+                adresseData[0].nom_commune || ''
+            ].filter(Boolean).join(' - ');
 
-        const adresseElementId = isMairie ? "adressemairie" : "adresseEpci";
-        updateElement(adresseElementId, adresseComplete);
-        updateElement(isMairie ? "courrielmairie" : "courrielEpci", record.adresse_courriel || "Données non disponibles");
+            const adresseElementId = isMairie ? "adressemairie" : "adresseEpci";
+            updateElement(adresseElementId, adresseComplete);
 
-        if (record.site_internet) {
-            const siteInternet = JSON.parse(record.site_internet)[0].valeur;
-            const siteElementId = isMairie ? "sitemairie" : "siteEpci";
-            updateElement(siteElementId, siteInternet);
+            const courrielElementId = isMairie ? "courrielmairie" : "courrielEpci";
+            updateElement(courrielElementId, record.adresse_courriel || "Données non disponibles");
+
+            if (record.site_internet) {
+                const siteInternetData = JSON.parse(record.site_internet);
+                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+                const siteElementId = isMairie ? "sitemairie" : "siteEpci";
+                updateElement(siteElementId, siteInternet || "Données non disponibles");
+            }
+        } catch (error) {
+            console.error("Erreur lors du traitement des données d'adresse :", error);
+            showError("Impossible de traiter les informations d'adresse.");
         }
     } else {
         showError("Aucune information sur l'adresse trouvée.");
     }
 }
+
+
 
 
 
@@ -630,7 +640,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.20c du 28/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.20d du 28/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
