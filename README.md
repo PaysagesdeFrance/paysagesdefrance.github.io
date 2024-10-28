@@ -461,30 +461,43 @@ document.addEventListener("click", function(event) {
 
 function handleAdresseData(data, type) {
     const isMairie = type === 'mairie';
-    const record = data.results.find(record => {
+    const records = data.results;
+
+    // Vérifie qu'il y a au moins un enregistrement dans les résultats
+    if (!Array.isArray(records) || records.length === 0) {
+        showError("Aucune information d'adresse trouvée.");
+        return;
+    }
+
+    // Trouve le bon enregistrement pour la mairie ou l'EPCI
+    const record = records.find(record => {
         const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-        return (isMairie && pivotData.some(item => item.type_service_local === "mairie")) || 
+        return (isMairie && pivotData.some(item => item.type_service_local === "mairie")) ||
                (!isMairie && pivotData.some(item => item.type_service_local === "epci"));
     });
 
-    if (record && record.adresse) {
+    if (record) {
         try {
-            const adresseData = JSON.parse(record.adresse);
-            const adresseComplete = [
+            // Traitement de l'adresse
+            const adresseData = record.adresse ? JSON.parse(record.adresse) : null;
+            const adresseComplete = adresseData ? [
                 adresseData[0].numero_voie || '',
                 adresseData[0].complement1 || '',
                 adresseData[0].complement2 || '',
                 adresseData[0].service_distribution || '',
                 adresseData[0].code_postal || '',
                 adresseData[0].nom_commune || ''
-            ].filter(Boolean).join(' - ');
+            ].filter(Boolean).join(' - ') : "Données non disponibles";
 
+            // Mise à jour de l'adresse
             const adresseElementId = isMairie ? "adressemairie" : "adresseEpci";
             updateElement(adresseElementId, adresseComplete);
 
+            // Traitement du courriel
             const courrielElementId = isMairie ? "courrielmairie" : "courrielEpci";
             updateElement(courrielElementId, record.adresse_courriel || "Données non disponibles");
 
+            // Traitement du site internet
             if (record.site_internet) {
                 const siteInternetData = JSON.parse(record.site_internet);
                 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
@@ -499,6 +512,7 @@ function handleAdresseData(data, type) {
         showError("Aucune information sur l'adresse trouvée.");
     }
 }
+
 
 
 
@@ -640,7 +654,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.20d du 28/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.20e du 28/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
