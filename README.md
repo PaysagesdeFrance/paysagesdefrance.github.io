@@ -266,15 +266,13 @@ async function handleEpciData(data) {
     updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
 
     if (codeEpci && codeEpci !== "200054781") {
-        await fetchDataFromCsv('adresse', codeEpci); // Utilisation de la nouvelle fonction
+        await fetchDataFromCsv('adresse', codeEpci);
         await fetchDataFromCsv('president', codeEpci);
+        await handlePluData(codeEpci); // Ajout pour appeler correctement handlePluData
     } else {
         updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
     }
 }
-
-
-
 
 async function handleMaireData(codeCommune) {
     await fetchDataFromCsv('maire', codeCommune);
@@ -480,16 +478,20 @@ function handleAdresseData(data, type) {
             adresseData[0].nom_commune || ''
         ].filter(Boolean).join(' - ');
 
-        updateElement("adressemairie", adresseComplete);
-        updateElement("courrielmairie", record.adresse_courriel);
+        const adresseElementId = isMairie ? "adressemairie" : "adresseEpci";
+        updateElement(adresseElementId, adresseComplete);
+        updateElement(isMairie ? "courrielmairie" : "courrielEpci", record.adresse_courriel || "Données non disponibles");
+
         if (record.site_internet) {
             const siteInternet = JSON.parse(record.site_internet)[0].valeur;
-            updateElement("sitemairie", siteInternet);
+            const siteElementId = isMairie ? "sitemairie" : "siteEpci";
+            updateElement(siteElementId, siteInternet);
         }
     } else {
         showError("Aucune information sur l'adresse trouvée.");
     }
 }
+
 
 
 rechercherBtn.addEventListener("click", handleSearch);
@@ -529,17 +531,49 @@ async function fetchDataFromCsv(type, code) {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
         
-        const data = type === 'adresse' ? await response.json() : await response.text();
-        return type === 'adresse' ? handleAdresseData(data, type) : parseCsv(data);
+        if (type === 'adresse') {
+            const data = await response.json();
+            handleAdresseData(data, type);
+        } else {
+            const text = await response.text();
+            const csvData = parseCsv(text);
+            handleEluData(csvData, type, code);
+        }
     } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
         showError();
-        return null;
     }
 }
 
+function handleEluData(data, type, code) {
+    let found = false;
+    const codeIndex = 4; // Index du code INSEE ou SIREN selon le type de fichier CSV
+    const nomIndex = type === 'maire' ? 6 : 8;
+    const prenomIndex = type === 'maire' ? 7 : 9;
+    const sexeIndex = type === 'maire' ? 8 : 10;
 
+    for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        if (parseInt(row[codeIndex]) === parseInt(code)) {
+            const nomElu = row[nomIndex];
+            const prenomElu = row[prenomIndex];
+            let sexeElu = row[sexeIndex];
+            
+            if (nomElu && prenomElu) {
+                sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
+                const elementId = type === 'maire' ? "nomdumaire" : "nomdupresident";
+                updateElement(elementId, `${sexeElu} ${sanitizeText(nomElu)} ${sanitizeText(prenomElu)}`);
+                found = true;
+                break;
+            }
+        }
+    }
 
+    if (!found) {
+        const elementId = type === 'maire' ? "nomdumaire" : "nomdupresident";
+        updateElement(elementId, "Données non disponibles");
+    }
+}
 
 
 function validateApiResponse(data, expectedFields) {
@@ -596,7 +630,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.20b du 28/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.20c du 28/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
