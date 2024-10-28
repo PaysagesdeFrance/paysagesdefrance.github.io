@@ -252,7 +252,7 @@ function handlePopulationData(data) {
 
 
 
-function handleEpciData(data) {
+async function handleEpciData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
         showError();
         updateElementText('epciInfo', 'Données non disponibles');
@@ -266,8 +266,8 @@ function handleEpciData(data) {
     updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
 
     if (codeEpci && codeEpci !== "200054781") {
-        fetchAdresse(codeEpci, "epci");
-        fetchNomEluOuPresident("president", codeEpci);
+        await fetchDataFromCsv('adresse', codeEpci); // Utilisation de la nouvelle fonction
+        await fetchDataFromCsv('president', codeEpci);
     } else {
         updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
     }
@@ -275,9 +275,10 @@ function handleEpciData(data) {
 
 
 
-function handleMaireData(codeCommune) {
-    fetchNomEluOuPresident("maire", codeCommune);
-    fetchAdresse(codeCommune, "mairie");
+
+async function handleMaireData(codeCommune) {
+    await fetchDataFromCsv('maire', codeCommune);
+    await fetchDataFromCsv('adresse', codeCommune);
 }
 
 async function handleUniteUrbaineData(codeCommune) {
@@ -595,7 +596,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.20a du 28/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.20b du 28/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
