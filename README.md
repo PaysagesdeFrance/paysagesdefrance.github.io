@@ -463,37 +463,37 @@ function handleAdresseData(data, type) {
     const isMairie = type === 'mairie';
     const records = data.results;
 
-    // Vérifie qu'il y a au moins un enregistrement dans les résultats
     if (!Array.isArray(records) || records.length === 0) {
-        showError("Aucune information d'adresse trouvée.");
+        showError("Données d'adresse non disponibles ou format inattendu.");
         return;
     }
 
-    // Trouve le bon enregistrement pour la mairie ou l'EPCI
+    // Trouver l'enregistrement correspondant à la mairie ou à l'EPCI
     const record = records.find(record => {
         const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
-        return (isMairie && pivotData.some(item => item.type_service_local === "mairie")) ||
-               (!isMairie && pivotData.some(item => item.type_service_local === "epci"));
+        return (
+            (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) ||
+            (!isMairie && pivotData.some(item => item.type_service_local === "epci"))
+        );
     });
 
-    if (record) {
+    if (record && record.adresse) {
         try {
             // Traitement de l'adresse
-            const adresseData = record.adresse ? JSON.parse(record.adresse) : null;
-            const adresseComplete = adresseData ? [
+            const adresseData = JSON.parse(record.adresse);
+            const adresseComplete = [
                 adresseData[0].numero_voie || '',
                 adresseData[0].complement1 || '',
                 adresseData[0].complement2 || '',
                 adresseData[0].service_distribution || '',
                 adresseData[0].code_postal || '',
                 adresseData[0].nom_commune || ''
-            ].filter(Boolean).join(' - ') : "Données non disponibles";
+            ].filter(Boolean).join(' - ');
 
-            // Mise à jour de l'adresse
             const adresseElementId = isMairie ? "adressemairie" : "adresseEpci";
             updateElement(adresseElementId, adresseComplete);
 
-            // Traitement du courriel
+            // Mise à jour du courriel
             const courrielElementId = isMairie ? "courrielmairie" : "courrielEpci";
             updateElement(courrielElementId, record.adresse_courriel || "Données non disponibles");
 
@@ -502,16 +502,24 @@ function handleAdresseData(data, type) {
                 const siteInternetData = JSON.parse(record.site_internet);
                 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
                 const siteElementId = isMairie ? "sitemairie" : "siteEpci";
-                updateElement(siteElementId, siteInternet || "Données non disponibles");
+                if (siteInternet) {
+                    const anchorElement = document.createElement("a");
+                    anchorElement.href = siteInternet;
+                    anchorElement.textContent = siteInternet;
+                    anchorElement.target = "_blank";
+                    document.getElementById(siteElementId).textContent = '';
+                    document.getElementById(siteElementId).appendChild(anchorElement);
+                }
             }
         } catch (error) {
             console.error("Erreur lors du traitement des données d'adresse :", error);
             showError("Impossible de traiter les informations d'adresse.");
         }
     } else {
-        showError("Aucune information sur l'adresse trouvée.");
+        showError("Aucune information sur la Mairie ou l'EPCI trouvée.");
     }
 }
+
 
 
 
@@ -654,7 +662,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.20e du 28/10/2024 : Amélioration de la simplicité</li>
+ 		<li>version 1.20f du 28/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
  		<li>version 1.17b du 24/10/2024 : Amélioration de la sécurité</li>
