@@ -648,7 +648,7 @@ async function fetchData(selectedCodeCommune) {
 		<li>(2) informations mises à jour manuellement – valable au 1er janvier 2024 – source : <a href="https://www.insee.fr/fr/information/4802589" target="_blank">https://www.insee.fr/fr/information/4802589</a></li>
 		<li>(3) OpenData gouvernemental : Ministère de l'Intérieur et des Outre-Mer – <a href="https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/" target="_blank">https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/</a></li>
 		<li>(4) API gouvernementale : <a href="https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration" target="_blank">https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration</a></li>
-		<li>(5) informations mises à jour manuellement (intercommunalité puis Export national ou régional – valable au 12 février 2025 – source : <a href="https://www.banatic.interieur.gouv.fr/export/" target="_blank">https://www.banatic.interieur.gouv.fr/export/</a></li>
+		<li>(5) informations mises à jour manuellement (intercommunalité puis Export national ou régional) – valable au 12 février 2025 – source : <a href="https://www.banatic.interieur.gouv.fr/export/" target="_blank">https://www.banatic.interieur.gouv.fr/export/</a></li>
 
 	</ul>
 
