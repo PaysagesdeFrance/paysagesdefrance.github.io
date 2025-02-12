@@ -408,6 +408,7 @@ async function fetchCommunes(communeName) {
             listItem.addEventListener("click", function() {
                 selectedCodeCommune = commune.code;
                 communeInput.value = commune.nom;
+		sirenCommune = commune.siren;
                 hideCommuneList();
                 infosElement.textContent = '';
 
@@ -427,7 +428,7 @@ async function fetchCommunes(communeName) {
 
                 const resultatCommune = document.getElementById('resultatCommune');
                 const h2Element = document.createElement('h2');
-                h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
+                h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune} – SIREN ${sirenCommune}`;
                 resultatCommune.textContent = '';
                 resultatCommune.appendChild(h2Element);
 
@@ -649,7 +650,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.21c du 12/02/2025 : Résolution du problème avec les noms des maires en Corse</li>
+ 		<li>version 1.21d du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes</li>
  		<li>version 1.20a du 11/02/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
