@@ -408,7 +408,6 @@ async function fetchCommunes(communeName) {
             listItem.addEventListener("click", function() {
                 selectedCodeCommune = commune.code;
                 communeInput.value = commune.nom;
-		sirenCommune = commune.siren;
                 hideCommuneList();
                 infosElement.textContent = '';
 
@@ -428,7 +427,7 @@ async function fetchCommunes(communeName) {
 
                 const resultatCommune = document.getElementById('resultatCommune');
                 const h2Element = document.createElement('h2');
-                h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune} – SIREN ${sirenCommune}`;
+                h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
                 resultatCommune.textContent = '';
                 resultatCommune.appendChild(h2Element);
 
@@ -649,13 +648,13 @@ async function fetchData(selectedCodeCommune) {
 		<li>(2) informations mises à jour manuellement – valable au 1er janvier 2024 – source : <a href="https://www.insee.fr/fr/information/4802589" target="_blank">https://www.insee.fr/fr/information/4802589</a></li>
 		<li>(3) OpenData gouvernemental : Ministère de l'Intérieur et des Outre-Mer – <a href="https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/" target="_blank">https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/</a></li>
 		<li>(4) API gouvernementale : <a href="https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration" target="_blank">https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration</a></li>
-		<li>(5) informations mises à jour manuellement – valable au 1er juillet 2024 – source : <a href="https://www.banatic.interieur.gouv.fr/" target="_blank">https://www.banatic.interieur.gouv.fr/</a></li>
+		<li>(5) informations mises à jour manuellement (intercommunalité puis Export national ou régional – valable au 12 février 2025 – source : <a href="https://www.banatic.interieur.gouv.fr/export/" target="_blank">https://www.banatic.interieur.gouv.fr/export/</a></li>
 
 	</ul>
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.21h du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes + correction de l'affichage des apostrophes dans les adresses</li>
+ 		<li>version 1.21j du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes + correction de l'affichage des apostrophes dans les adresses</li>
  		<li>version 1.20a du 11/02/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
