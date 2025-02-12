@@ -523,7 +523,7 @@ document.getElementById(infoText).textContent = `${sexeElu} ${sanitizeText(nomEl
 
 async function fetchAdresse(code, type) {
     const isMairie = type === 'mairie';
-    const endpoint = isMairie ? `code_insee_commune%3A%22${code}%22` : `siren%3A%22${code}%22`;
+    const endpoint = isMairie ? `pivot LIKE '%"type_service_local":"mairie"%25"code_insee_commune":["${code}"]%'` : `siren%3A%22${code}%22`;
     const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
 
     try {
@@ -650,7 +650,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.21d du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes</li>
+ 		<li>version 1.21e du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes</li>
  		<li>version 1.20a du 11/02/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
