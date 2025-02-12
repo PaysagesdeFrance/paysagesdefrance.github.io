@@ -472,9 +472,11 @@ function validateInput(text, type = 'text', maxLength = 100) {
     }
 }
 
-
 function sanitizeText(text) {
-    return validator.escape(text);
+    let sanitizedText = validator.escape(text);
+    // Remplacer &#x27; par une apostrophe
+    sanitizedText = sanitizedText.replace(/&#x27;/g, "'");
+    return sanitizedText;
 }
 
 
@@ -650,7 +652,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.21e du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes</li>
+ 		<li>version 1.21f du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes + correction de l'affichage des apostrophes dans les adresses</li>
  		<li>version 1.20a du 11/02/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
