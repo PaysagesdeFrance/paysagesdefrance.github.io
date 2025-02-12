@@ -494,7 +494,7 @@ async function fetchNomEluOuPresident(typeElu, code) {
         const codeIndex = 4;
         const fonctionIndex = 15;
 
-        if (row[codeIndex] && code && row[codeIndex].trim() === code.trim()) &&
+       if (row[codeIndex].trim() === code.trim() &&
             (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
 
             const nomElu = row[typeElu === "maire" ? 6 : 8];
@@ -649,7 +649,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.21b du 12/02/2025 : Résolution du problème avec les noms des maires en Corse</li>
+ 		<li>version 1.21c du 12/02/2025 : Résolution du problème avec les noms des maires en Corse</li>
  		<li>version 1.20a du 11/02/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
  		<li>version 1.18t du 26/10/2024 : Amélioration de la sécurité</li>
