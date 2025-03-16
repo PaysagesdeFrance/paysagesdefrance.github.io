@@ -481,7 +481,7 @@ function sanitizeText(text) {
 
 async function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20250312-164715/elus-maires-mai.csv";
-    const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20250312-164444/elus-conseillers-municipaux-cm.csv";
+    const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20250312-164527/elus-conseillers-communautaires-epci.csv";
     const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
     
     const data = await fetchCsvData(csvUrl);
@@ -654,7 +654,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.22b du 16/03/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.22c du 16/03/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.21j du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes + correction de l'affichage des apostrophes dans les adresses</li>
  		<li>version 1.20a du 11/02/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.19g du 27/10/2024 : Amélioration de la simplicité</li>
