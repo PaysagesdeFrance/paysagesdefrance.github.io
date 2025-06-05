@@ -660,7 +660,7 @@ async function fetchData(selectedCodeCommune) {
                 handleEpciData(data),
                 handleMaireData(codeCommune),
                 handleUniteUrbaineData(codeCommune),
-                codeEpci ? handlePluData(codeEpci) : Promise.resolve()
+                codeEpci ? handlePluData(codeEpci) : Promise.resolve(),
 		codeEpci ? handleRLPData(codeEpci) : Promise.resolve()
             ]);
 
@@ -692,7 +692,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.23c du 05/06/2025 : Mise à jour des fichiers des unités urbaines et des compétences PLU. Ajout de la compétence RLP</li>
+ 		<li>version 1.23d du 05/06/2025 : Mise à jour des fichiers des unités urbaines et des compétences PLU. Ajout de la compétence RLP</li>
 		<li>version 1.22c du 16/03/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.21j du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes + correction de l'affichage des apostrophes dans les adresses</li>
  		<li>version 1.20a du 11/02/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
