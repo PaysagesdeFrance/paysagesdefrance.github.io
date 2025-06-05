@@ -152,6 +152,10 @@
 			<td><b>Compétence PLU <sup>(5)</sup></b></td>
 			<td id="competencePLU"></td>
 		</tr>
+		<tr>
+			<td><b>Compétence RLP <sup>(5)</sup></b></td>
+			<td id="competenceRLP"></td>
+		</tr>
 	</table>
 	<br>
 	<script>
@@ -224,6 +228,38 @@ async function handlePluData(codeEpci) {
         }
     } catch (error) {
         console.error("Erreur lors de la récupération des données PLU :", error);
+        showError();
+    }
+}
+
+async function handleRLPData(codeEpci) {
+    try {
+        const rlpResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/rlp', {
+    method: 'GET'
+});
+        if (!rlpResponse.ok) {
+            throw new Error(`Erreur réseau : ${rlpResponse.status} ${rlpResponse.statusText}`);
+        }
+        const rlpText = await rlpResponse.text();
+        const lines = rlpText.split('\n');
+        const line = lines.find(line => line.startsWith(`${codeEpci},`));
+        if (line) {
+            const uuValues = line.split(',');
+            const numAssocie = uuValues[1];
+            let message = "";
+            if (numAssocie === "0") {
+                message = "non";
+            } else if (numAssocie === "1") {
+                message = "oui";
+            } else {
+                message = "Valeur inconnue";
+            }
+            document.getElementById('competenceRLP').textContent = sanitizeText(message);
+        } else {
+            document.getElementById('competenceRLP').textContent = "Information non disponible";
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération des données RLP :", error);
         showError();
     }
 }
@@ -424,6 +460,7 @@ async function fetchCommunes(communeName) {
                 document.getElementById('courrielEpci').textContent = '';
                 document.getElementById('siteEpci').textContent = '';
                 document.getElementById('competencePLU').textContent = '';
+		document.getElementById('competenceRLP').textContent = '';
 
                 const resultatCommune = document.getElementById('resultatCommune');
                 const h2Element = document.createElement('h2');
@@ -624,6 +661,7 @@ async function fetchData(selectedCodeCommune) {
                 handleMaireData(codeCommune),
                 handleUniteUrbaineData(codeCommune),
                 codeEpci ? handlePluData(codeEpci) : Promise.resolve()
+		codeEpci ? handleRLPData(codeEpci) : Promise.resolve()
             ]);
 
             if (codeEpci && codeEpci === "200054781") {
@@ -654,7 +692,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
- 		<li>version 1.23b du 05/06/2025 : Mise à jour des fichiers des unités urbaines et des compétences PLU</li>
+ 		<li>version 1.23c du 05/06/2025 : Mise à jour des fichiers des unités urbaines et des compétences PLU. Ajout de la compétence RLP</li>
 		<li>version 1.22c du 16/03/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.21j du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes + correction de l'affichage des apostrophes dans les adresses</li>
  		<li>version 1.20a du 11/02/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
