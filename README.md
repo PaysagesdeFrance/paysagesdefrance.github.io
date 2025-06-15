@@ -447,20 +447,10 @@ async function fetchCommunes(communeName) {
                 hideCommuneList();
                 infosElement.textContent = '';
 
-                document.getElementById('resultatCommune').textContent = '';
-                document.getElementById('populationInfo').textContent = '';
-                document.getElementById('popUrbaineInfo').textContent = '';
-                document.getElementById('epciInfo').textContent = '';
-                document.getElementById('nomdumaire').textContent = '';
-                document.getElementById('adressemairie').textContent = '';
-                document.getElementById('courrielmairie').textContent = '';
-                document.getElementById('sitemairie').textContent = '';
-                document.getElementById('nomdupresident').textContent = '';
-                document.getElementById('adresseEpci').textContent = '';
-                document.getElementById('courrielEpci').textContent = '';
-                document.getElementById('siteEpci').textContent = '';
-                document.getElementById('competencePLU').textContent = '';
-		document.getElementById('competenceRLP').textContent = '';
+		const ids = ['populationInfo', 'popUrbaineInfo', 'epciInfo','nomdumaire', 'adressemairie', 'courrielmairie', 'sitemairie',  'nomdupresident', 'adresseEpci', 'courrielEpci', 'siteEpci',  'competencePLU', 'competenceRLP'];
+
+		ids.forEach(id => document.getElementById(id).textContent = '');
+
 
                 const resultatCommune = document.getElementById('resultatCommune');
                 const h2Element = document.createElement('h2');
@@ -692,7 +682,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.24a du 15/06/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.24b du 15/06/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI. Optimisation du code</li>
  		<li>version 1.23d du 05/06/2025 : Mise à jour des fichiers des unités urbaines et des compétences PLU. Ajout de la compétence RLP</li>
 		<li>version 1.22c du 16/03/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
  		<li>version 1.21j du 12/02/2025 : Résolution du problème avec les noms des maires en Corse + correction d'un bug sur les adresses des grandes villes + correction de l'affichage des apostrophes dans les adresses</li>
@@ -730,8 +720,5 @@ document.addEventListener('DOMContentLoaded', function() {
     unwantedStyle.parentNode.removeChild(unwantedStyle);
   }});
 </script>
-
-
  </body>
-
 </html>
