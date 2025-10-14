@@ -507,8 +507,8 @@ function sanitizeText(text) {
 
 
 async function fetchNomEluOuPresident(typeElu, code) {
-    const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20250613-142903/elus-maires-mai.csv";
-    const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20250613-142710/elus-conseillers-communautaires-epci.csv";
+    const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20251007-074548/elus-maires-mai.csv";
+    const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20251007-074308/elus-conseillers-communautaires-epci.csv";
     const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
     
     const data = await fetchCsvData(csvUrl);
@@ -682,7 +682,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.25 du 14/10/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.25b du 14/10/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 		<li>version 1.24b du 15/06/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI. Optimisation du code</li>
  		<li>version 1.23d du 05/06/2025 : Mise à jour des fichiers des unités urbaines et des compétences PLU. Ajout de la compétence RLP</li>
 		<li>version 1.22c du 16/03/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
