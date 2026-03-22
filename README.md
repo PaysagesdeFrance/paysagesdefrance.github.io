@@ -682,7 +682,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.27a du 22/03/2026 : Mise à jour des fichiers des unités urbaines</li>
+	    <li>version 1.27b du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 		<li>version 1.25b du 14/10/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 		<li>version 1.24b du 15/06/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI. Optimisation du code</li>
