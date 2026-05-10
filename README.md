@@ -201,9 +201,19 @@ async function fetchCsvData(url) {
     }
 }
 
+//function parseCsv(text, separator = ';') {
+//    const lines = text.trim().split('\n');
+//    return lines.map(line => line.split(separator));
+//}
+
 function parseCsv(text, separator = ';') {
-    const lines = text.trim().split('\n');
-    return lines.map(line => line.split(separator));
+    const lines = text.trim().split(/\r?\n/);
+
+    return lines.map(line =>
+        line.split(separator).map(cell =>
+            cell.trim().replace(/^"(.*)"$/, '$1')
+        )
+    );
 }
 
 async function handlePluData(codeEpci) {
@@ -532,7 +542,8 @@ async function fetchNomEluOuPresident(typeElu, code) {
         const codeIndex = 4;
         const fonctionIndex = 15;
 
-const normalizeCode = (code) => code.padStart(5, '0'); // Assure que le code a une longueur de 5 caractères
+//const normalizeCode = (code) => code.padStart(5, '0'); // Assure que le code a une longueur de 5 caractères
+const normalizeCode = (code) => String(code).trim();
 
 
        if (normalizeCode(row[codeIndex].trim()) === normalizeCode(code.trim()) &&
@@ -699,7 +710,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29i du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.29j du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
