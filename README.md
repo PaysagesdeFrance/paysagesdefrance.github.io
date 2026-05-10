@@ -488,8 +488,8 @@ function validateInput(text, type = 'text', maxLength = 100) {
 
     switch (type) {
         case 'text':
-            return validator.isAlphanumeric(text, 'fr-FR', { ignore: " '-" });
-			//test : return /^[\p{L}\p{M}\s'’-]+$/u.test(text);
+            // vieille version : return validator.isAlphanumeric(text, 'fr-FR', { ignore: " '-" });
+			return /^[\p{L}\p{M}\s'’-]+$/u.test(text);
         case 'number':
             return validator.isNumeric(text);
         case 'email':
@@ -499,13 +499,15 @@ function validateInput(text, type = 'text', maxLength = 100) {
     }
 }
 
-function sanitizeText(text) {
-    let sanitizedText = validator.escape(text);
-    // Remplacer &#x27; par une apostrophe
-    sanitizedText = sanitizedText.replace(/&#x27;/g, "'");
-    return sanitizedText;
-}
+//function sanitizeText(text) {
+//    let sanitizedText = validator.escape(text);
+ //   sanitizedText = sanitizedText.replace(/&#x27;/g, "'");
+//    return sanitizedText;
+//}
 
+function sanitizeText(text) {
+    return String(text).trim();
+}
 
 async function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152119/elus-maires-mai.csv";
@@ -687,7 +689,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29e du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.29f du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
