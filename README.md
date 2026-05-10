@@ -536,106 +536,108 @@ async function fetchNomEluOuPresident(typeElu, code) {
     const csvUrlPresident =
         "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-151923/elus-conseillers-communautaires-epci.csv";
 
-    const csvUrl =
-        typeElu === "maire"
-            ? csvUrlMaire
-            : csvUrlPresident;
+    const csvUrl = typeElu === "maire"
+        ? csvUrlMaire
+        : csvUrlPresident;
 
-    const csv = await fetchCsvData(csvUrl);
+    const data = await fetchCsvData(csvUrl);
 
-    if (!csv) {
+    if (!data) {
         showError();
         return;
     }
 
-    const { headers, rows } = csv;
-	console.log(headers);
-
-    const codeIndex =
-        typeElu === "maire"
-            ? headers.indexOf("Code de la commune")
-            : headers.indexOf("N° SIREN");
-
-    const nomIndex =
-        headers.indexOf("Nom de l'élu");
-
-    const prenomIndex =
-        headers.indexOf("Prénom de l'élu");
-
-    const sexeIndex =
-        headers.indexOf("Code sexe");
-
-    const fonctionIndex =
-        headers.indexOf("Libellé de la fonction");
-
     let found = false;
 
-    for (let i = 0; i < rows.length; i++) {
+    for (let i = 0; i < data.length; i++) {
 
-        const row = rows[i];
-		const codeIndex = typeElu === "maire" ? 5 : 4;
-		const fonctionIndex = 15;
+        const row = data[i];
 
-//const normalizeCode = (code) => code.padStart(5, '0'); // Assure que le code a une longueur de 5 caractères
-const normalizeCode = (code) => String(code).trim();
+        // -----------------------------
+        // INDEX VARIABLES SELON FICHIER
+        // -----------------------------
 
+        let codeIndex;
+        let nomIndex;
+        let prenomIndex;
+        let sexeIndex;
+        let fonctionIndex;
 
-const csvCode = String(row[codeIndex]).trim();
+        if (typeElu === "maire") {
 
-const fonction =
-    fonctionIndex >= 0
-        ? String(row[fonctionIndex]).trim()
-        : "";
+            codeIndex = 4;
+            nomIndex = 6;
+            prenomIndex = 7;
+            sexeIndex = 8;
 
-if (
-    csvCode === String(code).trim() &&
-    (
-        typeElu === "maire" ||
-        fonction === "Président du conseil communautaire"
-    )
-) {
-console.log("CODE RECHERCHÉ :", code);
-console.log("EXEMPLE CSV :", row[4]);
-console.log(row);
-            //vieille version : const nomElu = row[typeElu === "maire" ? 6 : 8];
-            //vieille version : const prenomElu = row[typeElu === "maire" ? 7 : 9];
-const nomElu =
-    cleanCsvValue(row[nomIndex]);
+        } else {
 
-const prenomElu =
-    cleanCsvValue(row[prenomIndex]);
+            codeIndex = 4;
+            nomIndex = 8;
+            prenomIndex = 9;
+            sexeIndex = 10;
+            fonctionIndex = 15;
+        }
 
-let sexeElu =
-    row[sexeIndex];
+        const codeCsv = String(row[codeIndex]).trim();
+        const codeRecherche = String(code).trim();
 
-            // vieille version : if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateInput(nomElu,'text') && validateInput(prenomElu,'text')) {
-			if (
-   				 typeof nomElu === 'string' &&
-    			 typeof prenomElu === 'string'
-				) {
-                sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
-                const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
-document.getElementById(infoText).textContent = `${sexeElu} ${sanitizeText(nomElu)} ${sanitizeText(prenomElu)}`;
-                found = true;
-                break;
-            } else {
-                console.warn("Données de l'élu invalides : ", nomElu, prenomElu);
-                showError();
-            }
+        // -----------------------------
+        // FILTRE
+        // -----------------------------
+
+        const correspondanceCode =
+            codeCsv === codeRecherche;
+
+        const correspondanceFonction =
+            typeElu === "maire"
+            || row[fonctionIndex] === "Président du conseil communautaire";
+
+        if (correspondanceCode && correspondanceFonction) {
+
+            const nomElu =
+                cleanCsvValue(row[nomIndex]);
+
+            const prenomElu =
+                cleanCsvValue(row[prenomIndex]);
+
+            let sexeElu =
+                cleanCsvValue(row[sexeIndex]);
+
+            sexeElu =
+                sexeElu === "M"
+                ? "M."
+                : sexeElu === "F"
+                ? "Mme"
+                : "";
+
+            const infoText =
+                typeElu === "maire"
+                ? "nomdumaire"
+                : "nomdupresident";
+
+            document.getElementById(infoText).textContent =
+                `${sexeElu} ${prenomElu} ${nomElu}`;
+
+            found = true;
+            break;
         }
     }
 
-if (!found) {
-    console.warn("Aucun élu correspondant trouvé pour le code :", code);
+    if (!found) {
+        console.warn(
+            "Aucun élu correspondant trouvé pour le code :",
+            code
+        );
 
-    const infoText =
-        typeElu === "maire"
+        const infoText =
+            typeElu === "maire"
             ? "nomdumaire"
             : "nomdupresident";
 
-    document.getElementById(infoText).textContent =
-        "Information non disponible";
-}
+        document.getElementById(infoText).textContent =
+            "Information non disponible";
+    }
 }
 
 async function fetchAdresse(code, type) {
@@ -768,7 +770,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29n du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.29p du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
