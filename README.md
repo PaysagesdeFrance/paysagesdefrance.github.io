@@ -534,7 +534,11 @@ const normalizeCode = (code) => code.padStart(5, '0'); // Assure que le code a u
             const prenomElu = row[typeElu === "maire" ? 7 : 9];
             let sexeElu = row[typeElu === "maire" ? 8 : 10];
 
-            if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateInput(nomElu,'text') && validateInput(prenomElu,'text')) {
+            // vieille version : if (typeof nomElu === 'string' && typeof prenomElu === 'string' && validateInput(nomElu,'text') && validateInput(prenomElu,'text')) {
+			if (
+   				 typeof nomElu === 'string' &&
+    			 typeof prenomElu === 'string'
+				) {
                 sexeElu = sexeElu === "M" ? "M." : (sexeElu === "F" ? "Mme" : "");
                 const infoText = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
 document.getElementById(infoText).textContent = `${sexeElu} ${sanitizeText(nomElu)} ${sanitizeText(prenomElu)}`;
@@ -683,7 +687,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29c du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.29d du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
