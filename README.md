@@ -539,8 +539,8 @@ async function fetchNomEluOuPresident(typeElu, code) {
     let found = false;
     for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        const codeIndex = 4;
-        const fonctionIndex = 15;
+		const codeIndex = typeElu === "maire" ? 5 : 4;
+		const fonctionIndex = 15;
 
 //const normalizeCode = (code) => code.padStart(5, '0'); // Assure que le code a une longueur de 5 caractères
 const normalizeCode = (code) => String(code).trim();
@@ -574,10 +574,17 @@ document.getElementById(infoText).textContent = `${sexeElu} ${sanitizeText(nomEl
         }
     }
 
-    if (!found) {
-        console.warn("Aucun élu correspondant trouvé pour le code :", code);
-        showError();
-    }
+if (!found) {
+    console.warn("Aucun élu correspondant trouvé pour le code :", code);
+
+    const infoText =
+        typeElu === "maire"
+            ? "nomdumaire"
+            : "nomdupresident";
+
+    document.getElementById(infoText).textContent =
+        "Information non disponible";
+}
 }
 
 async function fetchAdresse(code, type) {
@@ -710,7 +717,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29j du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.29k du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
