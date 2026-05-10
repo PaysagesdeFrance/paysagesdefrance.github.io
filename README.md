@@ -507,8 +507,8 @@ function sanitizeText(text) {
 
 
 async function fetchNomEluOuPresident(typeElu, code) {
-    const csvUrlMaire = "https://www.data.gouv.fr/api/1/datasets/r/2876a346-d50c-4911-934e-19ee07b0e503";
-    const csvUrlPresident = "https://www.data.gouv.fr/api/1/datasets/r/41d95d7d-b172-4636-ac44-32656367cdc7";
+    const csvUrlMaire = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152119/elus-maires-mai.csv";
+    const csvUrlPresident = "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-151923/elus-conseillers-communautaires-epci.csv";
     const csvUrl = typeElu === "maire" ? csvUrlMaire : csvUrlPresident;
     
     const data = await fetchCsvData(csvUrl);
@@ -682,7 +682,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29a du 10/05/2026 : Mise à jour des fichiers des noms des présidents d'EPCI</li>
+		<li>version 1.29b du 10/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
