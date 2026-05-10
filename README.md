@@ -213,7 +213,7 @@ async function fetchCsvData(url) {
 
 
 
-function parseCsv(text, separator = ',') {
+function parseCsv(text, separator = ';') {
 
     const lines = text.trim().split(/\r?\n/);
 
@@ -812,7 +812,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29r du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.29s du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
