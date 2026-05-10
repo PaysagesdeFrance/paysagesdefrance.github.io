@@ -537,7 +537,10 @@ const normalizeCode = (code) => code.padStart(5, '0'); // Assure que le code a u
 
        if (normalizeCode(row[codeIndex].trim()) === normalizeCode(code.trim()) &&
             (typeElu === "maire" || row[fonctionIndex] === "Président du conseil communautaire")) {
-
+console.log("CODE RECHERCHÉ :", code);
+console.log("EXEMPLE CSV :", row[4]);
+console.log(row);
+console.log("EPCI CODE UTILISÉ :", codeEpci);
             //vieille version : const nomElu = row[typeElu === "maire" ? 6 : 8];
             //vieille version : const prenomElu = row[typeElu === "maire" ? 7 : 9];
 			const nomElu = cleanCsvValue(row[typeElu === "maire" ? 6 : 8]);
@@ -697,7 +700,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29g du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.29h du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
