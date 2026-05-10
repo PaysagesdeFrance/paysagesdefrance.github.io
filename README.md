@@ -209,14 +209,50 @@ return { headers, rows };
 //    return lines.map(line => line.split(separator));
 //}
 
-function parseCsv(text, separator = ';') {
+function parseCsv(text, separator = ',') {
+
     const lines = text.trim().split(/\r?\n/);
 
-    return lines.map(line =>
-        line.split(separator).map(cell =>
-            cell.trim().replace(/^"(.*)"$/, '$1')
-        )
-    );
+    return lines.map(line => {
+
+        const result = [];
+        let current = '';
+        let insideQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+
+            const char = line[i];
+            const next = line[i + 1];
+
+            // gestion des guillemets
+            if (char === '"') {
+
+                // guillemets doublés
+                if (insideQuotes && next === '"') {
+                    current += '"';
+                    i++;
+                } else {
+                    insideQuotes = !insideQuotes;
+                }
+
+            }
+
+            // séparateur
+            else if (char === separator && !insideQuotes) {
+                result.push(current.trim());
+                current = '';
+            }
+
+            // caractère normal
+            else {
+                current += char;
+            }
+        }
+
+        result.push(current.trim());
+
+        return result;
+    });
 }
 
 async function handlePluData(codeEpci) {
@@ -541,6 +577,8 @@ async function fetchNomEluOuPresident(typeElu, code) {
         : csvUrlPresident;
 
     const data = await fetchCsvData(csvUrl);
+	console.log(data[0]);
+	console.log(data[1]);
 
     if (!data) {
         showError();
@@ -770,7 +808,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.29p du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
+		<li>version 1.29q du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
 		<li>version 1.26a du 24/12/2025 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
