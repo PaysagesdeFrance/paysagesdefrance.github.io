@@ -15,7 +15,7 @@ frame-ancestors 'none';">
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
-	<script src="https://cdn.jsdelivr.net/npm/validator@13.12.0/validator.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/validator@13.12.0/validator.min.js" integrity="sha256-0sdeMVnOrJwU3MinrrCeowlw3mwyHIkHDlsBV4QsXIg=" crossorigin="anonymous"></script>
 
 	<title>Recherche d'une commune</title>
 	<style>
@@ -823,7 +823,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30a du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30b du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
