@@ -333,9 +333,8 @@ async function handleRLPData(codeEpci) {
 
 
 function handlePopulationData(data) {
-    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
-        showError();
-        updateElementText('populationInfo', 'Données non disponibles');
+    if (!Array.isArray(data) || ...) {
+        showFieldError('populationInfo'); // ← local, silencieux
         return;
     }
 
@@ -351,8 +350,7 @@ function handlePopulationData(data) {
 
 function handleEpciData(data) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
-        showError();
-        updateElementText('epciInfo', 'Données non disponibles');
+   showFieldError('epciInfo');
         return;
     }
 
@@ -447,6 +445,12 @@ function handleSearch() {
 function showError(userMessage = "Une erreur s'est produite. Veuillez réessayer plus tard.") {
     const infosElement = document.getElementById("infos");
     infosElement.textContent = userMessage;
+}
+
+function showFieldError(elementId, message = "Information non disponible") {
+    const el = document.getElementById(elementId);
+    if (el) el.textContent = message;
+    console.warn(`[${elementId}] ${message}`);
 }
 
 
@@ -772,7 +776,7 @@ document.getElementById(infoText).appendChild(anchorElement);
         }
     } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
-        showError();
+        fields.forEach(id => showFieldError(id));
     }
 }
 
@@ -833,7 +837,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30t du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30u du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
