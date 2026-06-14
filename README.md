@@ -744,7 +744,7 @@ function validateApiResponse(data, expectedFields) {
 }
 
 async function fetchData(selectedCodeCommune) {
-    const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci,siren`;
+    const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci`;
 
     try {
         const response = await fetch(apiUrl);
@@ -753,7 +753,7 @@ async function fetchData(selectedCodeCommune) {
         }
         const data = await response.json();
 
-        if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci', 'siren'])) {
+        if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci'])) {
             const codeCommune = data[0].code;
             const codeEpci = data[0].codeEpci;
 
@@ -796,7 +796,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30w du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30x du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
