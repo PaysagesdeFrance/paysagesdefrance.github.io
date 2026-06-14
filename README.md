@@ -178,7 +178,7 @@ const infosElement = document.getElementById("infos");
 function updateElementText(elementId, text) {
     const element = document.getElementById(elementId);
     if (element && typeof text === 'string') {
-        element.textContent = sanitizeText(text);
+        element.textContent = normalizeText(text);
     } else {
         element.textContent = 'Données non disponibles';
     }
@@ -289,7 +289,7 @@ async function handlePluData(codeEpci) {
             } else {
                 message = "Valeur inconnue";
             }
-            document.getElementById('competencePLU').textContent = sanitizeText(message);
+            document.getElementById('competencePLU').textContent = normalizeText(message);
         } else {
             document.getElementById('competencePLU').textContent = "Information non disponible";
         }
@@ -321,7 +321,7 @@ async function handleRLPData(codeEpci) {
             } else {
                 message = "Valeur inconnue";
             }
-            document.getElementById('competenceRLP').textContent = sanitizeText(message);
+            document.getElementById('competenceRLP').textContent = normalizeText(message);
         } else {
             document.getElementById('competenceRLP').textContent = "Information non disponible";
         }
@@ -416,7 +416,7 @@ async function handleUniteUrbaineData(codeCommune) {
                 } else {
                     populationUrbainMessage = "Aucune condition spécifiée";
                 }
-                document.getElementById('popUrbaineInfo').textContent = sanitizeText(populationUrbainMessage);
+                document.getElementById('popUrbaineInfo').textContent = normalizeText(populationUrbainMessage);
             } else {
                 document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
             }
@@ -505,7 +505,7 @@ async function fetchCommunes(communeName) {
             }
 
             const listItem = document.createElement("li");
-            listItem.textContent = `${sanitizeText(commune.nom)} (${sanitizeText(commune.codeDepartement)})`;
+            listItem.textContent = `${normalizeText(commune.nom)} (${normalizeText(commune.codeDepartement)})`;
             listItem.addEventListener("click", function() {
                 selectedCodeCommune = commune.code;
                 communeInput.value = commune.nom;
@@ -560,13 +560,9 @@ function validateInput(text, type = 'text', maxLength = 100) {
     }
 }
 
-//function sanitizeText(text) {
-//    let sanitizedText = validator.escape(text);
- //   sanitizedText = sanitizedText.replace(/&#x27;/g, "'");
-//    return sanitizedText;
-//}
 
-function sanitizeText(text) {
+
+function normalizeText(text) {
     return String(text).trim();
 }
 
@@ -726,14 +722,14 @@ async function fetchAdresse(code, type) {
 
             if (adresseComplete) {
                 const infoText = isMairie ? "adressemairie" : "adresseEpci";
-                document.getElementById(infoText).textContent = sanitizeText(adresseComplete);
+                document.getElementById(infoText).textContent = normalizeText(adresseComplete);
             } else {
                 console.warn("Adresse vide ou non valide :", adresseComplete);
             }
 
             if (record.adresse_courriel) {
                 const infoText = isMairie ? "courrielmairie" : "courrielEpci";
-                document.getElementById(infoText).textContent = sanitizeText(record.adresse_courriel);
+                document.getElementById(infoText).textContent = normalizeText(record.adresse_courriel);
             }
 
             const siteInternetJSON = record.site_internet;
@@ -820,7 +816,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30k du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30m du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
