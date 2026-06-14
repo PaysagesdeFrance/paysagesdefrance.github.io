@@ -411,10 +411,8 @@ function handleSearch() {
 
 
 function showError(userMessage = "Une erreur s'est produite. Veuillez réessayer plus tard.") {
-    const infosElement = document.getElementById("infos");
     infosElement.textContent = userMessage;
 }
-
 
 function hideCommuneList() {
     communeList.innerHTML = '';
@@ -798,7 +796,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30v du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30w du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
