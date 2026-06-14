@@ -546,14 +546,15 @@ async function getLatestCsvUrl(resourceTitle) {
 }
 
 
+/**
+ * Les URLs sont récupérées dynamiquement via getLatestCsvUrl().
+ * Format des URLs statiques (pour référence) :
+ *   maires      : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-maires-mai.csv
+ *   présidents  : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-conseillers-communautaires-epci.csv
+ */
 async function fetchNomEluOuPresident(typeElu, code) {
-
-    //const csvUrlMaire ="https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152119/elus-maires-mai.csv";
-
-    //const csvUrlPresident ="https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-151923/elus-conseillers-communautaires-epci.csv";
-
-const csvUrlMaire = await getLatestCsvUrl("maires");
-const csvUrlPresident = await getLatestCsvUrl("conseillers-communautaires");
+    const csvUrlMaire = await getLatestCsvUrl("maires");
+    const csvUrlPresident = await getLatestCsvUrl("conseillers-communautaires");
 
 
     const csvUrl = typeElu === "maire"
@@ -796,7 +797,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30x du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30y du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
