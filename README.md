@@ -833,7 +833,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30u du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30t du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
@@ -866,5 +866,16 @@ async function fetchData(selectedCodeCommune) {
 		<li>version 1.0a du 01/01/2024 : Mise en ligne</li>
 	</ul>
 	<hr>
+ <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var githubLink = document.querySelector('h1 a[href="https://paysagesdefrance.github.io/"]');
+  var unwantedStyle = document.querySelector('link[href^="/assets/css/style.css"]');
+  if (githubLink) {
+    githubLink.parentElement.style.display = 'none';
+  }
+  if (unwantedStyle) {
+    unwantedStyle.parentNode.removeChild(unwantedStyle);
+  }});
+</script>
  </body>
 </html>
