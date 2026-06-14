@@ -267,66 +267,28 @@ function parseCsv(text, separator = ';') {
     });
 }
 
-async function handlePluData(codeEpci) {
+async function handleCompetenceData(codeEpci, type) {
     try {
-        const pluResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/plu', {
-    method: 'GET'
-});
-        if (!pluResponse.ok) {
-            throw new Error(`Erreur réseau : ${pluResponse.status} ${pluResponse.statusText}`);
+        const response = await fetch(`https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`, {
+            method: 'GET'
+        });
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
-        const pluText = await pluResponse.text();
-        const lines = pluText.split('\n');
+        const text = await response.text();
+        const lines = text.split('\n');
         const line = lines.find(line => line.startsWith(`${codeEpci},`));
         if (line) {
-            const uuValues = line.split(',');
-            const numAssocie = uuValues[1];
-            let message = "";
-            if (numAssocie === "0") {
-                message = "non";
-            } else if (numAssocie === "1") {
-                message = "oui";
-            } else {
-                message = "Valeur inconnue";
-            }
-            document.getElementById('competencePLU').textContent = normalizeText(message);
+            const values = line.split(',');
+            const message = values[1] === "0" ? "non"
+                          : values[1] === "1" ? "oui"
+                          : "Valeur inconnue";
+            document.getElementById(`competence${type}`).textContent = normalizeText(message);
         } else {
-            document.getElementById('competencePLU').textContent = "Information non disponible";
+            document.getElementById(`competence${type}`).textContent = "Information non disponible";
         }
     } catch (error) {
-        console.error("Erreur lors de la récupération des données PLU :", error);
-        showError();
-    }
-}
-
-async function handleRLPData(codeEpci) {
-    try {
-        const rlpResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/rlp', {
-    method: 'GET'
-});
-        if (!rlpResponse.ok) {
-            throw new Error(`Erreur réseau : ${rlpResponse.status} ${rlpResponse.statusText}`);
-        }
-        const rlpText = await rlpResponse.text();
-        const lines = rlpText.split('\n');
-        const line = lines.find(line => line.startsWith(`${codeEpci},`));
-        if (line) {
-            const uuValues = line.split(',');
-            const numAssocie = uuValues[1];
-            let message = "";
-            if (numAssocie === "0") {
-                message = "non";
-            } else if (numAssocie === "1") {
-                message = "oui";
-            } else {
-                message = "Valeur inconnue";
-            }
-            document.getElementById('competenceRLP').textContent = normalizeText(message);
-        } else {
-            document.getElementById('competenceRLP').textContent = "Information non disponible";
-        }
-    } catch (error) {
-        console.error("Erreur lors de la récupération des données RLP :", error);
+        console.error(`Erreur lors de la récupération des données ${type} :`, error);
         showError();
     }
 }
@@ -801,8 +763,9 @@ async function fetchData(selectedCodeCommune) {
                 handleEpciData(data),
                 handleMaireData(codeCommune),
                 handleUniteUrbaineData(codeCommune),
-                codeEpci ? handlePluData(codeEpci) : Promise.resolve(),
-		codeEpci ? handleRLPData(codeEpci) : Promise.resolve()
+codeEpci ? handleCompetenceData(codeEpci, 'PLU') : Promise.resolve(),
+codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
+
             ]);
 
             if (codeEpci && codeEpci === "200054781") {
@@ -833,7 +796,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30t du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30u du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
