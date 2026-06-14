@@ -194,7 +194,14 @@ const infosElement = document.getElementById("infos");
 		let selectedCodeCommune;
 		let activeIndex = -1;
 
+/**
+ * Normalise un code INSEE ou SIREN pour la comparaison.
+ * Nécessaire car les sources sont incohérentes : l'API geo.gouv.fr
+ * retourne "01001" tandis que les CSV du RNE peuvent retourner "1001".
+ * Les codes corses (2A, 2B) ne commençant pas par zéro, ils ne sont pas affectés.
+ */
 function normalizeCode(c) {
+    if (c == null) return '';
     return String(c).trim().replace(/^0+/, '');
 }
 		
@@ -858,7 +865,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30ac du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
