@@ -206,8 +206,13 @@ async function fetchCsvData(url) {
 
         const text = await response.text();
 
+        console.log(text.substring(0, 500));
+
         const data = parseCsv(text);
 
+        console.log(data);
+
+        return data.slice(1);
 
     } catch (error) {
 
@@ -589,6 +594,8 @@ const csvUrlPresident = await getLatestCsvUrl("conseillers-communautaires");
         : csvUrlPresident;
 
     const data = await fetchCsvData(csvUrl);
+	console.log(data[0]);
+	console.log(data[1]);
 
     if (!data) {
         showError();
@@ -824,7 +831,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30s du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30r du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
