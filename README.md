@@ -310,10 +310,10 @@ async function handleCompetenceData(codeEpci, type) {
         } else {
             document.getElementById(`competence${type}`).textContent = "Information non disponible";
         }
-    } catch (error) {
-        console.error(`Erreur lors de la récupération des données ${type} :`, error);
-        showError();
-    }
+} catch (error) {
+    console.error(`Erreur lors de la récupération des données ${type} :`, error);
+    document.getElementById(`competence${type}`).textContent = "Information non disponible";
+}
 }
 
 
@@ -614,11 +614,11 @@ async function fetchNomEluOuPresident(typeElu, code, csvUrl) {
 
     const data = await fetchCsvData(csvUrl);
 
-
-    if (!data) {
-        showError();
-        return;
-    }
+if (!data) {
+    document.getElementById(typeElu === "maire" ? "nomdumaire" : "nomdupresident")
+        .textContent = "Information non disponible";
+    return;
+}
 
     let found = false;
 
@@ -784,10 +784,13 @@ document.getElementById(infoText).appendChild(anchorElement);
         } else {
             throw new Error("Aucune information sur la Mairie ou l'EPCI trouvée.");
         }
-    } catch (error) {
-        console.error("Erreur lors de la récupération des données :", error);
-        showError();
-    }
+} catch (error) {
+    console.error("Erreur lors de la récupération des données :", error);
+    const prefix = type === "mairie" ? "mairie" : "Epci";
+    document.getElementById(`adresse${prefix}`).textContent = "Information non disponible";
+    document.getElementById(`courriel${prefix}`).textContent = "Information non disponible";
+    document.getElementById(`site${prefix}`).textContent = "Information non disponible";
+}
 }
 
 
@@ -855,7 +858,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30ab du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30ac du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
