@@ -334,7 +334,7 @@ function handlePopulationData(data) {
 
 
 
-function handleEpciData(data) {
+function handleEpciData(data, csvUrlPresident) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
         showError();
         updateElementText('epciInfo', 'Données non disponibles');
@@ -349,7 +349,7 @@ function handleEpciData(data) {
 
     if (codeEpci && codeEpci !== "200054781") {
         fetchAdresse(codeEpci, "epci");
-        fetchNomEluOuPresident("president", codeEpci);
+        fetchNomEluOuPresident("president", codeEpci, csvUrlPresident);
     } else {
         updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
     }
@@ -357,8 +357,8 @@ function handleEpciData(data) {
 
 
 
-function handleMaireData(codeCommune) {
-    fetchNomEluOuPresident("maire", codeCommune);
+function handleMaireData(codeCommune, csvUrlMaire) {
+    fetchNomEluOuPresident("maire", codeCommune, csvUrlMaire);
     fetchAdresse(codeCommune, "mairie");
 }
 
@@ -609,14 +609,8 @@ async function getLatestCsvUrl(resourceTitle) {
  *   maires      : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-maires-mai.csv
  *   présidents  : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-conseillers-communautaires-epci.csv
  */
-async function fetchNomEluOuPresident(typeElu, code) {
-    const csvUrlMaire = await getLatestCsvUrl("maires");
-    const csvUrlPresident = await getLatestCsvUrl("conseillers-communautaires");
+async function fetchNomEluOuPresident(typeElu, code, csvUrl) {
 
-
-    const csvUrl = typeElu === "maire"
-        ? csvUrlMaire
-        : csvUrlPresident;
 
     const data = await fetchCsvData(csvUrl);
 
@@ -816,10 +810,17 @@ async function fetchData(selectedCodeCommune) {
             const codeEpci = data[0].codeEpci;
 
             // Utilisation de Promise.all pour exécuter les fonctions en parallèle
-            await Promise.all([
+
+			            const [csvUrlMaire, csvUrlPresident] = await Promise.all([
+                getLatestCsvUrl("maires"),
+                getLatestCsvUrl("conseillers-communautaires")
+            ]);
+
+			
+       await Promise.all([
                 handlePopulationData(data),
-                handleEpciData(data),
-                handleMaireData(codeCommune),
+                handleEpciData(data, csvUrlPresident),
+                handleMaireData(codeCommune, csvUrlMaire),
                 handleUniteUrbaineData(codeCommune),
 codeEpci ? handleCompetenceData(codeEpci, 'PLU') : Promise.resolve(),
 codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
@@ -854,7 +855,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30aa du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30ab du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
