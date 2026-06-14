@@ -34,7 +34,10 @@ frame-ancestors 'none';">
 		padding: 5px;
 		border: 1px solid #ccc;
 	}
-	
+
+	.combobox .dropdown-menu li[aria-selected="true"] {
+    background-color: #ddd;
+}
 	.combobox .dropdown-menu {
 		display: none;
 		position: absolute;
@@ -87,10 +90,26 @@ frame-ancestors 'none';">
 
 <body>
 	<h1>Recherche d'une commune</h1>
-		<div class="combobox">
-		<input type="text" id="communeInput" name="commune" autocomplete="off">
-		<ul id="commune-list" class="dropdown-menu"></ul>
-	</div>
+<div class="combobox">
+    <label for="communeInput">Commune</label>
+    <input 
+        type="text" 
+        id="communeInput" 
+        name="commune" 
+        autocomplete="off"
+        role="combobox"
+        aria-expanded="false"
+        aria-controls="commune-list"
+        aria-autocomplete="list"
+        aria-haspopup="listbox"
+        aria-activedescendant="">
+    <ul 
+        id="commune-list" 
+        class="dropdown-menu" 
+        role="listbox" 
+        aria-label="Communes suggérées">
+    </ul>
+</div>
 	<button id="rechercherBtn">Rechercher</button>
 	<div id="resultatCommune"></div>
 	<div id="infos"></div>
@@ -174,6 +193,7 @@ const rechercherBtn = document.getElementById("rechercherBtn");
 const infosElement = document.getElementById("infos");
 		let lastSearchTimeout;
 		let selectedCodeCommune;
+		let activeIndex = -1;
 
 function normalizeCode(c) {
     return String(c).trim().replace(/^0+/, '');
@@ -417,10 +437,14 @@ function showError(userMessage = "Une erreur s'est produite. Veuillez réessayer
 function hideCommuneList() {
     communeList.innerHTML = '';
     communeList.style.display = 'none';
+    communeInput.setAttribute('aria-expanded', 'false');
+    communeInput.setAttribute('aria-activedescendant', '');
+    activeIndex = -1;
 }
 
 function showCommuneList() {
     communeList.style.display = 'block';
+    communeInput.setAttribute('aria-expanded', 'true');
 }
 
 function debounce(func, delay) {
@@ -435,6 +459,7 @@ function debounce(func, delay) {
 
 communeInput.addEventListener("input", function() {
     selectedCodeCommune = null;
+	activeIndex = -1;
 });
 
 communeInput.addEventListener("input", debounce(function() {
@@ -451,6 +476,36 @@ communeInput.addEventListener("input", debounce(function() {
     }
 }, 300));
 
+communeInput.addEventListener('keydown', function(e) {
+    const items = communeList.querySelectorAll('li');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeIndex = (activeIndex + 1) % items.length;
+        updateFocus(items);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        updateFocus(items);
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+        e.preventDefault();
+        items[activeIndex].click();
+    } else if (e.key === 'Escape') {
+        hideCommuneList();
+    }
+});
+
+function updateFocus(items) {
+    items.forEach((item, i) => {
+        const isActive = i === activeIndex;
+        item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        if (isActive) {
+            communeInput.setAttribute('aria-activedescendant', item.id);
+            item.scrollIntoView({ block: 'nearest' });
+        }
+    });
+}
 
 
 
@@ -468,14 +523,17 @@ async function fetchCommunes(communeName) {
         }
 
         communeList.innerHTML = '';
-        data.forEach(function(commune) {
+       data.forEach(function(commune, index) {
             if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
                 console.warn("Données de la commune invalides : ", commune);
                 return;
             }
 
             const listItem = document.createElement("li");
-            listItem.textContent = `${normalizeText(commune.nom)} (${normalizeText(commune.codeDepartement)})`;
+                listItem.setAttribute('role', 'option');
+    listItem.setAttribute('id', `commune-option-${index}`);
+    listItem.setAttribute('aria-selected', 'false');
+			listItem.textContent = `${normalizeText(commune.nom)} (${normalizeText(commune.codeDepartement)})`;
             listItem.addEventListener("click", function() {
                 selectedCodeCommune = commune.code;
                 communeInput.value = commune.nom;
@@ -797,7 +855,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30y du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30z du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
