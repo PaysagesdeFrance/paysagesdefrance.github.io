@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none';
-script-src 'self' https://cdn.jsdelivr.net;
+script-src 'self' 'sha256-0sdeMVnOrJwU3MinrrCeowlw3mwyHIkHDlsBV4QsXIg=' https://cdn.jsdelivr.net;
 connect-src 'self'
   https://geo.api.gouv.fr
   https://api-lannuaire.service-public.fr
@@ -820,7 +820,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30i du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30j du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
