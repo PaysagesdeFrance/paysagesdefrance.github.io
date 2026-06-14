@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none';
-script-src 'self' 'sha256-0sdeMVnOrJwU3MinrrCeowlw3mwyHIkHDlsBV4QsXIg=' https://cdn.jsdelivr.net;
+script-src 'self' 'sha384-dUjfkOCG8TNacPHjaawKEgwGLoWtrhveL/0z44LJqhdcPZvcxuRhMKs/veurtgIT' https://cdn.jsdelivr.net;
 connect-src 'self'
   https://geo.api.gouv.fr
   https://api-lannuaire.service-public.fr
@@ -15,7 +15,7 @@ frame-ancestors 'none';">
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
-	<script src="https://cdn.jsdelivr.net/npm/validator@13.12.0/validator.min.js" integrity="sha256-0sdeMVnOrJwU3MinrrCeowlw3mwyHIkHDlsBV4QsXIg=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/validator@13.15.35/validator.min.js" integrity="sha384-dUjfkOCG8TNacPHjaawKEgwGLoWtrhveL/0z44LJqhdcPZvcxuRhMKs/veurtgIT" crossorigin="anonymous"></script>
 
 	<title>Recherche d'une commune</title>
 	<style>
@@ -815,12 +815,12 @@ async function fetchData(selectedCodeCommune) {
 		<li>(3) OpenData gouvernemental : Ministère de l'Intérieur et des Outre-Mer – <a href="https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/" target="_blank" rel="noopener noreferrer">https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/</a></li>
 		<li>(4) API gouvernementale : <a href="https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration" target="_blank" rel="noopener noreferrer">https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration</a></li>
 		<li>(5) informations mises à jour manuellement (intercommunalité puis Export national ou régional) – valable au 22 mars 2026 – source : <a href="https://www.banatic.interieur.gouv.fr/export/" target="_blank" rel="noopener noreferrer">https://www.banatic.interieur.gouv.fr/export/</a></li>
-
+		<li>jsdelivr 13.15.35 et https://srihash.org/<a href="https://cdn.jsdelivr.net/npm/validator@13.15.35/" target="_blank" rel="noopener noreferrer">https://cdn.jsdelivr.net/npm/validator@13.15.35/"</a></li>
 	</ul>
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30j du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30k du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
