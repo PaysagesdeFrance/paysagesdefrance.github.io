@@ -566,13 +566,28 @@ function normalizeText(text) {
     return String(text).trim();
 }
 
+async function getLatestCsvUrl(resourceTitle) {
+    const response = await fetch(
+        "https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/"
+    );
+    const data = await response.json();
+    const resource = data.resources.find(r => r.title.includes(resourceTitle));
+    return resource ? resource.url : null;
+}
+
+// Utilisation
+const csvUrlMaire = await getLatestCsvUrl("maires");
+const csvUrlPresident = await getLatestCsvUrl("conseillers-communautaires");
+
 async function fetchNomEluOuPresident(typeElu, code) {
 
-    const csvUrlMaire =
-        "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152119/elus-maires-mai.csv";
+    //const csvUrlMaire ="https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-152119/elus-maires-mai.csv";
 
-    const csvUrlPresident =
-        "https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-151923/elus-conseillers-communautaires-epci.csv";
+    //const csvUrlPresident ="https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/20260505-151923/elus-conseillers-communautaires-epci.csv";
+
+const csvUrlMaire = await getLatestCsvUrl("maires");
+const csvUrlPresident = await getLatestCsvUrl("conseillers-communautaires");
+
 
     const csvUrl = typeElu === "maire"
         ? csvUrlMaire
@@ -816,7 +831,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.30m du 14/06/2026 : Mise à jour du code</li>
+	    <li>version 1.30n du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.27c du 22/03/2026 : Mise à jour des fichiers des unités urbaines, des compétences PLU et RLP</li>
