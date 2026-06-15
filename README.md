@@ -216,6 +216,14 @@ function updateElementText(elementId, text) {
         : 'Données non disponibles';
 }
 
+function safeJsonParse(value, fallback = null) {
+    try {
+        return JSON.parse(value);
+    } catch (e) {
+        console.warn("JSON invalide :", value, e);
+        return fallback;
+    }
+}
 
 
 function cleanCsvValue(value) {
@@ -740,7 +748,7 @@ async function fetchAdresse(code, type) {
         }
 
         const record = data.results.find(record => {
-            const pivotData = record.pivot ? JSON.parse(record.pivot) : [];
+            const pivotData = safeJsonParse(record.pivot, []);
             return (
                 (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || 
                 (!isMairie && pivotData.some(item => item.type_service_local === "epci"))
@@ -748,7 +756,8 @@ async function fetchAdresse(code, type) {
         });
 
         if (record && record.adresse) {
-            const adresseData = JSON.parse(record.adresse);
+            const adresseData = safeJsonParse(record.adresse, []);
+            if (!adresseData.length) throw new Error("Adresse JSON invalide.");
             const adresseComplete = [
                 adresseData[0].numero_voie || '',
                 adresseData[0].complement1 || '',
@@ -772,8 +781,8 @@ async function fetchAdresse(code, type) {
 
             const siteInternetJSON = record.site_internet;
             if (siteInternetJSON) {
-                const siteInternetData = JSON.parse(siteInternetJSON);
-                const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+const siteInternetData = safeJsonParse(siteInternetJSON, []);
+const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
                 const infoText = isMairie ? "sitemairie" : "siteEpci";
                 if (siteInternet) {
 const anchorElement = document.createElement("a");
@@ -865,6 +874,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+	    <li>version 1.31a du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
