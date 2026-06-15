@@ -634,7 +634,7 @@ function validateInput(text, type = 'text', maxLength = 100) {
     switch (type) {
         case 'text':
             // vieille version : return validator.isAlphanumeric(text, 'fr-FR', { ignore: " '-" });
-			return /^[\p{L}\p{M}\s'’-]+$/u.test(text);
+			return /^[\p{L}\p{M}\s'\u2018\u2019-]+$/u.test(text);
         case 'number':
             return validator.isNumeric(text);
         case 'email':
@@ -936,7 +936,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.31d du 15/06/2026 : Mise à jour du code</li>
+	    <li>version 1.31e du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
