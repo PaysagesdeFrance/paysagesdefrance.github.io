@@ -664,7 +664,7 @@ async function getLatestCsvUrl(resourceTitle) {
         }
         const resource = data.resources.find(r => r.title.includes(resourceTitle));
         return resource ? resource.url : null;
-   
+    } catch (error) {
         console.error(`Erreur récupération URL CSV (${resourceTitle}) :`, error);
         return null;
     }
@@ -936,7 +936,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.31c du 15/06/2026 : Mise à jour du code</li>
+	    <li>version 1.31d du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
