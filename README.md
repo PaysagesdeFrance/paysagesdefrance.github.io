@@ -609,12 +609,23 @@ function normalizeText(text) {
 }
 
 async function getLatestCsvUrl(resourceTitle) {
-    const response = await fetch(
-        "https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/"
-    );
-    const data = await response.json();
-    const resource = data.resources.find(r => r.title.includes(resourceTitle));
-    return resource ? resource.url : null;
+    try {
+        const response = await fetch(
+            "https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/"
+        );
+        if (!response.ok) {
+            throw new Error(`Erreur réseau : ${response.status}`);
+        }
+        const data = await response.json();
+        if (!Array.isArray(data.resources)) {
+            throw new Error("Format de réponse inattendu : resources absent ou invalide.");
+        }
+        const resource = data.resources.find(r => r.title.includes(resourceTitle));
+        return resource ? resource.url : null;
+    } catch (error) {
+        console.error(`Erreur récupération URL CSV (${resourceTitle}) :`, error);
+        return null;
+    }
 }
 
 
@@ -835,6 +846,13 @@ async function fetchData(selectedCodeCommune) {
                 getLatestCsvUrl("conseillers-communautaires")
             ]);
 
+			if (!csvUrlMaire) {
+    document.getElementById("nomdumaire").textContent = "Information non disponible";
+}
+if (!csvUrlPresident) {
+    document.getElementById("nomdupresident").textContent = "Information non disponible";
+}
+
 			
        await Promise.all([
                 handlePopulationData(data),
@@ -874,7 +892,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.31a du 15/06/2026 : Mise à jour du code</li>
+	    <li>version 1.31b du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
