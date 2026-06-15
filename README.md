@@ -85,6 +85,28 @@ frame-ancestors 'none';">
 		padding-left: 5px;
 		text-align: left;
 	}
+
+	#chargement {
+    display: none;
+    margin-top: 10px;
+    color: #555;
+}
+
+.spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #ccc;
+    border-top-color: #555;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 	</style>
 </head>
 
@@ -111,6 +133,10 @@ frame-ancestors 'none';">
     </ul>
 </div>
 	<button id="rechercherBtn">Rechercher</button>
+<div id="chargement" aria-live="polite" aria-busy="false">
+    <span class="spinner" aria-hidden="true"></span>
+    Chargement en cours…
+</div>
 	<div id="resultatCommune"></div>
 	<div id="infos"></div>
 	<table>
@@ -204,7 +230,22 @@ function normalizeCode(c) {
     if (c == null) return '';
     return String(c).trim().replace(/^0+/, '');
 }
-		
+
+function showLoading() {
+    const el = document.getElementById('chargement');
+    el.style.display = 'block';
+    el.setAttribute('aria-busy', 'true');
+    rechercherBtn.disabled = true;
+}
+
+function hideLoading() {
+    const el = document.getElementById('chargement');
+    el.style.display = 'none';
+    el.setAttribute('aria-busy', 'false');
+    rechercherBtn.disabled = false;
+}
+
+
 function updateElementText(elementId, text) {
     const element = document.getElementById(elementId);
     if (!element) {
@@ -434,6 +475,7 @@ function handleSearch() {
     infosElement.textContent = '';
     
     if (selectedCodeCommune) {
+	showLoading();
         fetchData(selectedCodeCommune);
         document.querySelectorAll("table").forEach(table => {
             table.style.display = "table";
@@ -622,7 +664,7 @@ async function getLatestCsvUrl(resourceTitle) {
         }
         const resource = data.resources.find(r => r.title.includes(resourceTitle));
         return resource ? resource.url : null;
-    } catch (error) {
+   
         console.error(`Erreur récupération URL CSV (${resourceTitle}) :`, error);
         return null;
     }
@@ -873,6 +915,8 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
     } catch (error) {
         console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
         showError();
+		    } finally {
+        hideLoading(); 
     }
 }
 
@@ -892,7 +936,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.31b du 15/06/2026 : Mise à jour du code</li>
+	    <li>version 1.31c du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
