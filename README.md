@@ -356,7 +356,7 @@ async function handleCompetenceData(codeEpci, type) {
         }
         const text = await response.text();
         const lines = text.split('\n');
-        const line = lines.find(line => line.startsWith(`${codeEpci},`));
+        const line = lines.find(currentLine => currentLine.startsWith(`${codeEpci},`));
         if (line) {
             const values = line.split(',');
             const message = values[1] === "0" ? "non"
@@ -936,7 +936,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.31e du 15/06/2026 : Mise à jour du code</li>
+	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
 	    <li>version 1.28b du 01/05/2026 : Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
