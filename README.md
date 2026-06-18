@@ -219,6 +219,7 @@ const rechercherBtn = document.getElementById("rechercherBtn");
 const infosElement = document.getElementById("infos");
 		let selectedCodeCommune;
 		let activeIndex = -1;
+ const SIREN_MGP = "200054781";
 
 /**
  * Normalise un code INSEE ou SIREN pour la comparaison.
@@ -403,7 +404,7 @@ function handleEpciData(data, csvUrlPresident) {
 
     updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
 
-    if (codeEpci && codeEpci !== "200054781") {
+    if (codeEpci && codeEpci !== SIREN_MGP) {
         fetchAdresse(codeEpci, "epci");
         fetchNomEluOuPresident("president", codeEpci, csvUrlPresident);
     } else {
@@ -908,7 +909,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
             ]);
 
-            if (codeEpci && codeEpci === "200054781") {
+            if (codeEpci && codeEpci === SIREN_MGP) {
                 document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
             }
         } else {
@@ -938,7 +939,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.32b du 18/06/2026 : Mise à jour du code</li>
+	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
