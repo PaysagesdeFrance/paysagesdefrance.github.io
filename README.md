@@ -420,56 +420,51 @@ function handleMaireData(codeCommune, csvUrlMaire) {
 
 async function handleUniteUrbaineData(codeCommune) {
     try {
-        const inseeResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee', {
-    method: 'GET'
-});
-        if (!inseeResponse.ok) {
-            throw new Error(`Erreur réseau : ${inseeResponse.status} ${inseeResponse.statusText}`);
-        }
-        const inseeText = await inseeResponse.text();
-        const inseeLines = inseeText.split('\n');
-        const inseeLine = inseeLines.find(line => line.startsWith(`${codeCommune},`));
+        // ✅ Les deux téléchargements démarrent en même temps
+        const [inseeResponse, uuResponse] = await Promise.all([
+            fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee'),
+            fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu')
+        ]);
 
-        if (inseeLine) {
-            const values = inseeLine.split(',');
-            const numUniteUrbaine = values[1].substring(0, 5);
-            const uuResponse = await fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu', {
-    method: 'GET'
-});
-            if (!uuResponse.ok) {
-                throw new Error(`Erreur réseau : ${uuResponse.status} ${uuResponse.statusText}`);
-            }
-            const uuText = await uuResponse.text();
-            const uuLines = uuText.split('\n');
-            const uuLine = uuLines.find(uuLine => uuLine.includes(`${numUniteUrbaine},`));
+        if (!inseeResponse.ok) throw new Error(`Erreur réseau (insee) : ${inseeResponse.status}`);
+        if (!uuResponse.ok)   throw new Error(`Erreur réseau (uu) : ${uuResponse.status}`);
 
-            if (uuLine) {
-                const uuValues = uuLine.split(',');
-                const numAssocie = parseInt(uuValues[1], 10);
-                let populationUrbainMessage = "";
+        // ✅ Les deux lectures .text() aussi en parallèle
+        const [inseeText, uuText] = await Promise.all([
+            inseeResponse.text(),
+            uuResponse.text()
+        ]);
 
-                if (numAssocie <= 5) {
-                    populationUrbainMessage = "inférieure à 100000 habitants";
-                } else if (numAssocie === 8) {
-                    populationUrbainMessage = "unité urbaine de Paris";
-                } else if (numAssocie === 6 || numAssocie === 7) {
-                    populationUrbainMessage = "supérieure à 100000 habitants";
-                } else {
-                    populationUrbainMessage = "Aucune condition spécifiée";
-                }
-                document.getElementById('popUrbaineInfo').textContent = normalizeText(populationUrbainMessage);
-            } else {
-                document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
-            }
-        } else {
+        // Le traitement croisé reste séquentiel — c'est inévitable
+        const inseeLine = inseeText.split('\n').find(line => line.startsWith(`${codeCommune},`));
+
+        if (!inseeLine) {
             document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
+            return;
         }
+
+        const numUniteUrbaine = inseeLine.split(',')[1].substring(0, 5);
+        const uuLine = uuText.split('\n').find(line => line.includes(`${numUniteUrbaine},`));
+
+        if (!uuLine) {
+            document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
+            return;
+        }
+
+        const numAssocie = parseInt(uuLine.split(',')[1], 10);
+        const message =
+            numAssocie <= 5              ? "inférieure à 100000 habitants" :
+            numAssocie === 6 || numAssocie === 7 ? "supérieure à 100000 habitants" :
+            numAssocie === 8             ? "unité urbaine de Paris" :
+                                           "Aucune condition spécifiée";
+
+        document.getElementById('popUrbaineInfo').textContent = normalizeText(message);
+
     } catch (error) {
-        console.error("Une erreur s'est produite lors de la récupération des données :", error);
+        console.error("Erreur unité urbaine :", error);
         showError();
     }
 }
-
 
 function handleSearch() {
     infosElement.textContent = '';
@@ -936,6 +931,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+	    <li>version 1.32a du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
