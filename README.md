@@ -642,7 +642,14 @@ function validateInput(text, type = 'text', maxLength = 100) {
 
 
 function normalizeText(text) {
-    return String(text).trim();
+    return String(text)
+        .normalize('NFC')         // normalisation Unicode — accents français
+                                  // pouvant arriver sous deux formes distinctes
+        .replace(/\u00A0/g, ' ') // espaces insécables → espaces normaux
+                                  // fréquents dans les retours d'API
+        .replace(/\s+/g, ' ')    // espaces multiples → espace unique
+                                  // utile après concaténation des champs d'adresse
+        .trim();
 }
 
 async function getLatestCsvUrl(resourceTitle) {
@@ -931,7 +938,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-	    <li>version 1.32a du 18/06/2026 : Mise à jour du code</li>
+	    <li>version 1.32b du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
 		<li>version 1.29t du 10/05/2026 : Correctif + Mise à jour des fichiers des noms des maires et présidents d'EPCI</li>
