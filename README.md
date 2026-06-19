@@ -810,13 +810,13 @@ async function fetchAdresse(code, type) {
             throw new Error("Données d'adresse non disponibles ou format inattendu.");
         }
 
-        const record = data.results.find(record => {
-            const pivotData = safeJsonParse(record.pivot, []);
-            return (
-                (isMairie && pivotData.some(item => item.type_service_local === "mairie") && record.nom.startsWith("Mairie - ")) || 
-                (!isMairie && pivotData.some(item => item.type_service_local === "epci"))
-            );
-        });
+const records = data.results.filter(record => {
+    const pivotData = safeJsonParse(record.pivot, []);
+    return isMairie
+        ? pivotData.some(item => item.type_service_local === "mairie")
+        : pivotData.some(item => item.type_service_local === "epci");
+});
+const record = records.find(r => r.nom.startsWith("Mairie - ")) || records[0];
 
         if (record && record.adresse) {
             const adresseData = safeJsonParse(record.adresse, []);
@@ -944,7 +944,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33b du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33c du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
