@@ -270,12 +270,6 @@ function safeJsonParse(value, fallback = null) {
 }
 
 
-function cleanCsvValue(value) {
-    return String(value)
-        .trim()
-        .replace(/^"(.*)"$/, '$1');
-}
-
 async function fetchCsvData(url) {
     if (csvCache[url]) {
         return csvCache[url];
@@ -755,14 +749,9 @@ const codeRecherche = normalizeCode(code);
 
         if (correspondanceCode && correspondanceFonction) {
 
-            const nomElu =
-                cleanCsvValue(row[nomIndex]);
-
-            const prenomElu =
-                cleanCsvValue(row[prenomIndex]);
-
-            let sexeElu =
-                cleanCsvValue(row[sexeIndex]);
+const nomElu    = row[nomIndex];
+const prenomElu = row[prenomIndex];
+let sexeElu     = row[sexeIndex];
 
             sexeElu =
                 sexeElu === "M"
@@ -958,7 +947,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33i du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33j du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
