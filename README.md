@@ -857,12 +857,15 @@ document.getElementById(infoText).appendChild(anchorElement);
         } else {
             throw new Error("Aucune information sur la Mairie ou l'EPCI trouvée.");
         }
+
 } catch (error) {
     console.error("Erreur lors de la récupération des données :", error);
-    const prefix = type === "mairie" ? "mairie" : "Epci";
-    document.getElementById(`adresse${prefix}`).textContent = "Information non disponible";
-    document.getElementById(`courriel${prefix}`).textContent = "Information non disponible";
-    document.getElementById(`site${prefix}`).textContent = "Information non disponible";
+    const ids = type === "mairie"
+        ? { adresse: "adressemairie", courriel: "courrielmairie", site: "sitemairie" }
+        : { adresse: "adresseEpci",   courriel: "courrielEpci",   site: "siteEpci"   };
+    document.getElementById(ids.adresse).textContent  = "Information non disponible";
+    document.getElementById(ids.courriel).textContent = "Information non disponible";
+    document.getElementById(ids.site).textContent     = "Information non disponible";
 }
 }
 
@@ -946,7 +949,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33k du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33m du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
