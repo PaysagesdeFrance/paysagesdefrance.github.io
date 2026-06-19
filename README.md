@@ -898,6 +898,7 @@ async function fetchData(selectedCodeCommune) {
             // Utilisation de Promise.all pour exécuter les fonctions en parallèle
 
 			            const [csvUrlMaire, csvUrlPresident] = await Promise.all([
+						console.log("URL maire :", csvUrlMaire);
                 getLatestCsvUrl("maires"),
                 getLatestCsvUrl("conseillers-communautaires")
             ]);
@@ -954,7 +955,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33e du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33f du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
