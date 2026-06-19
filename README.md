@@ -219,6 +219,7 @@ const rechercherBtn = document.getElementById("rechercherBtn");
 const infosElement = document.getElementById("infos");
 		let selectedCodeCommune;
 		let activeIndex = -1;
+		let communeController = null;
  const SIREN_MGP = "200054781";
 
 /**
@@ -565,7 +566,11 @@ function updateFocus(items) {
 
 async function fetchCommunes(communeName) {
     try {
-        const response = await fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`);
+		if (communeController) {
+            communeController.abort();
+        }
+        communeController = new AbortController();
+        const response = await fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`, { signal: communeController.signal });
         if (!response.ok) {
             throw new Error("Erreur réseau lors de la récupération des communes.");
         }
@@ -608,6 +613,7 @@ async function fetchCommunes(communeName) {
         });
         showCommuneList();
     } catch (error) {
+        if (error.name === 'AbortError') return;
         showError();
         console.error("Détails de l'erreur :", error);
     }
@@ -938,7 +944,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33a du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33b du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
