@@ -220,6 +220,7 @@ const infosElement = document.getElementById("infos");
 		let selectedCodeCommune;
 		let activeIndex = -1;
 		let communeController = null;
+ const csvCache = {};
  const SIREN_MGP = "200054781";
 
 /**
@@ -276,9 +277,10 @@ function cleanCsvValue(value) {
 }
 
 async function fetchCsvData(url) {
-
+    if (csvCache[url]) {
+        return csvCache[url];
+    }
     try {
-
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -290,7 +292,9 @@ async function fetchCsvData(url) {
         const data = parseCsv(text);
 
 
-        return data.slice(1);
+        const result = data.slice(1);
+        csvCache[url] = result;
+        return result;
 
     } catch (error) {
 
@@ -944,7 +948,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33c du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33d du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
