@@ -659,23 +659,23 @@ function normalizeText(text) {
         .trim();
 }
 
-async function getLatestCsvUrl(resourceTitle) {
+// APRÈS
+async function getLatestCsvUrls() {
     try {
         const response = await fetch(
             "https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/"
         );
-        if (!response.ok) {
-            throw new Error(`Erreur réseau : ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
         const data = await response.json();
-        if (!Array.isArray(data.resources)) {
+        if (!Array.isArray(data.resources))
             throw new Error("Format de réponse inattendu : resources absent ou invalide.");
-        }
-        const resource = data.resources.find(r => r.title.includes(resourceTitle));
-        return resource ? resource.url : null;
+        return {
+            urlMaire:      data.resources.find(r => r.title.includes("maires"))?.url ?? null,
+            urlPresident:  data.resources.find(r => r.title.includes("conseillers-communautaires"))?.url ?? null
+        };
     } catch (error) {
-        console.error(`Erreur récupération URL CSV (${resourceTitle}) :`, error);
-        return null;
+        console.error("Erreur récupération URLs CSV :", error);
+        return { urlMaire: null, urlPresident: null };
     }
 }
 
@@ -888,12 +888,9 @@ async function fetchData(selectedCodeCommune) {
             const codeCommune = data[0].code;
             const codeEpci = data[0].codeEpci;
 
-            // Utilisation de Promise.all pour exécuter les fonctions en parallèle
+    
 
-			            const [csvUrlMaire, csvUrlPresident] = await Promise.all([
-				getLatestCsvUrl("maires"),
-                getLatestCsvUrl("conseillers-communautaires")
-            ]);
+const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatestCsvUrls();
 			console.log("URL maire :", csvUrlMaire);
 
 			if (!csvUrlMaire) {
@@ -949,7 +946,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33m du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33n du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
