@@ -402,14 +402,15 @@ function handleEpciData(data, csvUrlPresident) {
     const nomEpci = epci.nom || 'Non disponible';
     const codeEpci = data[0].codeEpci;
 
+  if (codeEpci === SIREN_MGP) {
+    updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
+} else if (codeEpci) {
     updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
-
-    if (codeEpci && codeEpci !== SIREN_MGP) {
-        fetchAdresse(codeEpci, "epci");
-        fetchNomEluOuPresident("president", codeEpci, csvUrlPresident);
-    } else {
-        updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
-    }
+    fetchAdresse(codeEpci, "epci");
+    fetchNomEluOuPresident("president", codeEpci, csvUrlPresident);
+} else {
+    updateElementText('epciInfo', 'Données non disponibles');
+}
 }
 
 
@@ -909,9 +910,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
             ]);
 
-            if (codeEpci && codeEpci === SIREN_MGP) {
-                document.getElementById('epciInfo').textContent = `Métropole du Grand Paris – dépend d'un EPT`;
-            }
+
         } else {
             showError();
         }
@@ -939,6 +938,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.33a du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
