@@ -396,7 +396,7 @@ function handlePopulationData(data) {
 
 
 
-function handleEpciData(data, csvUrlPresident) {
+async function handleEpciData(data, csvUrlPresident) {
     if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
         showError();
         updateElementText('epciInfo', 'Données non disponibles');
@@ -407,22 +407,26 @@ function handleEpciData(data, csvUrlPresident) {
     const nomEpci = epci.nom || 'Non disponible';
     const codeEpci = data[0].codeEpci;
 
-  if (codeEpci === SIREN_MGP) {
-    updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
-} else if (codeEpci) {
-    updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
-    fetchAdresse(codeEpci, "epci");
-    fetchNomEluOuPresident("president", codeEpci, csvUrlPresident);
-} else {
-    updateElementText('epciInfo', 'Données non disponibles');
+    if (codeEpci === SIREN_MGP) {
+        updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
+    } else if (codeEpci) {
+        updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
+        await Promise.all([
+            fetchAdresse(codeEpci, "epci"),
+            fetchNomEluOuPresident("president", codeEpci, csvUrlPresident)
+        ]);
+    } else {
+        updateElementText('epciInfo', 'Données non disponibles');
+    }
 }
-}
 
 
 
-function handleMaireData(codeCommune, csvUrlMaire) {
-    fetchNomEluOuPresident("maire", codeCommune, csvUrlMaire);
-    fetchAdresse(codeCommune, "mairie");
+async function handleMaireData(codeCommune, csvUrlMaire) {
+    await Promise.all([
+        fetchNomEluOuPresident("maire", codeCommune, csvUrlMaire),
+        fetchAdresse(codeCommune, "mairie")
+    ]);
 }
 
 async function handleUniteUrbaineData(codeCommune) {
@@ -954,7 +958,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33h du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33i du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
