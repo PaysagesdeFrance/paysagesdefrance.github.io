@@ -510,13 +510,7 @@ function debounce(func, delay) {
     };
 }
 
-communeInput.addEventListener("input", function() {
-    selectedCodeCommune = null;
-	activeIndex = -1;
-});
-
-communeInput.addEventListener("input", debounce(function() {
-    var communeName = this.value;
+const debouncedFetchCommunes = debounce(function(communeName) {
     if (!validateInput(communeName, 'text', 50)) {
         showError();
         hideCommuneList();
@@ -527,7 +521,13 @@ communeInput.addEventListener("input", debounce(function() {
     } else {
         hideCommuneList();
     }
-}, 300));
+}, 300);
+
+communeInput.addEventListener("input", function() {
+    selectedCodeCommune = null;
+    activeIndex = -1;
+    debouncedFetchCommunes(this.value);
+});
 
 communeInput.addEventListener('keydown', function(e) {
     const items = communeList.querySelectorAll('li');
@@ -946,7 +946,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33n du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
