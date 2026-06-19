@@ -910,10 +910,9 @@ if (!csvUrlPresident) {
     document.getElementById("nomdupresident").textContent = "Information non disponible";
 }
 
-const matchDate = csvUrlMaire && csvUrlMaire.match(/\/(\d{4}-\d{2}-\d{2})\//);
+const matchDate = csvUrlMaire && csvUrlMaire.match(/\/(\d{4})(\d{2})(\d{2})-\d{6}\//);
 if (matchDate) {
-    const [year, month, day] = matchDate[1].split('-');
-    document.getElementById('sourceRNEDate').textContent = `(mise à jour du ${day}/${month}/${year})`;
+    document.getElementById('sourceRNEDate').textContent = `(mise à jour du ${matchDate[3]}/${matchDate[2]}/${matchDate[1]})`;
 }
 
 			
@@ -955,7 +954,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33g du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33h du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
