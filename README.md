@@ -477,9 +477,6 @@ function handleSearch() {
     if (selectedCodeCommune) {
 	showLoading();
         fetchData(selectedCodeCommune);
-        document.querySelectorAll("table").forEach(table => {
-            table.style.display = "table";
-        });
     } else {
         showError('Veuillez entrer le nom d\'une commune.');
     }
@@ -918,7 +915,9 @@ codeEpci ? handleCompetenceData(codeEpci, 'PLU') : Promise.resolve(),
 codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
             ]);
-
+document.querySelectorAll("table").forEach(table => {
+    table.style.display = "table";
+	});
 
         } else {
             showError();
@@ -947,7 +946,7 @@ codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.33j du 19/06/2026 : Mise à jour du code</li>
+		<li>version 1.33k du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
 	    <li>version 1.30ad du 14/06/2026 : Mise à jour du code</li>
