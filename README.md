@@ -270,12 +270,20 @@ function safeJsonParse(value, fallback = null) {
 }
 
 
+async function fetchWithTimeout(url, options = {}, timeout = 12000) {
+    const timeoutSignal = AbortSignal.timeout(timeout);
+    const signal = options.signal
+        ? AbortSignal.any([options.signal, timeoutSignal])
+        : timeoutSignal;
+    return fetch(url, { ...options, signal });
+}
+
 async function fetchCsvData(url) {
     if (csvCache[url]) {
         return csvCache[url];
     }
     try {
-        const response = await fetch(url);
+		const response = await fetchWithTimeout(url);
 
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status}`);
@@ -348,9 +356,9 @@ function parseCsv(text, separator = ';') {
 
 async function handleCompetenceData(codeEpci, type) {
     try {
-        const response = await fetch(`https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`, {
-            method: 'GET'
-        });
+
+ const response = await fetchWithTimeout(`https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`, { method: 'GET' });
+		
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
@@ -576,7 +584,8 @@ async function fetchCommunes(communeName) {
             communeController.abort();
         }
         communeController = new AbortController();
-        const response = await fetch(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`, { signal: communeController.signal });
+		const response = await fetchWithTimeout(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`, { signal: communeController.signal });
+
         if (!response.ok) {
             throw new Error("Erreur réseau lors de la récupération des communes.");
         }
@@ -619,7 +628,7 @@ async function fetchCommunes(communeName) {
         });
         showCommuneList();
     } catch (error) {
-        if (error.name === 'AbortError') return;
+		if (error.name === 'AbortError' || error.name === 'TimeoutError') return;
         showError();
         console.error("Détails de l'erreur :", error);
     }
@@ -666,12 +675,11 @@ function normalizeText(text) {
         .trim();
 }
 
-// APRÈS
+
 async function getLatestCsvUrls() {
     try {
-        const response = await fetch(
-            "https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/"
-        );
+
+		const response = await fetchWithTimeout("https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/");
         if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
         const data = await response.json();
         if (!Array.isArray(data.resources))
@@ -799,9 +807,8 @@ async function fetchAdresse(code, type) {
     const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
 
     try {
-        const response = await fetch(apiUrl, {
-    method: 'GET'
-});
+
+const response = await fetchWithTimeout(apiUrl, { method: 'GET' });
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
@@ -885,7 +892,7 @@ async function fetchData(selectedCodeCommune) {
     const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci`;
 
     try {
-        const response = await fetch(apiUrl);
+		const response = await fetchWithTimeout(apiUrl);
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
@@ -953,7 +960,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.34a du 20/06/2026 : Mise à jour du code</li>
+		<li>version 1.34b du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
