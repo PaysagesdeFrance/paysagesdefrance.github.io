@@ -449,14 +449,21 @@ async function handleUniteUrbaineData(codeCommune) {
         }
 
         const numUniteUrbaine = inseeLine.split(',')[1].substring(0, 5);
-        const uuLine = uuText.split('\n').find(line => line.includes(`${numUniteUrbaine},`));
 
-        if (!uuLine) {
+        let numAssocie = null;
+        for (const line of uuText.split(/\r?\n/)) {
+            const cols = line.split(',');
+            if (cols[0] === numUniteUrbaine) {
+                numAssocie = parseInt(cols[1], 10);
+                break;
+            }
+        }
+
+        if (numAssocie === null) {
             document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
             return;
         }
 
-        const numAssocie = parseInt(uuLine.split(',')[1], 10);
         const message =
             numAssocie <= 5              ? "inférieure à 100000 habitants" :
             numAssocie === 6 || numAssocie === 7 ? "supérieure à 100000 habitants" :
@@ -946,6 +953,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.34a du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
