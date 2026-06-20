@@ -804,8 +804,17 @@ let sexeElu     = row[sexeIndex];
 
 async function fetchAdresse(code, type) {
     const isMairie = type === 'mairie';
-    const endpoint = isMairie ? `pivot LIKE '%"type_service_local":"mairie"%25"code_insee_commune":["${code}"]%'` : `siren%3A%22${code}%22`;
-    const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=pivot%2Csite_internet%2Cnom%2Cadresse_courriel%2Cadresse&where=${endpoint}&limit=100`;
+const whereClause = isMairie
+        ? `pivot LIKE '%"type_service_local":"mairie"%"code_insee_commune":["${code}"]%'`
+        : `siren:"${code}"`;
+
+    const params = new URLSearchParams({
+        select: 'pivot,site_internet,nom,adresse_courriel,adresse',
+        where: whereClause,
+        limit: '100'
+    });
+
+    const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?${params}`;
 
     try {
 
@@ -961,7 +970,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.34c du 20/06/2026 : Mise à jour du code</li>
+		<li>version 1.34d du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
