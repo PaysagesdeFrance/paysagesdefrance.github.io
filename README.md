@@ -382,11 +382,12 @@ async function handleCompetenceData(codeEpci, type) {
 
 
 function handlePopulationData(data) {
-    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
-        showError();
+
+if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
         updateElementText('populationInfo', 'Données non disponibles');
         return;
     }
+
 
     const population = data[0].population;
     if (Number.isInteger(population) && population >= 0 && population <= 100000000) {
@@ -399,8 +400,8 @@ function handlePopulationData(data) {
 
 
 async function handleEpciData(data, csvUrlPresident) {
-    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
-        showError();
+
+	if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
         updateElementText('epciInfo', 'Données non disponibles');
         return;
     }
@@ -960,7 +961,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.34b du 20/06/2026 : Mise à jour du code</li>
+		<li>version 1.34c du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
 	    <li>version 1.31f du 15/06/2026 : Mise à jour du code</li>
