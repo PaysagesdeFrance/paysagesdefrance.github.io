@@ -596,7 +596,7 @@ async function fetchCommunes(communeName) {
             communeController.abort();
         }
         communeController = new AbortController();
-		const response = await fetchWithTimeout(`https://geo.api.gouv.fr/communes?nom=${communeName}&limit=13`, { signal: communeController.signal });
+		const response = await fetchWithTimeout(`https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(communeName)}&limit=13`, { signal: communeController.signal });
 
         if (!response.ok) {
             throw new Error("Erreur réseau lors de la récupération des communes.");
@@ -981,6 +981,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.35a du 10/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
