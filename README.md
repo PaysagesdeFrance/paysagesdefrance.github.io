@@ -5,11 +5,13 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none';
 script-src 'self' 'sha384-dUjfkOCG8TNacPHjaawKEgwGLoWtrhveL/0z44LJqhdcPZvcxuRhMKs/veurtgIT' https://cdn.jsdelivr.net;
+		style-src 'unsafe-inline';
 connect-src 'self'
   https://geo.api.gouv.fr
   https://api-lannuaire.service-public.fr
   https://raw.githubusercontent.com
-  https://static.data.gouv.fr;
+  https://static.data.gouv.fr
+  https://www.data.gouv.fr;
 frame-ancestors 'none';">
 
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -950,7 +952,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35d du 10/06/2026 : Mise à jour du code</li>
+		<li>version 1.35e du 10/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
