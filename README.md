@@ -236,6 +236,25 @@ function normalizeCode(c) {
     return String(c).trim().replace(/^0+/, '');
 }
 
+function selectionnerCommune(commune) {
+    selectedCodeCommune = commune.code;
+    communeInput.value = commune.nom;
+    hideCommuneList();
+    infosElement.textContent = '';
+
+    const ids = ['populationInfo', 'popUrbaineInfo', 'epciInfo', 'nomdumaire',
+                 'adressemairie', 'courrielmairie', 'sitemairie', 'nomdupresident',
+                 'adresseEpci', 'courrielEpci', 'siteEpci', 'competencePLU', 'competenceRLP'];
+    ids.forEach(id => document.getElementById(id).textContent = '');
+
+    const resultatCommune = document.getElementById('resultatCommune');
+    const h2Element = document.createElement('h2');
+    h2Element.textContent = normalizeText(
+        `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${commune.code}`);
+    resultatCommune.textContent = '';
+    resultatCommune.appendChild(h2Element);
+}
+
 function showLoading() {
     const el = document.getElementById('chargement');
     el.style.display = 'block';
@@ -480,20 +499,55 @@ const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
 
 		updateElementText('popUrbaineInfo', message);
 
-    } catch (error) {
+} catch (error) {
         console.error("Erreur unité urbaine :", error);
-        showError();
+        updateElementText('popUrbaineInfo', "Information non disponible");
     }
 }
 
-function handleSearch() {
+async function handleSearch() {
     infosElement.textContent = '';
-    
+
+    // Cas 1 : une commune a déjà été choisie dans la liste
     if (selectedCodeCommune) {
-	showLoading();
-        fetchData(selectedCodeCommune);
-    } else {
-        showError('Veuillez entrer le nom d\'une commune.');
+        showLoading();
+        await fetchData(selectedCodeCommune);
+        return;
+    }
+
+    // Cas 2 : rien de sélectionné → on tente de résoudre le texte saisi
+    const saisie = communeInput.value.trim();
+    if (!validateInput(saisie, 50)) {
+        showError("Veuillez entrer le nom d'une commune.");
+        return;
+    }
+
+    showLoading();
+    try {
+        const url = `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(saisie)}`
+                  + `&fields=nom,code,codeDepartement&limit=13`;
+        const response = await fetchWithTimeout(url);
+        if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error("Réponse de l'API invalide.");
+
+        // correspondances EXACTES de nom, accents et casse ignorés
+        const norm = s => String(s).normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        const exacts = data.filter(c => norm(c.nom) === norm(saisie));
+
+        if (exacts.length === 1) {
+            selectionnerCommune(exacts[0]);   // remplit l'en-tête, vide les cellules
+            await fetchData(exacts[0].code);  // son finally appelle hideLoading()
+        } else {
+            // 0 ou plusieurs homonymes → on laisse l'utilisateur choisir
+            hideLoading();
+            fetchCommunes(saisie);
+        }
+    } catch (error) {
+        console.error("Erreur lors de la résolution de la commune :", error);
+        hideLoading();
+        showError();
     }
 }
 
@@ -619,23 +673,9 @@ async function fetchCommunes(communeName) {
     listItem.setAttribute('id', `commune-option-${index}`);
     listItem.setAttribute('aria-selected', 'false');
 			listItem.textContent = `${normalizeText(commune.nom)} (${normalizeText(commune.codeDepartement)})`;
-            listItem.addEventListener("click", function() {
-                selectedCodeCommune = commune.code;
-                communeInput.value = commune.nom;
-                hideCommuneList();
-                infosElement.textContent = '';
-
-		const ids = ['populationInfo', 'popUrbaineInfo', 'epciInfo','nomdumaire', 'adressemairie', 'courrielmairie', 'sitemairie',  'nomdupresident', 'adresseEpci', 'courrielEpci', 'siteEpci',  'competencePLU', 'competenceRLP'];
-
-		ids.forEach(id => document.getElementById(id).textContent = '');
-
-
-                const resultatCommune = document.getElementById('resultatCommune');
-                const h2Element = document.createElement('h2');
-				h2Element.textContent = normalizeText(`– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`);
-                resultatCommune.textContent = '';
-                resultatCommune.appendChild(h2Element);
-            });
+    listItem.addEventListener("click", function() {   // ← ICI
+        selectionnerCommune(commune);
+    })
             communeList.appendChild(listItem);
         });
         showCommuneList();
@@ -931,7 +971,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35n du 21/06/2026 : Mise à jour du code</li>
+		<li>version 1.35p du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
