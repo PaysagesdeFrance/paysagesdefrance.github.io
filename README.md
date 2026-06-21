@@ -472,7 +472,6 @@ async function handleUniteUrbaineData(codeCommune) {
        
 		const numUniteUrbaine = inseeLine[1].substring(0, 5);
 
-        let numAssocie = null;
 const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
         const numAssocie = uuRow ? parseInt(uuRow[1], 10) : null;
 
@@ -948,7 +947,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35f du 10/06/2026 : Mise à jour du code</li>
+		<li>version 1.35g du 10/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
