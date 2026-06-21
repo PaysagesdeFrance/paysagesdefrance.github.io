@@ -761,9 +761,11 @@ async function fetchNomEluOuPresident(typeElu, code, csvUrl) {
 
     for (const row of data) {
         const correspondanceCode = normalizeCode(row[idx.code]) === codeRecherche;
-        const correspondanceFonction =
-            typeElu === "maire"
-            || row[idx.fonction] === "Président du conseil communautaire";
+let correspondanceFonction = typeElu === "maire";
+        if (!correspondanceFonction) {
+            const f = norm(row[idx.fonction]);
+            correspondanceFonction = f.startsWith("president") && f.includes("communautaire");
+        }
 
         if (correspondanceCode && correspondanceFonction) {
             const sexeElu = row[idx.sexe] === "M" ? "M."
@@ -782,7 +784,7 @@ async function fetchNomEluOuPresident(typeElu, code, csvUrl) {
 async function fetchAdresse(code, type) {
     const isMairie = type === 'mairie';
 const whereClause = isMairie
-        ? `pivot LIKE '%"type_service_local":"mairie"%"code_insee_commune":["${code}"]%'`
+        ? `pivot LIKE '%mairie%' AND pivot LIKE '%${code}%'`
         : `siren:"${code}"`;
 
     const params = new URLSearchParams({
@@ -808,7 +810,10 @@ const response = await fetchWithTimeout(apiUrl, { method: 'GET' });
 const records = data.results.filter(record => {
     const pivotData = safeJsonParse(record.pivot, []);
     return isMairie
-        ? pivotData.some(item => item.type_service_local === "mairie")
+        ? pivotData.some(item =>
+            item.type_service_local === "mairie" &&
+            Array.isArray(item.code_insee_commune) &&
+            item.code_insee_commune.includes(code))
         : pivotData.some(item => item.type_service_local === "epci");
 });
 const record = records.find(r => r.nom.startsWith("Mairie - ")) || records[0];
@@ -947,7 +952,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35g du 10/06/2026 : Mise à jour du code</li>
+		<li>version 1.35h du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
