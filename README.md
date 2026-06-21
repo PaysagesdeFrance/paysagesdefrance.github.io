@@ -368,13 +368,13 @@ async function handleCompetenceData(codeEpci, type) {
             const message = row[1] === "0" ? "non"
                           : row[1] === "1" ? "oui"
                           : "Valeur inconnue";
-            document.getElementById(`competence${type}`).textContent = normalizeText(message);
+            updateElementText(`competence${type}`, message);
         } else {
-            document.getElementById(`competence${type}`).textContent = "Information non disponible";
+           updateElementText(`competence${type}`, "Information non disponible");
         }
 } catch (error) {
     console.error(`Erreur lors de la récupération des données ${type} :`, error);
-    document.getElementById(`competence${type}`).textContent = "Information non disponible";
+    updateElementText(`competence${type}`, "Information non disponible");
 }
 }
 
@@ -452,7 +452,7 @@ async function handleUniteUrbaineData(codeCommune) {
         const inseeLine = inseeRows.find(r => r[0] === String(codeCommune));
 
         if (!inseeLine) {
-            document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
+            updateElementText('popUrbaineInfo', "Information non disponible");
             return;
         }
 
@@ -463,7 +463,7 @@ const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
         const numAssocie = uuRow ? parseInt(uuRow[1], 10) : null;
 
         if (numAssocie === null) {
-            document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
+            updateElementText('popUrbaineInfo', "hors unité urbaine");
             return;
         }
 
@@ -478,7 +478,7 @@ const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
             numAssocie === TUU_PARIS   ? "unité urbaine de Paris" :
                                          "Aucune condition spécifiée";
 
-        document.getElementById('popUrbaineInfo').textContent = normalizeText(message);
+		updateElementText('popUrbaineInfo', message);
 
     } catch (error) {
         console.error("Erreur unité urbaine :", error);
@@ -632,7 +632,7 @@ async function fetchCommunes(communeName) {
 
                 const resultatCommune = document.getElementById('resultatCommune');
                 const h2Element = document.createElement('h2');
-                h2Element.textContent = `– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`;
+				h2Element.textContent = normalizeText(`– ${commune.nom} (${commune.codeDepartement}) – code INSEE ${selectedCodeCommune}`);
                 resultatCommune.textContent = '';
                 resultatCommune.appendChild(h2Element);
             });
@@ -718,7 +718,7 @@ async function fetchNomEluOuPresident(typeElu, code, csvUrl) {
     const rows = await fetchCsvData(csvUrl);
 
     if (!rows || rows.length < 2) {
-        document.getElementById(infoId).textContent = "Information non disponible";
+        updateElementText(infoId, "Information non disponible");
         return;
     }
 
@@ -745,7 +745,7 @@ async function fetchNomEluOuPresident(typeElu, code, csvUrl) {
     // une colonne attendue a disparu ou changé de nom → on le signale au lieu d'afficher "undefined"
     if (Object.values(idx).some(i => i === -1)) {
         console.warn("Colonne CSV introuvable. En-tête réel :", header);
-        document.getElementById(infoId).textContent = "Information non disponible";
+       updateElementText(infoId, "Information non disponible");
         return;
     }
 
@@ -763,14 +763,14 @@ let correspondanceFonction = typeElu === "maire";
             const sexeElu = row[idx.sexe] === "M" ? "M."
                           : row[idx.sexe] === "F" ? "Mme"
                           : "";
-            document.getElementById(infoId).textContent =
-                `${sexeElu} ${row[idx.prenom]} ${row[idx.nom]}`;
+updateElementText(infoId,
+                `${sexeElu} ${row[idx.prenom]} ${row[idx.nom]}`);
             return;
         }
     }
 
     console.warn("Aucun élu correspondant trouvé pour le code :", code);
-    document.getElementById(infoId).textContent = "Information non disponible";
+    updateElementText(infoId, "Information non disponible");
 }
 
 async function fetchAdresse(code, type) {
@@ -824,14 +824,14 @@ const record = records.find(r => r.nom.startsWith("Mairie - ")) || records[0];
 
             if (adresseComplete) {
                 const infoText = isMairie ? "adressemairie" : "adresseEpci";
-                document.getElementById(infoText).textContent = normalizeText(adresseComplete);
+                updateElementText(infoText, adresseComplete);
             } else {
                 console.warn("Adresse vide ou non valide :", adresseComplete);
             }
 
             if (record.adresse_courriel) {
                 const infoText = isMairie ? "courrielmairie" : "courrielEpci";
-                document.getElementById(infoText).textContent = normalizeText(record.adresse_courriel);
+                updateElementText(infoText, record.adresse_courriel);
             }
 
             const siteInternetJSON = record.site_internet;
@@ -861,9 +861,9 @@ document.getElementById(infoText).appendChild(anchorElement);
     const ids = type === "mairie"
         ? { adresse: "adressemairie", courriel: "courrielmairie", site: "sitemairie" }
         : { adresse: "adresseEpci",   courriel: "courrielEpci",   site: "siteEpci"   };
-    document.getElementById(ids.adresse).textContent  = "Information non disponible";
-    document.getElementById(ids.courriel).textContent = "Information non disponible";
-    document.getElementById(ids.site).textContent     = "Information non disponible";
+updateElementText(ids.adresse,  "Information non disponible");
+updateElementText(ids.courriel, "Information non disponible");
+updateElementText(ids.site,     "Information non disponible");
 }
 }
 
@@ -892,15 +892,15 @@ const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatest
 			console.log("URL maire :", csvUrlMaire);
 
 			if (!csvUrlMaire) {
-    document.getElementById("nomdumaire").textContent = "Information non disponible";
+    updateElementText("nomdumaire", "Information non disponible");
 }
 if (!csvUrlPresident) {
-    document.getElementById("nomdupresident").textContent = "Information non disponible";
+   updateElementText("nomdupresident", "Information non disponible");
 }
 
 const matchDate = csvUrlMaire && csvUrlMaire.match(/\/(\d{4})(\d{2})(\d{2})-\d{6}\//);
 if (matchDate) {
-    document.getElementById('sourceRNEDate').textContent = `(mise à jour du ${matchDate[3]}/${matchDate[2]}/${matchDate[1]})`;
+    updateElementText('sourceRNEDate', `(mise à jour du ${matchDate[3]}/${matchDate[2]}/${matchDate[1]})`);
 }
 
 			
@@ -944,7 +944,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35j du 21/06/2026 : Mise à jour du code</li>
+		<li>version 1.35m du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
