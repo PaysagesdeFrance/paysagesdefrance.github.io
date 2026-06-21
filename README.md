@@ -375,12 +375,11 @@ async function handleCompetenceData(codeEpci, type) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
         const text = await response.text();
-        const lines = text.split('\n');
-        const line = lines.find(currentLine => currentLine.startsWith(`${codeEpci},`));
-        if (line) {
-            const values = line.split(',');
-            const message = values[1] === "0" ? "non"
-                          : values[1] === "1" ? "oui"
+        const rows = parseCsv(text, ',');
+        const row = rows.find(r => r[0] === String(codeEpci));
+        if (row) {
+            const message = row[1] === "0" ? "non"
+                          : row[1] === "1" ? "oui"
                           : "Valeur inconnue";
             document.getElementById(`competence${type}`).textContent = normalizeText(message);
         } else {
@@ -462,23 +461,20 @@ async function handleUniteUrbaineData(codeCommune) {
         ]);
 
         // Le traitement croisé reste séquentiel — c'est inévitable
-        const inseeLine = inseeText.split('\n').find(line => line.startsWith(`${codeCommune},`));
+ const inseeRows = parseCsv(inseeText, ',');
+        const inseeLine = inseeRows.find(r => r[0] === String(codeCommune));
 
         if (!inseeLine) {
             document.getElementById('popUrbaineInfo').textContent = "Information non disponible";
             return;
         }
 
-        const numUniteUrbaine = inseeLine.split(',')[1].substring(0, 5);
+       
+		const numUniteUrbaine = inseeLine[1].substring(0, 5);
 
         let numAssocie = null;
-        for (const line of uuText.split(/\r?\n/)) {
-            const cols = line.split(',');
-            if (cols[0] === numUniteUrbaine) {
-                numAssocie = parseInt(cols[1], 10);
-                break;
-            }
-        }
+const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
+        const numAssocie = uuRow ? parseInt(uuRow[1], 10) : null;
 
         if (numAssocie === null) {
             document.getElementById('popUrbaineInfo').textContent = "hors unité urbaine";
@@ -952,7 +948,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35e du 10/06/2026 : Mise à jour du code</li>
+		<li>version 1.35f du 10/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
