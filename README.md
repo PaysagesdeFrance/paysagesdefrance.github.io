@@ -557,7 +557,7 @@ communeInput.addEventListener("input", function() {
 });
 
 communeInput.addEventListener('keydown', function(e) {
-    const items = communeList.querySelectorAll('li');
+    const items = communeList.querySelectorAll('li[role="option"]');
     if (!items.length) return;
 
     if (e.key === 'ArrowDown') {
@@ -603,11 +603,23 @@ async function fetchCommunes(communeName) {
         }
         const data = await response.json();
 
-        if (!Array.isArray(data) || data.length === 0) {
-            throw new Error("Les données retournées par l'API sont invalides ou vides.");
+// Réponse non conforme = vraie erreur → catch → showError()
+        if (!Array.isArray(data)) {
+            throw new Error("Les données retournées par l'API sont invalides.");
         }
 
         communeList.innerHTML = '';
+
+        // Aucune correspondance = cas normal, pas un échec
+        if (data.length === 0) {
+            const emptyItem = document.createElement("li");
+            emptyItem.textContent = "Aucune commune trouvée";
+            emptyItem.setAttribute('aria-disabled', 'true'); // informatif, non sélectionnable
+            communeList.appendChild(emptyItem);
+            showCommuneList();
+            return;
+        }
+
        data.forEach(function(commune, index) {
             if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
                 console.warn("Données de la commune invalides : ", commune);
@@ -939,7 +951,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35b du 10/06/2026 : Mise à jour du code</li>
+		<li>version 1.35c du 10/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
