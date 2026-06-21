@@ -271,24 +271,11 @@ function safeJsonParse(value, fallback = null) {
     }
 }
 
-function combineSignals(signals) {
-    const controller = new AbortController();
-    for (const signal of signals) {
-        if (signal.aborted) {
-            controller.abort(signal.reason);
-            break;
-        }
-        signal.addEventListener('abort', () => controller.abort(signal.reason), { once: true });
-    }
-    return controller.signal;
-}
 
 async function fetchWithTimeout(url, options = {}, timeout = 12000) {
-    const timeoutSignal = AbortSignal.timeout(timeout);
-    const signal = options.signal
-        ? combineSignals([options.signal, timeoutSignal])
-        : timeoutSignal;
-    return fetch(url, { ...options, signal });
+    const signals = [AbortSignal.timeout(timeout)];
+    if (options.signal) signals.push(options.signal);
+    return fetch(url, { ...options, signal: AbortSignal.any(signals) });
 }
 
 async function fetchCsvData(url) {
@@ -952,7 +939,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35h du 21/06/2026 : Mise à jour du code</li>
+		<li>version 1.35i du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
