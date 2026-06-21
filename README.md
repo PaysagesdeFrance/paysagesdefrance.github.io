@@ -224,6 +224,12 @@ const infosElement = document.getElementById("infos");
 		let communeController = null;
  const csvCache = {};
  const SIREN_MGP = "200054781";
+ let latestFetchId = 0;
+
+function setTextIfCurrent(fetchId, elementId, text) {
+    if (fetchId !== latestFetchId) return;
+    updateElementText(elementId, text);
+}
 
 /**
  * Normalise un code INSEE ou SIREN pour la comparaison.
@@ -394,7 +400,7 @@ function parseCsv(text, separator = ';') {
     return rows;
 }
 
-async function handleCompetenceData(codeEpci, type) {
+async function handleCompetenceData(codeEpci, type, fetchId) {
     try {
 
  const response = await fetchWithTimeout(`https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`, { method: 'GET' });
@@ -420,10 +426,10 @@ async function handleCompetenceData(codeEpci, type) {
 }
 
 
-function handlePopulationData(data) {
+function handlePopulationData(data, fetchId) {
 
 if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || typeof data[0].population !== 'number') {
-        updateElementText('populationInfo', 'Données non disponibles');
+        setTextIfCurrent(fetchId, 'populationInfo', 'Données non disponibles');
         return;
     }
 
@@ -432,46 +438,44 @@ if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || 
     if (Number.isInteger(population) && population >= 0 && population <= 100000000) {
         updateElementText('populationInfo', `${population} habitants`);
     } else {
-        updateElementText('populationInfo', 'Données non disponibles');
+        setTextIfCurrent(fetchId, 'populationInfo', 'Données non disponibles');
     }
 }
 
 
 
-async function handleEpciData(data, csvUrlPresident) {
-
-	if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
-        updateElementText('epciInfo', 'Données non disponibles');
+async function handleEpciData(data, csvUrlPresident, fetchId) {
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || !data[0].epci || typeof data[0].epci.nom !== 'string' || typeof data[0].codeEpci !== 'string') {
+        setTextIfCurrent(fetchId, 'epciInfo', 'Données non disponibles');
         return;
     }
-
     const epci = data[0].epci;
     const nomEpci = epci.nom || 'Non disponible';
     const codeEpci = data[0].codeEpci;
 
     if (codeEpci === SIREN_MGP) {
-        updateElementText('epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
+        setTextIfCurrent(fetchId, 'epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
     } else if (codeEpci) {
-        updateElementText('epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
+        setTextIfCurrent(fetchId, 'epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
         await Promise.all([
-            fetchAdresse(codeEpci, "epci"),
-            fetchNomEluOuPresident("president", codeEpci, csvUrlPresident)
+            fetchAdresse(codeEpci, "epci", fetchId),
+            fetchNomEluOuPresident("president", codeEpci, csvUrlPresident, fetchId)
         ]);
     } else {
-        updateElementText('epciInfo', 'Données non disponibles');
+        setTextIfCurrent(fetchId, 'epciInfo', 'Données non disponibles');
     }
 }
 
 
 
-async function handleMaireData(codeCommune, csvUrlMaire) {
+async function handleMaireData(codeCommune, csvUrlMaire, fetchId) {
     await Promise.all([
-        fetchNomEluOuPresident("maire", codeCommune, csvUrlMaire),
-        fetchAdresse(codeCommune, "mairie")
+        fetchNomEluOuPresident("maire", codeCommune, csvUrlMaire, fetchId),
+        fetchAdresse(codeCommune, "mairie", fetchId)
     ]);
 }
 
-async function handleUniteUrbaineData(codeCommune) {
+async function handleUniteUrbaineData(codeCommune, fetchId) {
     try {
         // ✅ Les deux téléchargements démarrent en même temps
 const [inseeResponse, uuResponse] = await Promise.all([
@@ -763,7 +767,7 @@ async function getLatestCsvUrls() {
  *   maires      : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-maires-mai.csv
  *   présidents  : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-conseillers-communautaires-epci.csv
  */
-async function fetchNomEluOuPresident(typeElu, code, csvUrl) {
+async function fetchNomEluOuPresident(typeElu, code, csvUrl, fetchId) {
     const infoId = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
     const rows = await fetchCsvData(csvUrl);
 
@@ -823,7 +827,7 @@ updateElementText(infoId,
     updateElementText(infoId, "Information non disponible");
 }
 
-async function fetchAdresse(code, type) {
+async function fetchAdresse(code, type, fetchId) {
     const isMairie = type === 'mairie';
 const whereClause = isMairie
         ? `pivot LIKE '%mairie%' AND pivot LIKE '%${code}%'`
@@ -889,7 +893,7 @@ const record = records.find(r => r.nom.startsWith("Mairie - ")) || records[0];
 const siteInternetData = safeJsonParse(siteInternetJSON, []);
 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
                 const infoText = isMairie ? "sitemairie" : "siteEpci";
-                if (siteInternet) {
+                if (siteInternet && fetchId === latestFetchId) {
 const anchorElement = document.createElement("a");
 if (/^https?:\/\//i.test(siteInternet)) {
     anchorElement.href = siteInternet;
@@ -923,58 +927,55 @@ function validateApiResponse(data, expectedFields) {
 }
 
 async function fetchData(selectedCodeCommune) {
+    const fetchId = ++latestFetchId;
     const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci`;
 
     try {
-		const response = await fetchWithTimeout(apiUrl);
+        const response = await fetchWithTimeout(apiUrl);
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
+        if (fetchId !== latestFetchId) return;
 
         if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci'])) {
             const codeCommune = data[0].code;
             const codeEpci = data[0].codeEpci;
 
-    
+            const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatestCsvUrls();
+            if (fetchId !== latestFetchId) return;
+            console.log("URL maire :", csvUrlMaire);
 
-const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatestCsvUrls();
-			console.log("URL maire :", csvUrlMaire);
+            if (!csvUrlMaire)     setTextIfCurrent(fetchId, "nomdumaire", "Information non disponible");
+            if (!csvUrlPresident) setTextIfCurrent(fetchId, "nomdupresident", "Information non disponible");
 
-			if (!csvUrlMaire) {
-    updateElementText("nomdumaire", "Information non disponible");
-}
-if (!csvUrlPresident) {
-   updateElementText("nomdupresident", "Information non disponible");
-}
+            const matchDate = csvUrlMaire && csvUrlMaire.match(/\/(\d{4})(\d{2})(\d{2})-\d{6}\//);
+            if (matchDate) {
+                setTextIfCurrent(fetchId, 'sourceRNEDate',
+                    `(mise à jour du ${matchDate[3]}/${matchDate[2]}/${matchDate[1]})`);
+            }
 
-const matchDate = csvUrlMaire && csvUrlMaire.match(/\/(\d{4})(\d{2})(\d{2})-\d{6}\//);
-if (matchDate) {
-    updateElementText('sourceRNEDate', `(mise à jour du ${matchDate[3]}/${matchDate[2]}/${matchDate[1]})`);
-}
-
-			
-       await Promise.all([
-                handlePopulationData(data),
-                handleEpciData(data, csvUrlPresident),
-                handleMaireData(codeCommune, csvUrlMaire),
-                handleUniteUrbaineData(codeCommune),
-codeEpci ? handleCompetenceData(codeEpci, 'PLU') : Promise.resolve(),
-codeEpci ? handleCompetenceData(codeEpci, 'RLP') : Promise.resolve()
-
+            await Promise.all([
+                handlePopulationData(data, fetchId),
+                handleEpciData(data, csvUrlPresident, fetchId),
+                handleMaireData(codeCommune, csvUrlMaire, fetchId),
+                handleUniteUrbaineData(codeCommune, fetchId),
+                codeEpci ? handleCompetenceData(codeEpci, 'PLU', fetchId) : Promise.resolve(),
+                codeEpci ? handleCompetenceData(codeEpci, 'RLP', fetchId) : Promise.resolve()
             ]);
-document.querySelectorAll("table").forEach(table => {
-    table.style.display = "table";
-	});
 
+            if (fetchId !== latestFetchId) return;
+            document.querySelectorAll("table").forEach(table => {
+                table.style.display = "table";
+            });
         } else {
             showError();
         }
     } catch (error) {
         console.error("Une erreur s'est produite lors de la récupération des données de l'API :", error);
-        showError();
-		    } finally {
-        hideLoading(); 
+        if (fetchId === latestFetchId) showError();
+    } finally {
+        if (fetchId === latestFetchId) hideLoading();
     }
 }
 
@@ -993,7 +994,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35r du 21/06/2026 : Mise à jour du code</li>
+		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
