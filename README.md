@@ -305,7 +305,7 @@ async function fetchCsvData(url) {
         const data = parseCsv(text);
 
 
-        const result = data.slice(1);
+        const result = data;
         csvCache[url] = result;
         return result;
 
@@ -714,103 +714,61 @@ async function getLatestCsvUrls() {
  *   présidents  : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-conseillers-communautaires-epci.csv
  */
 async function fetchNomEluOuPresident(typeElu, code, csvUrl) {
+    const infoId = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
+    const rows = await fetchCsvData(csvUrl);
 
+    if (!rows || rows.length < 2) {
+        document.getElementById(infoId).textContent = "Information non disponible";
+        return;
+    }
 
-    const data = await fetchCsvData(csvUrl);
+    const header = rows[0];
+    const data = rows.slice(1);
 
-if (!data) {
-    document.getElementById(typeElu === "maire" ? "nomdumaire" : "nomdupresident")
-        .textContent = "Information non disponible";
-    return;
-}
+    // normalise un intitulé : retire accents, apostrophes, °, espaces, BOM…
+    const norm = s => String(s)
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/gi, '').toLowerCase();
+    const col = label => header.findIndex(h => norm(h) === norm(label));
 
-    let found = false;
+    const idx = typeElu === "maire"
+        ? { code: col("Code de la commune"),
+            nom:  col("Nom de l'élu"),
+            prenom: col("Prénom de l'élu"),
+            sexe: col("Code sexe") }
+        : { code: col("N° SIREN"),
+            nom:  col("Nom de l'élu"),
+            prenom: col("Prénom de l'élu"),
+            sexe: col("Code sexe"),
+            fonction: col("Libellé de la fonction") };
 
-    for (let i = 0; i < data.length; i++) {
+    // une colonne attendue a disparu ou changé de nom → on le signale au lieu d'afficher "undefined"
+    if (Object.values(idx).some(i => i === -1)) {
+        console.warn("Colonne CSV introuvable. En-tête réel :", header);
+        document.getElementById(infoId).textContent = "Information non disponible";
+        return;
+    }
 
-        const row = data[i];
+    const codeRecherche = normalizeCode(code);
 
-        // -----------------------------
-        // INDEX VARIABLES SELON FICHIER
-        // -----------------------------
-
-        let codeIndex;
-        let nomIndex;
-        let prenomIndex;
-        let sexeIndex;
-        let fonctionIndex;
-
-        if (typeElu === "maire") {
-
-            codeIndex = 4;
-            nomIndex = 6;
-            prenomIndex = 7;
-            sexeIndex = 8;
-
-        } else {
-
-            codeIndex = 4;
-            nomIndex = 8;
-            prenomIndex = 9;
-            sexeIndex = 10;
-            fonctionIndex = 15;
-        }
-
-
-const codeCsv = normalizeCode(row[codeIndex]);
-const codeRecherche = normalizeCode(code);
-
-        // -----------------------------
-        // FILTRE
-        // -----------------------------
-
-        const correspondanceCode =
-            codeCsv === codeRecherche;
-
+    for (const row of data) {
+        const correspondanceCode = normalizeCode(row[idx.code]) === codeRecherche;
         const correspondanceFonction =
             typeElu === "maire"
-            || row[fonctionIndex] === "Président du conseil communautaire";
+            || row[idx.fonction] === "Président du conseil communautaire";
 
         if (correspondanceCode && correspondanceFonction) {
-
-const nomElu    = row[nomIndex];
-const prenomElu = row[prenomIndex];
-let sexeElu     = row[sexeIndex];
-
-            sexeElu =
-                sexeElu === "M"
-                ? "M."
-                : sexeElu === "F"
-                ? "Mme"
-                : "";
-
-            const infoText =
-                typeElu === "maire"
-                ? "nomdumaire"
-                : "nomdupresident";
-
-            document.getElementById(infoText).textContent =
-                `${sexeElu} ${prenomElu} ${nomElu}`;
-
-            found = true;
-            break;
+            const sexeElu = row[idx.sexe] === "M" ? "M."
+                          : row[idx.sexe] === "F" ? "Mme"
+                          : "";
+            document.getElementById(infoId).textContent =
+                `${sexeElu} ${row[idx.prenom]} ${row[idx.nom]}`;
+            return;
         }
     }
 
-    if (!found) {
-        console.warn(
-            "Aucun élu correspondant trouvé pour le code :",
-            code
-        );
-
-        const infoText =
-            typeElu === "maire"
-            ? "nomdumaire"
-            : "nomdupresident";
-
-        document.getElementById(infoText).textContent =
-            "Information non disponible";
-    }
+    console.warn("Aucun élu correspondant trouvé pour le code :", code);
+    document.getElementById(infoId).textContent = "Information non disponible";
 }
 
 async function fetchAdresse(code, type) {
@@ -981,7 +939,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35a du 10/06/2026 : Mise à jour du code</li>
+		<li>version 1.35b du 10/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
