@@ -467,11 +467,16 @@ const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
             return;
         }
 
+// numAssocie est la tranche d'unité urbaine (TUU) de l'INSEE :
+        // un entier croissant avec la taille de l'agglomération.
+        const TUU_MIN_100K = 6;  // 6 = premier palier ≥ 100 000 hab.
+        const TUU_PARIS    = 8;  // 8 = agglomération de Paris
+
         const message =
-            numAssocie <= 5              ? "inférieure à 100000 habitants" :
-            numAssocie === 6 || numAssocie === 7 ? "supérieure à 100000 habitants" :
-            numAssocie === 8             ? "unité urbaine de Paris" :
-                                           "Aucune condition spécifiée";
+            numAssocie < TUU_MIN_100K  ? "inférieure à 100000 habitants" :
+            numAssocie < TUU_PARIS     ? "supérieure à 100000 habitants" :
+            numAssocie === TUU_PARIS   ? "unité urbaine de Paris" :
+                                         "Aucune condition spécifiée";
 
         document.getElementById('popUrbaineInfo').textContent = normalizeText(message);
 
@@ -939,7 +944,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35i du 21/06/2026 : Mise à jour du code</li>
+		<li>version 1.35j du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
