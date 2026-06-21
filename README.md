@@ -292,9 +292,31 @@ function safeJsonParse(value, fallback = null) {
 
 
 async function fetchWithTimeout(url, options = {}, timeout = 12000) {
-    const signals = [AbortSignal.timeout(timeout)];
-    if (options.signal) signals.push(options.signal);
-    return fetch(url, { ...options, signal: AbortSignal.any(signals) });
+    const controller = new AbortController();
+    const onExternalAbort = () => controller.abort();
+
+    // Abandon après `timeout` ms, avec un nom d'erreur distinct
+    // pour rester compatible avec le catch de fetchCommunes.
+    const timeoutId = setTimeout(
+        () => controller.abort(new DOMException('Délai dépassé', 'TimeoutError')),
+        timeout
+    );
+
+    // Propage un éventuel signal externe (ex. communeController)
+    if (options.signal) {
+        if (options.signal.aborted) {
+            controller.abort();
+        } else {
+            options.signal.addEventListener('abort', onExternalAbort, { once: true });
+        }
+    }
+
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timeoutId);
+        if (options.signal) options.signal.removeEventListener('abort', onExternalAbort);
+    }
 }
 
 async function fetchCsvData(url) {
@@ -971,7 +993,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35p du 21/06/2026 : Mise à jour du code</li>
+		<li>version 1.35q du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
