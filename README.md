@@ -320,49 +320,48 @@ async function fetchCsvData(url) {
 
 
 function parseCsv(text, separator = ';') {
+    const rows = [];
+    let row = [];
+    let current = '';
+    let insideQuotes = false;
 
-    const lines = text.trim().split(/\r?\n/);
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
 
-    return lines.map(line => {
-
-        const result = [];
-        let current = '';
-        let insideQuotes = false;
-
-        for (let i = 0; i < line.length; i++) {
-
-            const char = line[i];
-            const next = line[i + 1];
-
-            // gestion des guillemets
-            if (char === '"') {
-
-                // guillemets doublés
-                if (insideQuotes && next === '"') {
-                    current += '"';
-                    i++;
-                } else {
-                    insideQuotes = !insideQuotes;
-                }
-
-            }
-
-            // séparateur
-            else if (char === separator && !insideQuotes) {
-                result.push(current.trim());
-                current = '';
-            }
-
-            // caractère normal
-            else {
-                current += char;
+        if (char === '"') {
+            if (insideQuotes && next === '"') {
+                current += '"';      // guillemet échappé ""
+                i++;
+            } else {
+                insideQuotes = !insideQuotes;
             }
         }
+        else if (char === separator && !insideQuotes) {
+            row.push(current.trim());
+            current = '';
+        }
+        // saut de ligne HORS guillemets → fin de l'enregistrement
+        else if ((char === '\n' || char === '\r') && !insideQuotes) {
+            if (char === '\r' && next === '\n') i++;   // \r\n compté une fois
+            row.push(current.trim());
+            rows.push(row);
+            row = [];
+            current = '';
+        }
+        // tout le reste — y compris un \n ENTRE guillemets — fait partie du champ
+        else {
+            current += char;
+        }
+    }
 
-        result.push(current.trim());
+    // dernière ligne si le fichier ne finit pas par un saut de ligne
+    if (current !== '' || row.length > 0) {
+        row.push(current.trim());
+        rows.push(row);
+    }
 
-        return result;
-    });
+    return rows;
 }
 
 async function handleCompetenceData(codeEpci, type) {
@@ -951,7 +950,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35c du 10/06/2026 : Mise à jour du code</li>
+		<li>version 1.35d du 10/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
