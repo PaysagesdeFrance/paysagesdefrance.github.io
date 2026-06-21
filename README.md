@@ -474,9 +474,9 @@ async function handleMaireData(codeCommune, csvUrlMaire) {
 async function handleUniteUrbaineData(codeCommune) {
     try {
         // ✅ Les deux téléchargements démarrent en même temps
-        const [inseeResponse, uuResponse] = await Promise.all([
-            fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee'),
-            fetch('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu')
+const [inseeResponse, uuResponse] = await Promise.all([
+            fetchWithTimeout('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee'),
+            fetchWithTimeout('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu')
         ]);
 
         if (!inseeResponse.ok) throw new Error(`Erreur réseau (insee) : ${inseeResponse.status}`);
@@ -993,7 +993,7 @@ document.querySelectorAll("table").forEach(table => {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35q du 21/06/2026 : Mise à jour du code</li>
+		<li>version 1.35r du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
