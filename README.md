@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none';
-script-src 'self' 'sha384-dUjfkOCG8TNacPHjaawKEgwGLoWtrhveL/0z44LJqhdcPZvcxuRhMKs/veurtgIT' https://cdn.jsdelivr.net;
+script-src 'self';
 		style-src 'unsafe-inline';
 connect-src 'self'
   https://geo.api.gouv.fr
@@ -17,7 +17,7 @@ frame-ancestors 'none';">
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
 	<meta name="referrer" content="strict-origin">
 	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
-<script src="https://cdn.jsdelivr.net/npm/validator@13.15.35/validator.min.js" integrity="sha384-dUjfkOCG8TNacPHjaawKEgwGLoWtrhveL/0z44LJqhdcPZvcxuRhMKs/veurtgIT" crossorigin="anonymous"></script>
+
 
 	<title>Recherche d'une commune</title>
 	<style>
@@ -526,7 +526,7 @@ function debounce(func, delay) {
 }
 
 const debouncedFetchCommunes = debounce(function(communeName) {
-    if (!validateInput(communeName, 'text', 50)) {
+   if (!validateInput(communeName, 50)) {
         showError();
         hideCommuneList();
         return;
@@ -656,22 +656,10 @@ document.addEventListener("click", function(event) {
 rechercherBtn.addEventListener("click", handleSearch);
 
 // Nouvelle fonction de validation centralisée
-function validateInput(text, type = 'text', maxLength = 100) {
-    if (!validator.isLength(text, { min: 1, max: maxLength })) {
-        return false;
-    }
-
-    switch (type) {
-        case 'text':
-            // vieille version : return validator.isAlphanumeric(text, 'fr-FR', { ignore: " '-" });
-			return /^[\p{L}\p{M}\s'\u2018\u2019-]+$/u.test(text);
-        case 'number':
-            return validator.isNumeric(text);
-        case 'email':
-            return validator.isEmail(text);
-        default:
-            return false;
-    }
+function validateInput(text, maxLength = 100) {
+    if (typeof text !== 'string') return false;
+    if (text.length < 1 || text.length > maxLength) return false;
+    return /^[\p{L}\p{M}\s'\u2018\u2019-]+$/u.test(text);
 }
 
 
@@ -939,12 +927,11 @@ document.querySelectorAll("table").forEach(table => {
 		<li>(3) OpenData gouvernemental : Ministère de l'Intérieur et des Outre-Mer – <a href="https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/" target="_blank" rel="noopener noreferrer">https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/</a> <span id="sourceRNEDate"></span></li>
 		<li>(4) API gouvernementale : <a href="https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration" target="_blank" rel="noopener noreferrer">https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration</a></li>
 		<li>(5) informations mises à jour manuellement (intercommunalité puis Export national ou régional) – valable au 22 mars 2026 – source : <a href="https://www.banatic.interieur.gouv.fr/export/" target="_blank" rel="noopener noreferrer">https://www.banatic.interieur.gouv.fr/export/</a></li>
-		<li>jsdelivr 13.15.35 et https://srihash.org/<a href="https://cdn.jsdelivr.net/npm/validator@13.15.35/" target="_blank" rel="noopener noreferrer">https://cdn.jsdelivr.net/npm/validator@13.15.35/"</a></li>
 	</ul>
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.35m du 21/06/2026 : Mise à jour du code</li>
+		<li>version 1.35n du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
 	    <li>version 1.32c du 18/06/2026 : Mise à jour du code</li>
