@@ -250,6 +250,17 @@ function setTextIfCurrent(fetchId, elementId, text) {
         : 'Données non disponibles';
 }
 
+function setNodeIfCurrent(fetchId, elementId, node) {
+    if (fetchId !== latestFetchId) return;
+    const element = document.getElementById(elementId);
+    if (!element) {
+        console.warn(`Élément introuvable : ${elementId}`);
+        return;
+    }
+    element.textContent = '';
+    element.appendChild(node);
+}
+
 /**
  * Normalise un code INSEE ou SIREN pour la comparaison.
  * Nécessaire car les sources sont incohérentes : l'API geo.gouv.fr
@@ -903,7 +914,7 @@ const record = records.find(r => r.nom.startsWith("Mairie - ")) || records[0];
 const siteInternetData = safeJsonParse(siteInternetJSON, []);
 const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
                 const infoText = isMairie ? "sitemairie" : "siteEpci";
-                if (siteInternet && fetchId === latestFetchId) {
+                if (siteInternet) {
 const anchorElement = document.createElement("a");
 if (/^https?:\/\//i.test(siteInternet)) {
     anchorElement.href = siteInternet;
@@ -911,8 +922,7 @@ if (/^https?:\/\//i.test(siteInternet)) {
 anchorElement.textContent = siteInternet;
 anchorElement.target = "_blank";
 anchorElement.rel = "noopener noreferrer";
-document.getElementById(infoText).textContent = '';
-document.getElementById(infoText).appendChild(anchorElement);
+setNodeIfCurrent(fetchId, infoText, anchorElement);
 
                 }
             }
@@ -1004,7 +1014,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.36d du 22/06/2026 : Mise à jour du code</li>
+		<li>version 1.36e du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
