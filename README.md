@@ -760,10 +760,10 @@ async function getLatestCsvUrls() {
         const data = await response.json();
         if (!Array.isArray(data.resources))
             throw new Error("Format de réponse inattendu : resources absent ou invalide.");
-        return {
-            urlMaire:      data.resources.find(r => r.title.includes("maires"))?.url ?? null,
-            urlPresident:  data.resources.find(r => r.title.includes("conseillers-communautaires"))?.url ?? null
-        };
+return {
+    urlMaire:      data.resources.find(r => typeof r.title === 'string' && r.title.includes("maires"))?.url ?? null,
+    urlPresident:  data.resources.find(r => typeof r.title === 'string' && r.title.includes("conseillers-communautaires"))?.url ?? null
+};
     } catch (error) {
         console.error("Erreur récupération URLs CSV :", error);
         return { urlMaire: null, urlPresident: null };
@@ -1004,7 +1004,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.36c du 22/06/2026 : Mise à jour du code</li>
+		<li>version 1.36d du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
