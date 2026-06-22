@@ -228,7 +228,14 @@ const infosElement = document.getElementById("infos");
 
 function setTextIfCurrent(fetchId, elementId, text) {
     if (fetchId !== latestFetchId) return;
-    updateElementText(elementId, text);
+    const element = document.getElementById(elementId);
+    if (!element) {
+        console.warn(`Élément introuvable : ${elementId}`);
+        return;
+    }
+    element.textContent = typeof text === 'string'
+        ? normalizeText(text)
+        : 'Données non disponibles';
 }
 
 /**
@@ -275,17 +282,6 @@ function hideLoading() {
     rechercherBtn.disabled = false;
 }
 
-
-function updateElementText(elementId, text) {
-    const element = document.getElementById(elementId);
-    if (!element) {
-        console.warn(`Élément introuvable : ${elementId}`);
-        return;
-    }
-    element.textContent = typeof text === 'string'
-        ? normalizeText(text)
-        : 'Données non disponibles';
-}
 
 function safeJsonParse(value, fallback = null) {
     try {
@@ -415,13 +411,13 @@ async function handleCompetenceData(codeEpci, type, fetchId) {
             const message = row[1] === "0" ? "non"
                           : row[1] === "1" ? "oui"
                           : "Valeur inconnue";
-            updateElementText(`competence${type}`, message);
+            setTextIfCurrent(fetchId,`competence${type}`, message);
         } else {
-           updateElementText(`competence${type}`, "Information non disponible");
+           setTextIfCurrent(fetchId,`competence${type}`, "Information non disponible");
         }
 } catch (error) {
     console.error(`Erreur lors de la récupération des données ${type} :`, error);
-    updateElementText(`competence${type}`, "Information non disponible");
+    setTextIfCurrent(fetchId,`competence${type}`, "Information non disponible");
 }
 }
 
@@ -436,7 +432,7 @@ if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || 
 
     const population = data[0].population;
     if (Number.isInteger(population) && population >= 0 && population <= 100000000) {
-        updateElementText('populationInfo', `${population} habitants`);
+        setTextIfCurrent(fetchId,'populationInfo', `${population} habitants`);
     } else {
         setTextIfCurrent(fetchId, 'populationInfo', 'Données non disponibles');
     }
@@ -497,7 +493,7 @@ const [inseeResponse, uuResponse] = await Promise.all([
         const inseeLine = inseeRows.find(r => r[0] === String(codeCommune));
 
         if (!inseeLine) {
-            updateElementText('popUrbaineInfo', "Information non disponible");
+            setTextIfCurrent(fetchId,'popUrbaineInfo', "Information non disponible");
             return;
         }
 
@@ -508,7 +504,7 @@ const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
         const numAssocie = uuRow ? parseInt(uuRow[1], 10) : null;
 
         if (numAssocie === null) {
-            updateElementText('popUrbaineInfo', "hors unité urbaine");
+            setTextIfCurrent(fetchId,'popUrbaineInfo', "hors unité urbaine");
             return;
         }
 
@@ -523,11 +519,11 @@ const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
             numAssocie === TUU_PARIS   ? "unité urbaine de Paris" :
                                          "Aucune condition spécifiée";
 
-		updateElementText('popUrbaineInfo', message);
+		setTextIfCurrent(fetchId,'popUrbaineInfo', message);
 
 } catch (error) {
         console.error("Erreur unité urbaine :", error);
-        updateElementText('popUrbaineInfo', "Information non disponible");
+        setTextIfCurrent(fetchId,'popUrbaineInfo', "Information non disponible");
     }
 }
 
@@ -772,7 +768,7 @@ async function fetchNomEluOuPresident(typeElu, code, csvUrl, fetchId) {
     const rows = await fetchCsvData(csvUrl);
 
     if (!rows || rows.length < 2) {
-        updateElementText(infoId, "Information non disponible");
+        setTextIfCurrent(fetchId,infoId, "Information non disponible");
         return;
     }
 
@@ -799,7 +795,7 @@ async function fetchNomEluOuPresident(typeElu, code, csvUrl, fetchId) {
     // une colonne attendue a disparu ou changé de nom → on le signale au lieu d'afficher "undefined"
     if (Object.values(idx).some(i => i === -1)) {
         console.warn("Colonne CSV introuvable. En-tête réel :", header);
-       updateElementText(infoId, "Information non disponible");
+       setTextIfCurrent(fetchId,infoId, "Information non disponible");
         return;
     }
 
@@ -817,14 +813,14 @@ let correspondanceFonction = typeElu === "maire";
             const sexeElu = row[idx.sexe] === "M" ? "M."
                           : row[idx.sexe] === "F" ? "Mme"
                           : "";
-updateElementText(infoId,
+setTextIfCurrent(fetchId,infoId,
                 `${sexeElu} ${row[idx.prenom]} ${row[idx.nom]}`);
             return;
         }
     }
 
     console.warn("Aucun élu correspondant trouvé pour le code :", code);
-    updateElementText(infoId, "Information non disponible");
+    setTextIfCurrent(fetchId,infoId, "Information non disponible");
 }
 
 async function fetchAdresse(code, type, fetchId) {
@@ -878,14 +874,14 @@ const record = records.find(r => r.nom.startsWith("Mairie - ")) || records[0];
 
             if (adresseComplete) {
                 const infoText = isMairie ? "adressemairie" : "adresseEpci";
-                updateElementText(infoText, adresseComplete);
+                setTextIfCurrent(fetchId,infoText, adresseComplete);
             } else {
                 console.warn("Adresse vide ou non valide :", adresseComplete);
             }
 
             if (record.adresse_courriel) {
                 const infoText = isMairie ? "courrielmairie" : "courrielEpci";
-                updateElementText(infoText, record.adresse_courriel);
+                setTextIfCurrent(fetchId,infoText, record.adresse_courriel);
             }
 
             const siteInternetJSON = record.site_internet;
@@ -915,9 +911,9 @@ document.getElementById(infoText).appendChild(anchorElement);
     const ids = type === "mairie"
         ? { adresse: "adressemairie", courriel: "courrielmairie", site: "sitemairie" }
         : { adresse: "adresseEpci",   courriel: "courrielEpci",   site: "siteEpci"   };
-updateElementText(ids.adresse,  "Information non disponible");
-updateElementText(ids.courriel, "Information non disponible");
-updateElementText(ids.site,     "Information non disponible");
+setTextIfCurrent(fetchId,ids.adresse,  "Information non disponible");
+setTextIfCurrent(fetchId,ids.courriel, "Information non disponible");
+setTextIfCurrent(fetchId,ids.site,     "Information non disponible");
 }
 }
 
@@ -994,6 +990,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.36a du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
