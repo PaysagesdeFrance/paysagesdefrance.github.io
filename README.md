@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none';
-script-src 'self';
+		script-src 'self' 'unsafe-inline';
 		style-src 'unsafe-inline';
 connect-src 'self'
   https://geo.api.gouv.fr
@@ -20,6 +20,18 @@ frame-ancestors 'none';">
 
 
 	<title>Recherche d'une commune</title>
+
+	<style id="af">html { display: none !important; }</style>
+<script>
+  if (self === top) {
+    var s = document.getElementById('af');
+    if (s) s.remove();            // pas framé → on affiche
+  } else {
+    top.location = self.location; // framé → tentative de sortie
+  }
+</script>
+
+
 	<style>
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
@@ -992,7 +1004,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.36b du 22/06/2026 : Mise à jour du code</li>
+		<li>version 1.36c du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
