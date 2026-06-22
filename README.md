@@ -356,6 +356,13 @@ function parseCsv(text, separator = ';') {
     let row = [];
     let current = '';
     let insideQuotes = false;
+    let fieldHadQuotes = false;                          // ← le champ courant a-t-il une section entre guillemets ?
+
+    const pushField = () => {                            // ← point d'écriture unique
+        row.push(fieldHadQuotes ? current : current.trim());  // ← cité = tel quel ; sinon on nettoie
+        current = '';
+        fieldHadQuotes = false;
+    };
 
     for (let i = 0; i < text.length; i++) {
         const char = text[i];
@@ -367,35 +374,30 @@ function parseCsv(text, separator = ';') {
                 i++;
             } else {
                 insideQuotes = !insideQuotes;
+                fieldHadQuotes = true;                  // ← on a vu au moins un guillemet
             }
         }
         else if (char === separator && !insideQuotes) {
-            row.push(current.trim());
-            current = '';
+            pushField();                                // ← remplace row.push(current.trim()); current = '';
         }
-        // saut de ligne HORS guillemets → fin de l'enregistrement
         else if ((char === '\n' || char === '\r') && !insideQuotes) {
-            if (char === '\r' && next === '\n') i++;   // \r\n compté une fois
-            row.push(current.trim());
+            if (char === '\r' && next === '\n') i++;
+            pushField();                                // ← idem
             rows.push(row);
             row = [];
-            current = '';
         }
-        // tout le reste — y compris un \n ENTRE guillemets — fait partie du champ
         else {
             current += char;
         }
     }
 
-    // dernière ligne si le fichier ne finit pas par un saut de ligne
     if (current !== '' || row.length > 0) {
-        row.push(current.trim());
+        pushField();                                    // ← idem
         rows.push(row);
     }
 
     return rows;
 }
-
 async function handleCompetenceData(codeEpci, type, fetchId) {
     try {
 
@@ -990,7 +992,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.36a du 22/06/2026 : Mise à jour du code</li>
+		<li>version 1.36b du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
 		<li>version 1.33p du 19/06/2026 : Mise à jour du code</li>
