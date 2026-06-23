@@ -305,6 +305,15 @@ function hideLoading() {
     rechercherBtn.disabled = false;
 }
 
+function resetAffichage() {
+    document.querySelectorAll("table").forEach(t => { t.style.display = "none"; });
+    document.getElementById('resultatCommune').textContent = '';
+    infosElement.textContent = '';
+    ['populationInfo','popUrbaineInfo','epciInfo','nomdumaire','adressemairie',
+     'courrielmairie','sitemairie','nomdupresident','adresseEpci','courrielEpci',
+     'siteEpci','competencePLU','competenceRLP']
+        .forEach(id => { document.getElementById(id).textContent = ''; });
+}
 
 function safeJsonParse(value, fallback = null) {
     try {
@@ -646,8 +655,12 @@ const debouncedFetchCommunes = debounce(function(communeName) {
 communeInput.addEventListener("input", function() {
     selectedCodeCommune = null;
     activeIndex = -1;
+    latestFetchId++;   // invalide tout fetch en vol → bloque ré-affichage ET écriture des cellules
+    hideLoading();     // un fetch abandonné ne passera plus dans son finally → on déverrouille le bouton ici
+    resetAffichage();
     debouncedFetchCommunes(this.value);
 });
+
 
 communeInput.addEventListener('keydown', function(e) {
     const items = communeList.querySelectorAll('li[role="option"]');
@@ -1019,7 +1032,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.37b du 23/06/2026 : Mise à jour du code</li>
+		<li>version 1.37c du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
