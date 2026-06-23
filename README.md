@@ -896,7 +896,9 @@ const whereClause = isMairie
     const apiUrl = `https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?${params}`;
 
     try {
-
+if (!(isMairie ? /^[0-9AB]{5}$/ : /^[0-9]{9}$/).test(String(code))) {
+            throw new Error(`Code invalide : ${code}`);
+        }
 const response = await fetchWithTimeout(apiUrl, { method: 'GET' });
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
@@ -1048,7 +1050,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.37d du 23/06/2026 : Mise à jour du code</li>
+		<li>version 1.37e du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
