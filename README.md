@@ -36,6 +36,16 @@ frame-ancestors 'none';">
 	body {
 		font-family: 'tahoma', 'Helvetica', 'Arial', sans-serif;
 	}
+
+	.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
 	
 	.combobox {
 		position: relative;
@@ -146,6 +156,7 @@ frame-ancestors 'none';">
         aria-label="Communes suggérées">
     </ul>
 </div>
+	<div id="commune-status" role="status" aria-live="polite" class="sr-only"></div>
 	<button id="rechercherBtn">Rechercher</button>
 <div id="chargement" aria-live="polite" aria-busy="false">
     <span class="spinner" aria-hidden="true"></span>
@@ -231,6 +242,7 @@ const communeInput = document.getElementById("communeInput");
 const communeList = document.getElementById("commune-list");
 const rechercherBtn = document.getElementById("rechercherBtn");
 const infosElement = document.getElementById("infos");
+const communeStatus = document.getElementById("commune-status");
 		let selectedCodeCommune;
 		let activeIndex = -1;
 		let communeController = null;
@@ -622,6 +634,7 @@ function hideCommuneList() {
     communeInput.setAttribute('aria-expanded', 'false');
     communeInput.setAttribute('aria-activedescendant', '');
     activeIndex = -1;
+	communeStatus.textContent = '';
 }
 
 function showCommuneList() {
@@ -718,6 +731,7 @@ async function fetchCommunes(communeName) {
 
         // Aucune correspondance = cas normal, pas un échec
         if (data.length === 0) {
+			communeStatus.textContent = "Aucune commune trouvée";
             const emptyItem = document.createElement("li");
             emptyItem.textContent = "Aucune commune trouvée";
             emptyItem.setAttribute('aria-disabled', 'true'); // informatif, non sélectionnable
@@ -742,6 +756,8 @@ async function fetchCommunes(communeName) {
     })
             communeList.appendChild(listItem);
         });
+        const n = communeList.querySelectorAll('li[role="option"]').length;
+        communeStatus.textContent = `${n} commune${n > 1 ? 's' : ''} trouvée${n > 1 ? 's' : ''}`;
         showCommuneList();
     } catch (error) {
 		if (error.name === 'AbortError' || error.name === 'TimeoutError') return;
@@ -1032,7 +1048,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.37c du 23/06/2026 : Mise à jour du code</li>
+		<li>version 1.37d du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
