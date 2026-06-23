@@ -581,9 +581,11 @@ async function handleSearch() {
     infosElement.textContent = '';
 
     // Cas 1 : une commune a déjà été choisie dans la liste
+// Cas 1 : une commune a déjà été choisie dans la liste
     if (selectedCodeCommune) {
         showLoading();
-        await fetchData(selectedCodeCommune);
+        const fetchId = ++latestFetchId;
+        await fetchData(selectedCodeCommune, fetchId);
         return;
     }
 
@@ -595,12 +597,15 @@ async function handleSearch() {
     }
 
     showLoading();
+    const fetchId = ++latestFetchId;
     try {
         const url = `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(saisie)}`
                   + `&fields=nom,code,codeDepartement&limit=13`;
         const response = await fetchWithTimeout(url);
+        if (fetchId !== latestFetchId) return;   // saisie modifiée pendant la résolution → on abandonne
         if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
         const data = await response.json();
+        if (fetchId !== latestFetchId) return;   // idem après lecture du corps
         if (!Array.isArray(data)) throw new Error("Réponse de l'API invalide.");
 
         // correspondances EXACTES de nom, accents et casse ignorés
@@ -609,14 +614,15 @@ async function handleSearch() {
         const exacts = data.filter(c => norm(c.nom) === norm(saisie));
 
         if (exacts.length === 1) {
-            selectionnerCommune(exacts[0]);   // remplit l'en-tête, vide les cellules
-            await fetchData(exacts[0].code);  // son finally appelle hideLoading()
+            selectionnerCommune(exacts[0]);            // remplit l'en-tête, vide les cellules
+            await fetchData(exacts[0].code, fetchId);  // réutilise le MÊME id ; son finally appelle hideLoading()
         } else {
             // 0 ou plusieurs homonymes → on laisse l'utilisateur choisir
             hideLoading();
             fetchCommunes(saisie);
         }
     } catch (error) {
+        if (fetchId !== latestFetchId) return;   // erreur sur une recherche déjà invalidée → on ignore
         console.error("Erreur lors de la résolution de la commune :", error);
         hideLoading();
         showError();
@@ -982,8 +988,7 @@ function validateApiResponse(data, expectedFields) {
     return expectedFields.every(field => field in data);
 }
 
-async function fetchData(selectedCodeCommune) {
-    const fetchId = ++latestFetchId;
+async function fetchData(selectedCodeCommune, fetchId) {
     const apiUrl = `https://geo.api.gouv.fr/communes?code=${selectedCodeCommune}&fields=code,population,codeEpci,epci`;
 
     try {
@@ -1050,7 +1055,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.37e du 23/06/2026 : Mise à jour du code</li>
+		<li>version 1.37f du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
