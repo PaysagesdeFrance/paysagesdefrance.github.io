@@ -887,7 +887,8 @@ const records = data.results.filter(record => {
             item.code_insee_commune.includes(code))
         : pivotData.some(item => item.type_service_local === "epci");
 });
-const record = records.find(r => r.nom.startsWith("Mairie - ")) || records[0];
+
+const record = records.find(r => typeof r.nom === 'string' && r.nom.startsWith("Mairie - ")) || records[0];
 
         if (record && record.adresse) {
             const adresseData = safeJsonParse(record.adresse, []);
@@ -1018,6 +1019,7 @@ async function fetchData(selectedCodeCommune) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.37a du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
