@@ -683,7 +683,20 @@ communeInput.addEventListener("input", function() {
 
 communeInput.addEventListener('keydown', function(e) {
     const items = communeList.querySelectorAll('li[role="option"]');
-    if (!items.length) return;
+
+    // Enter traité AVANT le guard sur items.length : doit fonctionner même
+    // sans liste ouverte (saisie directe + Entrée = recherche).
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeIndex >= 0 && items[activeIndex]) {
+            items[activeIndex].click();   // item surligné → sélection (identique au clic souris)
+        } else {
+            handleSearch();               // aucune sélection → recherche directe (identique au bouton)
+        }
+        return;
+    }
+
+    if (!items.length) return;            // flèches/Échap n'ont de sens qu'avec une liste
 
     if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -693,9 +706,6 @@ communeInput.addEventListener('keydown', function(e) {
         e.preventDefault();
         activeIndex = (activeIndex - 1 + items.length) % items.length;
         updateFocus(items);
-    } else if (e.key === 'Enter' && activeIndex >= 0) {
-        e.preventDefault();
-        items[activeIndex].click();
     } else if (e.key === 'Escape') {
         hideCommuneList();
     }
@@ -1059,7 +1069,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.37g du 23/06/2026 : Mise à jour du code</li>
+		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
 		<li>version 1.34e du 20/06/2026 : Mise à jour du code</li>
