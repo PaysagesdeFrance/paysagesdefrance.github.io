@@ -247,6 +247,8 @@ const communeStatus = document.getElementById("commune-status");
 		let activeIndex = -1;
 		let communeController = null;
  const csvCache = {};
+ const CSV_CACHE_TTL = 10 * 60 * 1000; // 10 min, en ms
+ let csvUrlsCache = null;              // { value, timestamp } — null tant qu'aucun succès
  const SIREN_MGP = "200054781";
  let latestFetchId = 0;
 
@@ -365,30 +367,21 @@ async function fetchWithTimeout(url, options = {}, timeout = 12000) {
     }
 }
 
-async function fetchCsvData(url) {
-    if (csvCache[url]) {
-        return csvCache[url];
+async function fetchCsvData(url, separator = ';') {
+    const cached = csvCache[url];
+    if (cached && (Date.now() - cached.timestamp) < CSV_CACHE_TTL) {
+        return cached.data;
     }
     try {
-		const response = await fetchWithTimeout(url);
-
+        const response = await fetchWithTimeout(url);
         if (!response.ok) {
             throw new Error(`Erreur réseau : ${response.status}`);
         }
-
-        const text = await response.text();
-
-        const data = parseCsv(text);
-
-
-        const result = data;
-        csvCache[url] = result;
-        return result;
-
+        const data = parseCsv(await response.text(), separator);
+        csvCache[url] = { data, timestamp: Date.now() };
+        return data;
     } catch (error) {
-
         console.error(error);
-
         return null;
     }
 }
@@ -443,28 +436,23 @@ function parseCsv(text, separator = ';') {
     return rows;
 }
 async function handleCompetenceData(codeEpci, type, fetchId) {
-    try {
+    const url = `https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`;
+    const rows = await fetchCsvData(url, ',');
 
- const response = await fetchWithTimeout(`https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`, { method: 'GET' });
-		
-        if (!response.ok) {
-            throw new Error(`Erreur réseau : ${response.status} ${response.statusText}`);
-        }
-        const text = await response.text();
-        const rows = parseCsv(text, ',');
-        const row = rows.find(r => r[0] === String(codeEpci));
-        if (row) {
-            const message = row[1] === "0" ? "non"
-                          : row[1] === "1" ? "oui"
-                          : "Valeur inconnue";
-            setTextIfCurrent(fetchId,`competence${type}`, message);
-        } else {
-           setTextIfCurrent(fetchId,`competence${type}`, "Information non disponible");
-        }
-} catch (error) {
-    console.error(`Erreur lors de la récupération des données ${type} :`, error);
-    setTextIfCurrent(fetchId,`competence${type}`, "Information non disponible");
-}
+    if (!rows) {
+        setTextIfCurrent(fetchId, `competence${type}`, "Information non disponible");
+        return;
+    }
+
+    const row = rows.find(r => r[0] === String(codeEpci));
+    if (row) {
+        const message = row[1] === "0" ? "non"
+                      : row[1] === "1" ? "oui"
+                      : "Valeur inconnue";
+        setTextIfCurrent(fetchId, `competence${type}`, message);
+    } else {
+        setTextIfCurrent(fetchId, `competence${type}`, "Information non disponible");
+    }
 }
 
 
@@ -519,61 +507,51 @@ async function handleMaireData(codeCommune, csvUrlMaire, fetchId) {
 
 async function handleUniteUrbaineData(codeCommune, fetchId) {
     try {
-        // ✅ Les deux téléchargements démarrent en même temps
-const [inseeResponse, uuResponse] = await Promise.all([
-            fetchWithTimeout('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee'),
-            fetchWithTimeout('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu')
+        // Téléchargements parallèles ET mis en cache (TTL) via fetchCsvData
+        const [inseeRows, uuRows] = await Promise.all([
+            fetchCsvData('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/insee', ','),
+            fetchCsvData('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu', ',')
         ]);
 
-        if (!inseeResponse.ok) throw new Error(`Erreur réseau (insee) : ${inseeResponse.status}`);
-        if (!uuResponse.ok)   throw new Error(`Erreur réseau (uu) : ${uuResponse.status}`);
-
-        // ✅ Les deux lectures .text() aussi en parallèle
-        const [inseeText, uuText] = await Promise.all([
-            inseeResponse.text(),
-            uuResponse.text()
-        ]);
-
-        // Le traitement croisé reste séquentiel — c'est inévitable
- const inseeRows = parseCsv(inseeText, ',');
-        const inseeLine = inseeRows.find(r => r[0] === String(codeCommune));
-
-        if (!inseeLine) {
-            setTextIfCurrent(fetchId,'popUrbaineInfo', "Information non disponible");
+        // fetchCsvData renvoie null en cas d'échec (au lieu de jeter)
+        if (!inseeRows || !uuRows) {
+            setTextIfCurrent(fetchId, 'popUrbaineInfo', "Information non disponible");
             return;
         }
 
-       
-		const numUniteUrbaine = inseeLine[1].substring(0, 5);
+        const inseeLine = inseeRows.find(r => r[0] === String(codeCommune));
+        if (!inseeLine) {
+            setTextIfCurrent(fetchId, 'popUrbaineInfo', "Information non disponible");
+            return;
+        }
 
-const uuRow = parseCsv(uuText, ',').find(r => r[0] === numUniteUrbaine);
+        const numUniteUrbaine = inseeLine[1].substring(0, 5);
+        const uuRow = uuRows.find(r => r[0] === numUniteUrbaine);
         const numAssocie = uuRow ? parseInt(uuRow[1], 10) : null;
 
         if (numAssocie === null) {
-            setTextIfCurrent(fetchId,'popUrbaineInfo', "hors unité urbaine");
+            setTextIfCurrent(fetchId, 'popUrbaineInfo', "hors unité urbaine");
+            return;
+        }
+        if (Number.isNaN(numAssocie)) {
+            setTextIfCurrent(fetchId, 'popUrbaineInfo', "Information non disponible");
             return;
         }
 
-		if (Number.isNaN(numAssocie)) {
-            setTextIfCurrent(fetchId,'popUrbaineInfo', "Information non disponible");
-            return;
-        }
-
-// numAssocie est la tranche d'unité urbaine (TUU) de l'INSEE :
+        // numAssocie est la tranche d'unité urbaine (TUU) de l'INSEE :
         // un entier croissant avec la taille de l'agglomération.
         const TUU_MIN_100K = 6;  // 6 = premier palier ≥ 100 000 hab.
         const TUU_PARIS    = 8;  // 8 = agglomération de Paris
 
-const message =
+        const message =
             numAssocie < TUU_MIN_100K  ? "inférieure à 100000 habitants" :
             numAssocie < TUU_PARIS     ? "supérieure à 100000 habitants" :
                                          "unité urbaine de Paris";  // ≥ 8
 
-		setTextIfCurrent(fetchId,'popUrbaineInfo', message);
-
-} catch (error) {
+        setTextIfCurrent(fetchId, 'popUrbaineInfo', message);
+    } catch (error) {
         console.error("Erreur unité urbaine :", error);
-        setTextIfCurrent(fetchId,'popUrbaineInfo', "Information non disponible");
+        setTextIfCurrent(fetchId, 'popUrbaineInfo', "Information non disponible");
     }
 }
 
@@ -813,17 +791,23 @@ function normalizeText(text) {
 
 
 async function getLatestCsvUrls() {
+    if (csvUrlsCache && (Date.now() - csvUrlsCache.timestamp) < CSV_CACHE_TTL) {
+        return csvUrlsCache.value;
+    }
     try {
-
-		const response = await fetchWithTimeout("https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/");
+        const response = await fetchWithTimeout("https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/");
         if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
         const data = await response.json();
         if (!Array.isArray(data.resources))
             throw new Error("Format de réponse inattendu : resources absent ou invalide.");
-return {
-    urlMaire:      data.resources.find(r => typeof r.title === 'string' && r.title.includes("maires"))?.url ?? null,
-    urlPresident:  data.resources.find(r => typeof r.title === 'string' && r.title.includes("conseillers-communautaires"))?.url ?? null
-};
+        const value = {
+            urlMaire:     data.resources.find(r => typeof r.title === 'string' && r.title.includes("maires"))?.url ?? null,
+            urlPresident: data.resources.find(r => typeof r.title === 'string' && r.title.includes("conseillers-communautaires"))?.url ?? null
+        };
+        if (value.urlMaire || value.urlPresident) {
+            csvUrlsCache = { value, timestamp: Date.now() };  // on ne fige jamais un échec total
+        }
+        return value;
     } catch (error) {
         console.error("Erreur récupération URLs CSV :", error);
         return { urlMaire: null, urlPresident: null };
@@ -1069,6 +1053,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.38a du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
