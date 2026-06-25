@@ -3,6 +3,10 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<!-- Anti-framing réel = frame-buster JS plus bas (#af + script).
+     frame-ancestors ci-dessous est ignoré en mode <meta> (spec CSP),
+     conservé uniquement pour portabilité vers un en-tête HTTP réel. -->
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none';
 		script-src 'self' 'unsafe-inline';
 		style-src 'unsafe-inline';
@@ -14,10 +18,16 @@ connect-src 'self'
   https://www.data.gouv.fr;
 frame-ancestors 'none';">
 
+<!-- 
 	<meta http-equiv="X-Content-Type-Options" content="nosniff">
-	<meta name="referrer" content="strict-origin">
-	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
+-->
 
+
+	<meta name="referrer" content="strict-origin">
+
+<!--
+	<meta http-equiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload">
+-->
 
 	<title>Recherche d'une commune</title>
 
@@ -1064,7 +1074,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.38d du 25/06/2026 : Mise à jour du code</li>
+		<li>version 1.38e du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
