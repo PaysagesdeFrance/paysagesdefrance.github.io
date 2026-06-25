@@ -652,6 +652,7 @@ const debouncedFetchCommunes = debounce(function(communeName) {
 communeInput.addEventListener("input", function() {
     selectedCodeCommune = null;
     activeIndex = -1;
+	communeInput.setAttribute('aria-activedescendant', '');
     latestFetchId++;   // invalide tout fetch en vol → bloque ré-affichage ET écriture des cellules
     hideLoading();     // un fetch abandonné ne passera plus dans son finally → on déverrouille le bouton ici
     resetAffichage();
@@ -1053,7 +1054,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.38a du 25/06/2026 : Mise à jour du code</li>
+		<li>version 1.38b du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
