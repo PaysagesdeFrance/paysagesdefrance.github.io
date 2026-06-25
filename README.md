@@ -528,7 +528,14 @@ async function handleUniteUrbaineData(codeCommune, fetchId) {
             return;
         }
 
-        const numUniteUrbaine = inseeLine[1].substring(0, 5);
+// Ligne trouvée mais 2e champ potentiellement absent (CSV tronqué) :
+        // inseeLine[1] serait undefined et .substring jetterait.
+        const codeUU = inseeLine[1];
+        if (!codeUU) {
+            setTextIfCurrent(fetchId, 'popUrbaineInfo', "Information non disponible");
+            return;
+        }
+        const numUniteUrbaine = codeUU.substring(0, 5);
         const uuRow = uuRows.find(r => r[0] === numUniteUrbaine);
         const numAssocie = uuRow ? parseInt(uuRow[1], 10) : null;
 
@@ -1057,7 +1064,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.38c du 25/06/2026 : Mise à jour du code</li>
+		<li>version 1.38d du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
