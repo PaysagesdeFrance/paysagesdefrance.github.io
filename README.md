@@ -486,6 +486,13 @@ if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || 
     }
 }
 
+function afficherCommuneSansEpci(fetchId) {
+    setTextIfCurrent(fetchId, 'epciInfo', "Commune sans EPCI à fiscalité propre");
+    ['nomdupresident', 'adresseEpci', 'courrielEpci', 'siteEpci',
+     'competencePLU', 'competenceRLP']
+        .forEach(id => setTextIfCurrent(fetchId, id, 'sans objet'));
+}
+
 
 
 async function handleEpciData(data, csvUrlPresident, fetchId) {
@@ -1019,9 +1026,11 @@ async function fetchData(selectedCodeCommune, fetchId) {
         const data = await response.json();
         if (fetchId !== latestFetchId) return;
 
-        if (data.length > 0 && validateApiResponse(data[0], ['code', 'population', 'epci'])) {
+        if (data.length > 0 && validateApiResponse(data[0], ['code', 'population'])) {
             const codeCommune = data[0].code;
             const codeEpci = data[0].codeEpci;
+			const hasEpci = !!(data[0].epci && codeEpci);
+            if (!hasEpci) afficherCommuneSansEpci(fetchId);
 
             const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatestCsvUrls();
             if (fetchId !== latestFetchId) return;
@@ -1036,13 +1045,13 @@ async function fetchData(selectedCodeCommune, fetchId) {
                     `(mise à jour du ${matchDate[3]}/${matchDate[2]}/${matchDate[1]})`);
             }
 
-            await Promise.all([
+await Promise.all([
                 handlePopulationData(data, fetchId),
-                handleEpciData(data, csvUrlPresident, fetchId),
+                hasEpci ? handleEpciData(data, csvUrlPresident, fetchId) : Promise.resolve(),
                 handleMaireData(codeCommune, csvUrlMaire, fetchId),
                 handleUniteUrbaineData(codeCommune, fetchId),
-                codeEpci ? handleCompetenceData(codeEpci, 'PLU', fetchId) : Promise.resolve(),
-                codeEpci ? handleCompetenceData(codeEpci, 'RLP', fetchId) : Promise.resolve()
+                hasEpci ? handleCompetenceData(codeEpci, 'PLU', fetchId) : Promise.resolve(),
+                hasEpci ? handleCompetenceData(codeEpci, 'RLP', fetchId) : Promise.resolve()
             ]);
 
             if (fetchId !== latestFetchId) return;
@@ -1075,7 +1084,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.38f du 25/06/2026 : Mise à jour du code</li>
+		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
