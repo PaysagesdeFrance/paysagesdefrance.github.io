@@ -327,6 +327,9 @@ function resetAffichage() {
      'courrielmairie','sitemairie','nomdupresident','adresseEpci','courrielEpci',
      'siteEpci','competencePLU','competenceRLP']
         .forEach(id => { document.getElementById(id).textContent = ''; });
+    // Annotation de source (hors tableaux) : évite de conserver la date de la
+    // recherche précédente si la nouvelle ne parvient pas à la déterminer.
+    document.getElementById('sourceRNEDate').textContent = '';
 }
 
 function safeJsonParse(value, fallback = null) {
@@ -1054,7 +1057,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.38b du 25/06/2026 : Mise à jour du code</li>
+		<li>version 1.38c du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
