@@ -402,52 +402,53 @@ async function fetchCsvData(url, separator = ';') {
 
 
 function parseCsv(text, separator = ';') {
+    const physical = text.split(/\r\n|\r|\n/);
+    // Un fichier terminé par un saut de ligne produit une dernière entrée
+    // vide : on la retire pour ne pas générer une ligne fantôme.
+    if (physical.length && physical[physical.length - 1] === '') physical.pop();
+
     const rows = [];
-    let row = [];
+    let buffer = null;
+    for (const line of physical) {
+        buffer = buffer === null ? line : buffer + '\n' + line;
+        // Un champ entre guillemets peut contenir un saut de ligne : tant que
+        // le nombre de " est impair, l'enregistrement n'est pas terminé.
+        if (((buffer.match(/"/g) || []).length) % 2 !== 0) continue;
+        rows.push(parseCsvLine(buffer, separator));
+        buffer = null;
+    }
+    if (buffer !== null) rows.push(parseCsvLine(buffer, separator)); // guillemet non fermé
+    return rows;
+}
+
+function parseCsvLine(line, separator) {
+    // Chemin rapide : aucune guillemet → split natif (implémenté en C++)
+    if (line.indexOf('"') === -1) {
+        return line.split(separator).map(f => f.trim());
+    }
+    // Chemin lent : ta machine à états, appliquée à une seule ligne.
+    // Champs cités préservés tels quels ; sinon trim — sémantique identique.
+    const fields = [];
     let current = '';
     let insideQuotes = false;
-    let fieldHadQuotes = false;                          // ← le champ courant a-t-il une section entre guillemets ?
-
-    const pushField = () => {                            // ← point d'écriture unique
-        row.push(fieldHadQuotes ? current : current.trim());  // ← cité = tel quel ; sinon on nettoie
-        current = '';
-        fieldHadQuotes = false;
-    };
-
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        const next = text[i + 1];
-
+    let fieldHadQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const next = line[i + 1];
         if (char === '"') {
-            if (insideQuotes && next === '"') {
-                current += '"';      // guillemet échappé ""
-                i++;
-            } else {
-                insideQuotes = !insideQuotes;
-                fieldHadQuotes = true;                  // ← on a vu au moins un guillemet
-            }
-        }
-        else if (char === separator && !insideQuotes) {
-            pushField();                                // ← remplace row.push(current.trim()); current = '';
-        }
-        else if ((char === '\n' || char === '\r') && !insideQuotes) {
-            if (char === '\r' && next === '\n') i++;
-            pushField();                                // ← idem
-            rows.push(row);
-            row = [];
-        }
-        else {
+            if (insideQuotes && next === '"') { current += '"'; i++; }
+            else { insideQuotes = !insideQuotes; fieldHadQuotes = true; }
+        } else if (char === separator && !insideQuotes) {
+            fields.push(fieldHadQuotes ? current : current.trim());
+            current = ''; fieldHadQuotes = false;
+        } else {
             current += char;
         }
     }
-
-    if (current !== '' || row.length > 0) {
-        pushField();                                    // ← idem
-        rows.push(row);
-    }
-
-    return rows;
+    fields.push(fieldHadQuotes ? current : current.trim());
+    return fields;
 }
+
 async function handleCompetenceData(codeEpci, type, fetchId) {
     const url = `https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`;
     const rows = await fetchCsvData(url, ',');
@@ -1074,7 +1075,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.38e du 25/06/2026 : Mise à jour du code</li>
+		<li>version 1.38f du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
 		<li>version 1.35s du 21/06/2026 : Mise à jour du code</li>
