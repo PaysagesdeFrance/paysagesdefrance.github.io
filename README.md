@@ -504,17 +504,11 @@ async function handleEpciData(data, csvUrlPresident, fetchId) {
     const nomEpci = epci.nom || 'Non disponible';
     const codeEpci = data[0].codeEpci;
 
-    if (codeEpci === SIREN_MGP) {
-        setTextIfCurrent(fetchId, 'epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
-    } else if (codeEpci) {
-        setTextIfCurrent(fetchId, 'epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
-        await Promise.all([
-            fetchAdresse(codeEpci, "epci", fetchId),
-            fetchNomEluOuPresident("president", codeEpci, csvUrlPresident, fetchId)
-        ]);
-    } else {
-        setTextIfCurrent(fetchId, 'epciInfo', 'Données non disponibles');
-    }
+if (codeEpci === SIREN_MGP) {
+    setTextIfCurrent(fetchId, 'epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
+    ['nomdupresident','adresseEpci','courrielEpci','siteEpci']
+        .forEach(id => setTextIfCurrent(fetchId, id, "voir l'EPT de rattachement"));
+}
 }
 
 
@@ -584,6 +578,7 @@ async function handleUniteUrbaineData(codeCommune, fetchId) {
 }
 
 async function handleSearch() {
+	debouncedFetchCommunes.cancel(); 
     infosElement.textContent = '';
 
     // Cas 1 : une commune a déjà été choisie dans la liste
@@ -656,12 +651,13 @@ function showCommuneList() {
 
 function debounce(func, delay) {
     let debounceTimer;
-    return function() {
-        const context = this;
-        const args = arguments;
+    function debounced() {
+        const context = this, args = arguments;
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => func.apply(context, args), delay);
-    };
+    }
+    debounced.cancel = function () { clearTimeout(debounceTimer); };
+    return debounced;
 }
 
 const debouncedFetchCommunes = debounce(function(communeName) {
@@ -1084,6 +1080,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.39a du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
