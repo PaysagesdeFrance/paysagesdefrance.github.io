@@ -506,6 +506,8 @@ async function handleEpciData(data, csvUrlPresident, fetchId) {
 
     if (codeEpci === SIREN_MGP) {
         setTextIfCurrent(fetchId, 'epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
+        ['nomdupresident','adresseEpci','courrielEpci','siteEpci']
+            .forEach(id => setTextIfCurrent(fetchId, id, "voir l'EPT de rattachement"));
     } else if (codeEpci) {
         setTextIfCurrent(fetchId, 'epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
         await Promise.all([
@@ -1086,7 +1088,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.39a du 26/06/2026 : Mise à jour du code</li>
+		<li>version 1.39b du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
