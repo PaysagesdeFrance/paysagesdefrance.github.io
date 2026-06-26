@@ -693,7 +693,7 @@ communeInput.addEventListener("input", function() {
 
 
 communeInput.addEventListener('keydown', function(e) {
-    const items = communeList.querySelectorAll('li[role="option"]');
+    const items = communeList.querySelectorAll('li[role="option"]:not([aria-disabled="true"])');
 
     // Enter traité AVANT le guard sur items.length : doit fonctionner même
     // sans liste ouverte (saisie directe + Entrée = recherche).
@@ -761,6 +761,7 @@ async function fetchCommunes(communeName) {
 			communeStatus.textContent = "Aucune commune trouvée";
             const emptyItem = document.createElement("li");
             emptyItem.textContent = "Aucune commune trouvée";
+			emptyItem.setAttribute('role', 'option');    
             emptyItem.setAttribute('aria-disabled', 'true'); // informatif, non sélectionnable
             communeList.appendChild(emptyItem);
             showCommuneList();
@@ -1038,7 +1039,6 @@ async function fetchData(selectedCodeCommune, fetchId) {
 
             const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatestCsvUrls();
             if (fetchId !== latestFetchId) return;
-            console.log("URL maire :", csvUrlMaire);
 
             if (!csvUrlMaire)     setTextIfCurrent(fetchId, "nomdumaire", "Information non disponible");
             if (!csvUrlPresident) setTextIfCurrent(fetchId, "nomdupresident", "Information non disponible");
@@ -1088,7 +1088,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.39b du 26/06/2026 : Mise à jour du code</li>
+		<li>version 1.39c du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
