@@ -669,16 +669,17 @@ function debounce(func, delay) {
 }
 
 const debouncedFetchCommunes = debounce(function(communeName) {
-   if (!validateInput(communeName, 50)) {
-        showError();
+    const trimmed = communeName.trim();
+    if (trimmed.length === 0) {            // champ vidé → masquer sans erreur
         hideCommuneList();
         return;
     }
-    if (communeName.length >= 1) {
-        fetchCommunes(communeName);
-    } else {
+    if (!validateInput(communeName, 50)) { // caractère interdit → message ciblé
+        showError("Veuillez saisir un nom de commune valide.");
         hideCommuneList();
+        return;
     }
+    fetchCommunes(communeName);            // le garde length >= 1 devient redondant
 }, 300);
 
 communeInput.addEventListener("input", function() {
@@ -1088,7 +1089,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.39c du 26/06/2026 : Mise à jour du code</li>
+		<li>version 1.39d du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
