@@ -262,6 +262,40 @@ const communeStatus = document.getElementById("commune-status");
  const SIREN_MGP = "200054781";
  let latestFetchId = 0;
 
+function renderCommuneList(data) {
+    communeList.innerHTML = '';
+
+    if (data.length === 0) {
+        communeStatus.textContent = "Aucune commune trouvée";
+        const emptyItem = document.createElement("li");
+        emptyItem.textContent = "Aucune commune trouvée";
+        emptyItem.setAttribute('role', 'option');
+        emptyItem.setAttribute('aria-disabled', 'true');
+        communeList.appendChild(emptyItem);
+        showCommuneList();
+        return;
+    }
+
+    data.forEach(function(commune, index) {
+        if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
+            console.warn("Données de la commune invalides : ", commune);
+            return;
+        }
+        const listItem = document.createElement("li");
+        listItem.setAttribute('role', 'option');
+        listItem.setAttribute('id', `commune-option-${index}`);
+        listItem.setAttribute('aria-selected', 'false');
+        listItem.textContent = `${normalizeText(commune.nom)} (${normalizeText(commune.codeDepartement)})`;
+        listItem.addEventListener("click", function() {
+            selectionnerCommune(commune);
+        });
+        communeList.appendChild(listItem);
+    });
+    const n = communeList.querySelectorAll('li[role="option"]').length;
+    communeStatus.textContent = `${n} commune${n > 1 ? 's' : ''} trouvée${n > 1 ? 's' : ''}`;
+    showCommuneList();
+}
+
 function setTextIfCurrent(fetchId, elementId, text) {
     if (fetchId !== latestFetchId) return;
     const element = document.getElementById(elementId);
@@ -626,9 +660,10 @@ async function handleSearch() {
             selectionnerCommune(exacts[0]);            // remplit l'en-tête, vide les cellules
             await fetchData(exacts[0].code, fetchId);  // réutilise le MÊME id ; son finally appelle hideLoading()
         } else {
-            // 0 ou plusieurs homonymes → on laisse l'utilisateur choisir
+            // 0 ou plusieurs homonymes → réutilisation du data déjà chargé
+            if (communeController) communeController.abort();
             hideLoading();
-            fetchCommunes(saisie);
+            renderCommuneList(data);
         }
     } catch (error) {
         if (fetchId !== latestFetchId) return;   // erreur sur une recherche déjà invalidée → on ignore
@@ -739,68 +774,29 @@ function updateFocus(items) {
 
 async function fetchCommunes(communeName) {
     try {
-		if (communeController) {
+        if (communeController) {
             communeController.abort();
         }
         communeController = new AbortController();
-		const response = await fetchWithTimeout(`https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(communeName)}&limit=13`, { signal: communeController.signal });
+        const response = await fetchWithTimeout(
+            `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(communeName)}`
+          + `&fields=nom,code,codeDepartement&limit=13`,
+            { signal: communeController.signal });
 
         if (!response.ok) {
             throw new Error("Erreur réseau lors de la récupération des communes.");
         }
         const data = await response.json();
-
-// Réponse non conforme = vraie erreur → catch → showError()
         if (!Array.isArray(data)) {
             throw new Error("Les données retournées par l'API sont invalides.");
         }
-
-        communeList.innerHTML = '';
-
-        // Aucune correspondance = cas normal, pas un échec
-        if (data.length === 0) {
-			communeStatus.textContent = "Aucune commune trouvée";
-            const emptyItem = document.createElement("li");
-            emptyItem.textContent = "Aucune commune trouvée";
-			emptyItem.setAttribute('role', 'option');    
-            emptyItem.setAttribute('aria-disabled', 'true'); // informatif, non sélectionnable
-            communeList.appendChild(emptyItem);
-            showCommuneList();
-            return;
-        }
-
-       data.forEach(function(commune, index) {
-            if (typeof commune.nom !== 'string' || typeof commune.codeDepartement !== 'string' || typeof commune.code !== 'string') {
-                console.warn("Données de la commune invalides : ", commune);
-                return;
-            }
-
-            const listItem = document.createElement("li");
-                listItem.setAttribute('role', 'option');
-    listItem.setAttribute('id', `commune-option-${index}`);
-    listItem.setAttribute('aria-selected', 'false');
-			listItem.textContent = `${normalizeText(commune.nom)} (${normalizeText(commune.codeDepartement)})`;
-    listItem.addEventListener("click", function() {   // ← ICI
-        selectionnerCommune(commune);
-    })
-            communeList.appendChild(listItem);
-        });
-        const n = communeList.querySelectorAll('li[role="option"]').length;
-        communeStatus.textContent = `${n} commune${n > 1 ? 's' : ''} trouvée${n > 1 ? 's' : ''}`;
-        showCommuneList();
+        renderCommuneList(data);
     } catch (error) {
-		if (error.name === 'AbortError' || error.name === 'TimeoutError') return;
+        if (error.name === 'AbortError' || error.name === 'TimeoutError') return;
         showError();
         console.error("Détails de l'erreur :", error);
     }
 }
-
-
-document.addEventListener("click", function(event) {
-    if (!communeInput.contains(event.target) && !communeList.contains(event.target)) {
-        hideCommuneList();
-    }
-});
 
 rechercherBtn.addEventListener("click", handleSearch);
 
@@ -1089,7 +1085,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.39d du 26/06/2026 : Mise à jour du code</li>
+		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
 		<li>version 1.36f du 22/06/2026 : Mise à jour du code</li>
