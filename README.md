@@ -504,11 +504,17 @@ async function handleEpciData(data, csvUrlPresident, fetchId) {
     const nomEpci = epci.nom || 'Non disponible';
     const codeEpci = data[0].codeEpci;
 
-if (codeEpci === SIREN_MGP) {
-    setTextIfCurrent(fetchId, 'epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
-    ['nomdupresident','adresseEpci','courrielEpci','siteEpci']
-        .forEach(id => setTextIfCurrent(fetchId, id, "voir l'EPT de rattachement"));
-}
+    if (codeEpci === SIREN_MGP) {
+        setTextIfCurrent(fetchId, 'epciInfo', `Métropole du Grand Paris – dépend d'un EPT`);
+    } else if (codeEpci) {
+        setTextIfCurrent(fetchId, 'epciInfo', `${nomEpci} – (SIREN : ${codeEpci})`);
+        await Promise.all([
+            fetchAdresse(codeEpci, "epci", fetchId),
+            fetchNomEluOuPresident("president", codeEpci, csvUrlPresident, fetchId)
+        ]);
+    } else {
+        setTextIfCurrent(fetchId, 'epciInfo', 'Données non disponibles');
+    }
 }
 
 
@@ -578,7 +584,7 @@ async function handleUniteUrbaineData(codeCommune, fetchId) {
 }
 
 async function handleSearch() {
-	debouncedFetchCommunes.cancel(); 
+    debouncedFetchCommunes.cancel();
     infosElement.textContent = '';
 
     // Cas 1 : une commune a déjà été choisie dans la liste
