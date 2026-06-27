@@ -492,7 +492,7 @@ async function handleCompetenceData(codeEpci, type, fetchId) {
         return;
     }
 
-    const row = rows.find(r => r[0] === String(codeEpci));
+    const row = rows.find(r => normalizeCode(r[0]) === normalizeCode(codeEpci));
     if (row) {
         const message = row[1] === "0" ? "non"
                       : row[1] === "1" ? "oui"
@@ -576,7 +576,7 @@ async function handleUniteUrbaineData(codeCommune, fetchId) {
             return;
         }
 
-        const inseeLine = inseeRows.find(r => r[0] === String(codeCommune));
+        const inseeLine = inseeRows.find(r => normalizeCode(r[0]) === normalizeCode(codeCommune));
         if (!inseeLine) {
             setTextIfCurrent(fetchId, 'popUrbaineInfo', "Information non disponible");
             return;
@@ -1090,7 +1090,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.40b du 27/06/2026 : Mise à jour du code</li>
+		<li>version 1.40c du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
