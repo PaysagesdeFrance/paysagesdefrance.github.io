@@ -706,7 +706,8 @@ function debounce(func, delay) {
 const debouncedFetchCommunes = debounce(function(communeName) {
     const trimmed = communeName.trim();
     if (trimmed.length === 0) {            // champ vidé → masquer sans erreur
-        hideCommuneList();
+        if (communeController) communeController.abort();
+		hideCommuneList();
         return;
     }
     if (!validateInput(communeName, 50)) { // caractère interdit → message ciblé
@@ -774,6 +775,7 @@ function updateFocus(items) {
 
 async function fetchCommunes(communeName) {
     try {
+        const myFetchId = latestFetchId;
         if (communeController) {
             communeController.abort();
         }
@@ -782,11 +784,14 @@ async function fetchCommunes(communeName) {
             `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(communeName)}`
           + `&fields=nom,code,codeDepartement&limit=13`,
             { signal: communeController.signal });
+        if (myFetchId !== latestFetchId) return;
 
         if (!response.ok) {
             throw new Error("Erreur réseau lors de la récupération des communes.");
         }
         const data = await response.json();
+        if (myFetchId !== latestFetchId) return;
+
         if (!Array.isArray(data)) {
             throw new Error("Les données retournées par l'API sont invalides.");
         }
@@ -1085,6 +1090,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.40a du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
