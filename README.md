@@ -253,6 +253,7 @@ const communeList = document.getElementById("commune-list");
 const rechercherBtn = document.getElementById("rechercherBtn");
 const infosElement = document.getElementById("infos");
 const communeStatus = document.getElementById("commune-status");
+const comboboxEl = communeInput.closest('.combobox');
 		let selectedCodeCommune;
 		let activeIndex = -1;
 		let communeController = null;
@@ -759,6 +760,26 @@ communeInput.addEventListener('keydown', function(e) {
     }
 });
 
+// --- Fermeture du menu : clic extérieur + sortie de focus ---
+
+// (a) Au clic sur une option, empêche le vol de focus : l'input reste
+//     focalisé, donc (c) ne se déclenche pas pendant la sélection.
+//     Élimine la course blur → liste vidée → 'click' perdu.
+communeList.addEventListener('mousedown', e => e.preventDefault());
+
+// (b) Clic/tap hors du combobox (souris, tactile, stylet) → fermeture.
+document.addEventListener('pointerdown', function (e) {
+	if (communeList.style.display !== 'block') return;
+    if (!comboboxEl.contains(e.target)) hideCommuneList();
+});
+
+// (c) Le focus quitte le combobox (ex. Tab vers un autre champ) → fermeture.
+//     relatedTarget = élément recevant le focus ; contains(null) === false,
+//     donc un focus « vers le vide » referme aussi.
+comboboxEl.addEventListener('focusout', function (e) {
+    if (!comboboxEl.contains(e.relatedTarget)) hideCommuneList();
+});
+
 function updateFocus(items) {
     items.forEach((item, i) => {
         const isActive = i === activeIndex;
@@ -1090,7 +1111,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.40c du 27/06/2026 : Mise à jour du code</li>
+		<li>version 1.40d du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
