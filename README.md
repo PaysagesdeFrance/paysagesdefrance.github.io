@@ -259,6 +259,7 @@ const comboboxEl = communeInput.closest('.combobox');
 		let communeController = null;
  const csvCache = {};
  const CSV_CACHE_TTL = 10 * 60 * 1000; // 10 min, en ms
+ const csvInFlight = {};   // url -> Promise en cours (dédoublonnage des téléchargements concurrents)
  let csvUrlsCache = null;              // { value, timestamp } — null tant qu'aucun succès
  const SIREN_MGP = "200054781";
  let latestFetchId = 0;
@@ -420,18 +421,29 @@ async function fetchCsvData(url, separator = ';') {
     if (cached && (Date.now() - cached.timestamp) < CSV_CACHE_TTL) {
         return cached.data;
     }
-    try {
-        const response = await fetchWithTimeout(url);
-        if (!response.ok) {
-            throw new Error(`Erreur réseau : ${response.status}`);
-        }
-        const data = parseCsv(await response.text(), separator);
-        csvCache[url] = { data, timestamp: Date.now() };
-        return data;
-    } catch (error) {
-        console.error(error);
-        return null;
+    // Téléchargement du même fichier déjà en cours (deux recherches rapprochées, ou
+    // deux appelants du même CSV) → on réutilise la promesse au lieu d'ouvrir une 2e connexion.
+    if (csvInFlight[url]) {
+        return csvInFlight[url];
     }
+    const promise = (async () => {
+        try {
+            const response = await fetchWithTimeout(url);
+            if (!response.ok) {
+                throw new Error(`Erreur réseau : ${response.status}`);
+            }
+            const data = parseCsv(await response.text(), separator);
+            csvCache[url] = { data, timestamp: Date.now() };
+            return data;
+        } catch (error) {
+            console.error(error);
+            return null;
+        } finally {
+            delete csvInFlight[url];   // libère le verrou, succès comme échec
+        }
+    })();
+    csvInFlight[url] = promise;
+    return promise;
 }
 
 
@@ -1111,7 +1123,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.40e du 27/06/2026 : Mise à jour du code</li>
+		<li>version 1.40f du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
