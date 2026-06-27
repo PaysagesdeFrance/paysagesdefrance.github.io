@@ -1039,11 +1039,11 @@ async function fetchData(selectedCodeCommune, fetchId) {
 			const hasEpci = !!(data[0].epci && codeEpci);
             if (!hasEpci) afficherCommuneSansEpci(fetchId);
 
-            const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatestCsvUrls();
+			const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatestCsvUrls();
             if (fetchId !== latestFetchId) return;
 
             if (!csvUrlMaire)     setTextIfCurrent(fetchId, "nomdumaire", "Information non disponible");
-            if (!csvUrlPresident) setTextIfCurrent(fetchId, "nomdupresident", "Information non disponible");
+            if (hasEpci && !csvUrlPresident) setTextIfCurrent(fetchId, "nomdupresident", "Information non disponible");
 
             const matchDate = csvUrlMaire && csvUrlMaire.match(/\/(\d{4})(\d{2})(\d{2})-\d{6}\//);
             if (matchDate) {
@@ -1090,7 +1090,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.40a du 27/06/2026 : Mise à jour du code</li>
+		<li>version 1.40b du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
