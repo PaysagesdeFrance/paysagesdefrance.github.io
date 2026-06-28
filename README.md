@@ -837,6 +837,7 @@ async function fetchCommunes(communeName) {
         if (!Array.isArray(data)) {
             throw new Error("Les données retournées par l'API sont invalides.");
         }
+		lastCommuneResult = { query, data };
         renderCommuneList(data);
     } catch (error) {
         if (error.name === 'AbortError' || error.name === 'TimeoutError') return;
@@ -1132,7 +1133,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.40g du 27/06/2026 : Mise à jour du code</li>
+		<li>version 1.40h du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
