@@ -257,6 +257,7 @@ const comboboxEl = communeInput.closest('.combobox');
 		let selectedCodeCommune;
 		let activeIndex = -1;
 		let communeController = null;
+		let lastCommuneResult = null;   // { query, data } du dernier rendu d'autocomplétion
  const csvCache = {};
  const CSV_CACHE_TTL = 10 * 60 * 1000; // 10 min, en ms
  const csvInFlight = {};   // url -> Promise en cours (dédoublonnage des téléchargements concurrents)
@@ -655,14 +656,21 @@ async function handleSearch() {
     showLoading();
     const fetchId = ++latestFetchId;
     try {
-        const url = `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(saisie)}`
-                  + `&fields=nom,code,codeDepartement&limit=13`;
-        const response = await fetchWithTimeout(url);
-        if (fetchId !== latestFetchId) return;   // saisie modifiée pendant la résolution → on abandonne
-        if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
-        const data = await response.json();
-        if (fetchId !== latestFetchId) return;   // idem après lecture du corps
-        if (!Array.isArray(data)) throw new Error("Réponse de l'API invalide.");
+       let data;
+        // Réutilise le résultat d'autocomplétion si la saisie n'a pas changé,
+        // pour éviter un 2e appel identique à geo.api.gouv.fr.
+        if (lastCommuneResult && lastCommuneResult.query === saisie) {
+            data = lastCommuneResult.data;
+        } else {
+            const url = `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(saisie)}`
+                      + `&fields=nom,code,codeDepartement&limit=13`;
+            const response = await fetchWithTimeout(url);
+            if (fetchId !== latestFetchId) return;   // saisie modifiée pendant la résolution → on abandonne
+            if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
+            data = await response.json();
+            if (fetchId !== latestFetchId) return;   // idem après lecture du corps
+            if (!Array.isArray(data)) throw new Error("Réponse de l'API invalide.");
+        }
 
         // correspondances EXACTES de nom, accents et casse ignorés
         const norm = s => String(s).normalize('NFD')
@@ -809,12 +817,13 @@ function updateFocus(items) {
 async function fetchCommunes(communeName) {
     try {
         const myFetchId = latestFetchId;
+		const query = communeName.trim();
         if (communeController) {
             communeController.abort();
         }
         communeController = new AbortController();
         const response = await fetchWithTimeout(
-            `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(communeName)}`
+            `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(query)}`
           + `&fields=nom,code,codeDepartement&limit=13`,
             { signal: communeController.signal });
         if (myFetchId !== latestFetchId) return;
@@ -1123,7 +1132,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.40f du 27/06/2026 : Mise à jour du code</li>
+		<li>version 1.40g du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
 		<li>version 1.37h du 23/06/2026 : Mise à jour du code</li>
