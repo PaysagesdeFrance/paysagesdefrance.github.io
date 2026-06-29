@@ -57,10 +57,12 @@ frame-ancestors 'none';">
     white-space: nowrap;
 }
 	
+
 	.combobox {
 		position: relative;
 		display: inline-block;
 		width: 200px;
+		margin-right: 20px;
 	}
 	
 	.combobox input {
@@ -92,10 +94,6 @@ frame-ancestors 'none';">
 	
 	.combobox .dropdown-menu li:hover {
 		background-color: #ddd;
-	}
-	
-	.combobox {
-		margin-right: 20px;
 	}
 	
 	.error-message {
@@ -335,7 +333,7 @@ function normalizeCode(c) {
 
 function selectionnerCommune(commune) {
     selectedCodeCommune = commune.code;
-    communeInput.value = commune.nom;
+    communeInput.value = normalizeText(commune.nom);
     hideCommuneList();
     infosElement.textContent = '';
 
@@ -1133,6 +1131,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
 		<li>version 1.40h du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
 		<li>version 1.38g du 25/06/2026 : Mise à jour du code</li>
