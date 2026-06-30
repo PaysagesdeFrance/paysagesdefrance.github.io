@@ -32,6 +32,15 @@ frame-ancestors 'none';">
 	<title>Recherche d'une commune</title>
 
 	<style id="af">html { display: none !important; }</style>
+	<noscript>
+  <style>
+    /* Appliqué uniquement si JS est désactivé : annule #af pour ne pas
+       laisser un écran blanc, et masque l'appli non fonctionnelle. */
+    html { display: block !important; }
+    body > :not(.js-requise) { display: none !important; }
+    .js-requise { display: block !important; margin: 2em; }
+  </style>
+</noscript>
 <script>
   if (self === top) {
     var s = document.getElementById('af');
@@ -56,7 +65,7 @@ frame-ancestors 'none';">
     clip-path: inset(50%);
     white-space: nowrap;
 }
-	
+	.js-requise { display: none; }
 
 	.combobox {
 		position: relative;
@@ -143,6 +152,10 @@ frame-ancestors 'none';">
 </head>
 
 <body>
+	<p class="js-requise">
+  Cette application nécessite JavaScript pour fonctionner.
+  Merci de l'activer dans les paramètres de votre navigateur, puis de recharger la page.
+</p>
 	<h1>Recherche d'une commune</h1>
 <div class="combobox">
     <label for="communeInput">Commune</label>
@@ -1140,7 +1153,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.42c du 30/06/2026 : Mise à jour du code</li>
+		<li>version 1.42d du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
 		<li>version 1.40h du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
