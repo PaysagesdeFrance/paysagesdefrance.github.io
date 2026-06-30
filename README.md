@@ -170,7 +170,7 @@ frame-ancestors 'none';">
     <span class="spinner" aria-hidden="true"></span>
     Chargement en cours…
 </div>
-	<div id="resultatCommune"></div>
+	<div id="resultatCommune" aria-live="polite"></div>
 	<div id="infos" role="alert"></div>
 	<table>
 		<tr>
@@ -1128,7 +1128,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.42a du 30/06/2026 : Mise à jour du code</li>
+		<li>version 1.42b du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
 		<li>version 1.40h du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
