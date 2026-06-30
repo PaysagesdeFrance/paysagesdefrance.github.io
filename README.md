@@ -260,6 +260,7 @@ const comboboxEl = communeInput.closest('.combobox');
  const CSV_CACHE_TTL = 10 * 60 * 1000; // 10 min, en ms
  const csvInFlight = {};   // url -> Promise en cours (dédoublonnage des téléchargements concurrents)
  let csvUrlsCache = null;              // { value, timestamp } — null tant qu'aucun succès
+let csvUrlsInFlight = null;           // Promise en cours (dédoublonnage des appels concurrents)
  const SIREN_MGP = "200054781";
  let latestFetchId = 0;
 
@@ -871,24 +872,35 @@ async function getLatestCsvUrls() {
     if (csvUrlsCache && (Date.now() - csvUrlsCache.timestamp) < CSV_CACHE_TTL) {
         return csvUrlsCache.value;
     }
-    try {
-        const response = await fetchWithTimeout("https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/");
-        if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
-        const data = await response.json();
-        if (!Array.isArray(data.resources))
-            throw new Error("Format de réponse inattendu : resources absent ou invalide.");
-        const value = {
-            urlMaire:     data.resources.find(r => typeof r.title === 'string' && r.title.includes("maires"))?.url ?? null,
-            urlPresident: data.resources.find(r => typeof r.title === 'string' && r.title.includes("conseillers-communautaires"))?.url ?? null
-        };
-        if (value.urlMaire || value.urlPresident) {
-            csvUrlsCache = { value, timestamp: Date.now() };  // on ne fige jamais un échec total
-        }
-        return value;
-    } catch (error) {
-        console.error("Erreur récupération URLs CSV :", error);
-        return { urlMaire: null, urlPresident: null };
+    // Récupération du même endpoint déjà en cours (deux recherches rapprochées) →
+    // on réutilise la promesse au lieu d'ouvrir une 2e connexion data.gouv.fr.
+    if (csvUrlsInFlight) {
+        return csvUrlsInFlight;
     }
+    const promise = (async () => {
+        try {
+            const response = await fetchWithTimeout("https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/");
+            if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
+            const data = await response.json();
+            if (!Array.isArray(data.resources))
+                throw new Error("Format de réponse inattendu : resources absent ou invalide.");
+            const value = {
+                urlMaire:     data.resources.find(r => typeof r.title === 'string' && r.title.includes("maires"))?.url ?? null,
+                urlPresident: data.resources.find(r => typeof r.title === 'string' && r.title.includes("conseillers-communautaires"))?.url ?? null
+            };
+            if (value.urlMaire || value.urlPresident) {
+                csvUrlsCache = { value, timestamp: Date.now() };  // on ne fige jamais un échec total
+            }
+            return value;
+        } catch (error) {
+            console.error("Erreur récupération URLs CSV :", error);
+            return { urlMaire: null, urlPresident: null };
+        } finally {
+            csvUrlsInFlight = null;   // libère le verrou, succès comme échec
+        }
+    })();
+    csvUrlsInFlight = promise;
+    return promise;
 }
 
 
@@ -1128,7 +1140,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.42b du 30/06/2026 : Mise à jour du code</li>
+		<li>version 1.42c du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
 		<li>version 1.40h du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
