@@ -660,7 +660,7 @@ async function handleSearch() {
 
     // Cas 2 : rien de sélectionné → on tente de résoudre le texte saisi
     const saisie = communeInput.value.trim();
-    if (!validateInput(saisie, 50)) {
+    if (!validateInput(saisie)) {
         showError("Veuillez entrer le nom d'une commune.");
         return;
     }
@@ -743,7 +743,7 @@ const debouncedFetchCommunes = debounce(function(communeName) {
 		hideCommuneList();
         return;
     }
-    if (!validateInput(communeName, 50)) { // caractère interdit → message ciblé
+    if (!validateInput(communeName)) { // caractère interdit → message ciblé
         showError("Veuillez saisir un nom de commune valide.");
         hideCommuneList();
         return;
@@ -863,8 +863,9 @@ rechercherBtn.addEventListener("click", handleSearch);
 // Nouvelle fonction de validation centralisée
 function validateInput(text, maxLength = 100) {
     if (typeof text !== 'string') return false;
-    if (text.length < 1 || text.length > maxLength) return false;
-    return /^[\p{L}\p{M}\s'\u2018\u2019-]+$/u.test(text);
+    const t = text.normalize('NFC');   // "é" décomposé (e + ◌́) → 1 seul code point
+    if (t.length < 1 || t.length > maxLength) return false;
+    return /^[\p{L}\p{M}\s'\u2018\u2019-]+$/u.test(t);
 }
 
 
@@ -1153,7 +1154,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.42d du 30/06/2026 : Mise à jour du code</li>
+		<li>version 1.42e du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
 		<li>version 1.40h du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
