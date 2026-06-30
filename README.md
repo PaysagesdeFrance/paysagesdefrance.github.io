@@ -1002,50 +1002,47 @@ const records = data.results.filter(record => {
 
 const record = records.find(r => typeof r.nom === 'string' && r.nom.startsWith("Mairie - ")) || records[0];
 
-        if (record && record.adresse) {
-            const adresseData = safeJsonParse(record.adresse, []);
-            if (!adresseData.length) throw new Error("Adresse JSON invalide.");
-            const adresseComplete = [
-                adresseData[0].numero_voie || '',
-                adresseData[0].complement1 || '',
-                adresseData[0].complement2 || '',
-                adresseData[0].service_distribution || '',
-                adresseData[0].code_postal || '',
-                adresseData[0].nom_commune || ''
-            ].filter(Boolean).join(' - ');
 
-            if (adresseComplete) {
-                const infoText = isMairie ? "adressemairie" : "adresseEpci";
-                setTextIfCurrent(fetchId,infoText, adresseComplete);
-            } else {
-                console.warn("Adresse vide ou non valide :", adresseComplete);
-            }
 
-            if (record.adresse_courriel) {
-                const infoText = isMairie ? "courrielmairie" : "courrielEpci";
-                setTextIfCurrent(fetchId,infoText, record.adresse_courriel);
-            }
-
-            const siteInternetJSON = record.site_internet;
-            if (siteInternetJSON) {
-const siteInternetData = safeJsonParse(siteInternetJSON, []);
-const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-                const infoText = isMairie ? "sitemairie" : "siteEpci";
-                if (siteInternet) {
-const anchorElement = document.createElement("a");
-if (/^https?:\/\//i.test(siteInternet)) {
-    anchorElement.href = siteInternet;
+if (!record) {
+    throw new Error("Aucune information sur la Mairie ou l'EPCI trouvée.");
 }
-anchorElement.textContent = siteInternet;
-anchorElement.target = "_blank";
-anchorElement.rel = "noopener noreferrer";
-setNodeIfCurrent(fetchId, infoText, anchorElement);
 
-                }
-            }
-        } else {
-            throw new Error("Aucune information sur la Mairie ou l'EPCI trouvée.");
-        }
+// Les trois champs sont indépendants : l'absence d'adresse ne doit plus
+// masquer le courriel ni le site (fréquent pour certains EPCI).
+
+// Adresse
+const idAdresse = isMairie ? "adressemairie" : "adresseEpci";
+const adresseData = record.adresse ? safeJsonParse(record.adresse, []) : [];
+const adresseComplete = adresseData.length ? [
+    adresseData[0].numero_voie        || '',
+    adresseData[0].complement1        || '',
+    adresseData[0].complement2        || '',
+    adresseData[0].service_distribution || '',
+    adresseData[0].code_postal        || '',
+    adresseData[0].nom_commune        || ''
+].filter(Boolean).join(' - ') : '';
+setTextIfCurrent(fetchId, idAdresse, adresseComplete || "Information non disponible");
+
+// Courriel
+if (record.adresse_courriel) {
+    setTextIfCurrent(fetchId, isMairie ? "courrielmairie" : "courrielEpci",
+        record.adresse_courriel);
+}
+
+// Site
+if (record.site_internet) {
+    const siteInternetData = safeJsonParse(record.site_internet, []);
+    const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+    if (siteInternet) {
+        const a = document.createElement("a");
+        if (/^https?:\/\//i.test(siteInternet)) a.href = siteInternet;
+        a.textContent = siteInternet;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        setNodeIfCurrent(fetchId, isMairie ? "sitemairie" : "siteEpci", a);
+    }
+}
 
 } catch (error) {
     console.error("Erreur lors de la récupération des données :", error);
@@ -1131,6 +1128,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.42a du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
 		<li>version 1.40h du 27/06/2026 : Mise à jour du code</li>
 		<li>version 1.39e du 26/06/2026 : Mise à jour du code</li>
