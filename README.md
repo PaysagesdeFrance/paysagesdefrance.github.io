@@ -430,6 +430,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 12000) {
 }
 
 async function fetchCsvData(url, separator = ';') {
+	if (!url) return null; 
     const cached = csvCache[url];
     if (cached && (Date.now() - cached.timestamp) < CSV_CACHE_TTL) {
         return cached.data;
@@ -1106,9 +1107,6 @@ async function fetchData(selectedCodeCommune, fetchId) {
 			const { urlMaire: csvUrlMaire, urlPresident: csvUrlPresident } = await getLatestCsvUrls();
             if (fetchId !== latestFetchId) return;
 
-            if (!csvUrlMaire)     setTextIfCurrent(fetchId, "nomdumaire", "Information non disponible");
-            if (hasEpci && !csvUrlPresident) setTextIfCurrent(fetchId, "nomdupresident", "Information non disponible");
-
             const matchDate = csvUrlMaire && csvUrlMaire.match(/\/(\d{4})(\d{2})(\d{2})-\d{6}\//);
             if (matchDate) {
                 setTextIfCurrent(fetchId, 'sourceRNEDate',
@@ -1154,6 +1152,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+	    <li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
 		<li>version 1.42e du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
 		<li>version 1.40h du 27/06/2026 : Mise à jour du code</li>
