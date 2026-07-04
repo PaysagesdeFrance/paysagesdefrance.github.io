@@ -3,6 +3,11 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="preconnect" href="https://geo.api.gouv.fr" crossorigin>
+	<link rel="dns-prefetch" href="https://www.data.gouv.fr">
+	<link rel="dns-prefetch" href="https://static.data.gouv.fr">
+	<link rel="dns-prefetch" href="https://api-lannuaire.service-public.fr">
+	<link rel="dns-prefetch" href="https://raw.githubusercontent.com">
 	
 	<!-- Anti-framing réel = frame-buster JS plus bas (#af + script).
      frame-ancestors ci-dessous est ignoré en mode <meta> (spec CSP),
@@ -15,7 +20,9 @@ connect-src 'self'
   https://api-lannuaire.service-public.fr
   https://raw.githubusercontent.com
   https://static.data.gouv.fr
-  https://www.data.gouv.fr;
+https://www.data.gouv.fr;
+base-uri 'none';
+form-action 'none';
 frame-ancestors 'none';">
 
 <!-- 
@@ -94,6 +101,8 @@ frame-ancestors 'none';">
 		list-style: none;
 		background-color: #f1f1f1;
 		z-index: 5;
+		max-height: 40vh;
+		overflow-y: auto;
 	}
 	
 	.combobox .dropdown-menu li {
@@ -103,6 +112,14 @@ frame-ancestors 'none';">
 	
 	.combobox .dropdown-menu li:hover {
 		background-color: #ddd;
+		
+	}
+	.combobox .dropdown-menu li[aria-disabled="true"] {
+		cursor: default;
+		color: #666;
+	}
+	.combobox .dropdown-menu li[aria-disabled="true"]:hover {
+		background-color: transparent;
 	}
 	
 	.error-message {
@@ -178,7 +195,7 @@ frame-ancestors 'none';">
     </ul>
 </div>
 	<div id="commune-status" role="status" aria-live="polite" class="sr-only"></div>
-	<button id="rechercherBtn">Rechercher</button>
+	<button type="button" id="rechercherBtn">Rechercher</button>
 <div id="chargement" aria-live="polite" aria-busy="false">
     <span class="spinner" aria-hidden="true"></span>
     Chargement en cours…
@@ -511,6 +528,10 @@ function parseCsvLine(line, separator) {
 }
 
 async function handleCompetenceData(codeEpci, type, fetchId) {
+    if (codeEpci === SIREN_MGP) {
+        setTextIfCurrent(fetchId, `competence${type}`, "voir l'EPT de rattachement");
+        return;
+    }
     const url = `https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`;
     const rows = await fetchCsvData(url, ',');
 
@@ -647,11 +668,11 @@ async function handleUniteUrbaineData(codeCommune, fetchId) {
 }
 
 async function handleSearch() {
+	if (rechercherBtn.disabled) return;
     debouncedFetchCommunes.cancel();
     infosElement.textContent = '';
 
     // Cas 1 : une commune a déjà été choisie dans la liste
-// Cas 1 : une commune a déjà été choisie dans la liste
     if (selectedCodeCommune) {
         showLoading();
         const fetchId = ++latestFetchId;
@@ -683,21 +704,25 @@ async function handleSearch() {
             data = await response.json();
             if (fetchId !== latestFetchId) return;   // idem après lecture du corps
             if (!Array.isArray(data)) throw new Error("Réponse de l'API invalide.");
+            lastCommuneResult = { query: saisie, data };
+        }
         }
 
         // correspondances EXACTES de nom, accents et casse ignorés
-        const norm = s => String(s).normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        const norm = s => String(s).toLowerCase().normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/œ/g, 'oe').replace(/æ/g, 'ae')
+            .replace(/[\s'\u2018\u2019-]+/g, '');
         const exacts = data.filter(c => norm(c.nom) === norm(saisie));
 
         if (exacts.length === 1) {
             selectionnerCommune(exacts[0]);            // remplit l'en-tête, vide les cellules
             await fetchData(exacts[0].code, fetchId);  // réutilise le MÊME id ; son finally appelle hideLoading()
         } else {
-            // 0 ou plusieurs homonymes → réutilisation du data déjà chargé
+            // 0 exact → suggestions complètes ; ≥ 2 homonymes → seulement les exacts
             if (communeController) communeController.abort();
             hideLoading();
-            renderCommuneList(data);
+            renderCommuneList(exacts.length > 1 ? exacts : data);
         }
     } catch (error) {
         if (fetchId !== latestFetchId) return;   // erreur sur une recherche déjà invalidée → on ignore
@@ -798,7 +823,9 @@ communeInput.addEventListener('keydown', function(e) {
 // (a) Au clic sur une option, empêche le vol de focus : l'input reste
 //     focalisé, donc (c) ne se déclenche pas pendant la sélection.
 //     Élimine la course blur → liste vidée → 'click' perdu.
-communeList.addEventListener('mousedown', e => e.preventDefault());
+communeList.addEventListener('mousedown', e => {
+    if (e.target.closest('li')) e.preventDefault();
+});
 
 // (b) Clic/tap hors du combobox (souris, tactile, stylet) → fermeture.
 document.addEventListener('pointerdown', function (e) {
@@ -903,7 +930,7 @@ async function getLatestCsvUrls() {
                 urlMaire:     data.resources.find(r => typeof r.title === 'string' && r.title.includes("maires"))?.url ?? null,
                 urlPresident: data.resources.find(r => typeof r.title === 'string' && r.title.includes("conseillers-communautaires"))?.url ?? null
             };
-            if (value.urlMaire || value.urlPresident) {
+            if (value.urlMaire && value.urlPresident) {
                 csvUrlsCache = { value, timestamp: Date.now() };  // on ne fige jamais un échec total
             }
             return value;
@@ -1154,7 +1181,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.44a du 04/07/2026 : Mise à jour du code</li>
+		<li>version 1.44b du 04/07/2026 : Mise à jour du code</li>
 	    <li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
 		<li>version 1.42e du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
