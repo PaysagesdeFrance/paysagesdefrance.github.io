@@ -971,12 +971,14 @@ let correspondanceFonction = typeElu === "maire";
             correspondanceFonction = f.startsWith("president");
         }
 
-        if (correspondanceCode && correspondanceFonction) {
+       if (correspondanceCode && correspondanceFonction) {
+            const prenom = row[idx.prenom] || '';
+            const nom    = row[idx.nom]    || '';
+            if (!nom) continue;   // ligne tronquée → on continue de chercher
             const sexeElu = row[idx.sexe] === "M" ? "M."
                           : row[idx.sexe] === "F" ? "Mme"
                           : "";
-setTextIfCurrent(fetchId,infoId,
-                `${sexeElu} ${row[idx.prenom]} ${row[idx.nom]}`);
+            setTextIfCurrent(fetchId, infoId, `${sexeElu} ${prenom} ${nom}`);
             return;
         }
     }
@@ -1098,7 +1100,7 @@ async function fetchData(selectedCodeCommune, fetchId) {
         const data = await response.json();
         if (fetchId !== latestFetchId) return;
 
-        if (data.length > 0 && validateApiResponse(data[0], ['code', 'population'])) {
+        if (data.length > 0 && validateApiResponse(data[0], ['code'])) {
             const codeCommune = data[0].code;
             const codeEpci = data[0].codeEpci;
 			const hasEpci = !!(data[0].epci && codeEpci);
@@ -1152,6 +1154,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.44a du 04/07/2026 : Mise à jour du code</li>
 	    <li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
 		<li>version 1.42e du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
