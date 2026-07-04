@@ -638,7 +638,7 @@ async function handleUniteUrbaineData(codeCommune, fetchId) {
             return;
         }
         const numUniteUrbaine = codeUU.substring(0, 5);
-        const uuRow = uuRows.find(r => r[0] === numUniteUrbaine);
+        const uuRow = uuRows.find(r => normalizeCode(r[0]) === normalizeCode(numUniteUrbaine));
         const numAssocie = uuRow ? parseInt(uuRow[1], 10) : null;
 
         if (numAssocie === null) {
@@ -682,8 +682,10 @@ async function handleSearch() {
 
     // Cas 2 : rien de sélectionné → on tente de résoudre le texte saisi
     const saisie = communeInput.value.trim();
-    if (!validateInput(saisie)) {
-        showError("Veuillez entrer le nom d'une commune.");
+if (!validateInput(saisie)) {
+        showError(saisie.length === 0
+            ? "Veuillez entrer le nom d'une commune."
+            : "Veuillez saisir un nom de commune valide.");
         return;
     }
 
@@ -802,7 +804,18 @@ communeInput.addEventListener('keydown', function(e) {
         return;
     }
 
-    if (!items.length) return;            // flèches/Échap n'ont de sens qu'avec une liste
+if (!items.length) {
+        // Liste fermée (Échap, clic extérieur) : ArrowDown la rouvre si la
+        // saisie correspond encore au dernier résultat d'autocomplétion.
+        if (e.key === 'ArrowDown' && lastCommuneResult
+            && lastCommuneResult.query === communeInput.value.trim()) {
+            e.preventDefault();
+            renderCommuneList(lastCommuneResult.data);
+            const opts = communeList.querySelectorAll('li[role="option"]:not([aria-disabled="true"])');
+            if (opts.length) { activeIndex = 0; updateFocus(opts); }
+        }
+        return;
+    }
 
     if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -1019,7 +1032,7 @@ async function fetchAdresse(code, type, fetchId) {
     try {
         // Validation AVANT construction de l'URL : un code invalide ne doit jamais
         // être interpolé dans le whereClause (défense en profondeur).
-        if (!(isMairie ? /^[0-9AB]{5}$/ : /^[0-9]{9}$/).test(String(code))) {
+        if (!(isMairie ? /^(?:\d{5}|2[AB]\d{3})$/ : /^\d{9}$/).test(String(code))) {
             throw new Error(`Code invalide : ${code}`);
         }
 
@@ -1080,23 +1093,22 @@ const adresseComplete = adresseData.length ? [
 setTextIfCurrent(fetchId, idAdresse, adresseComplete || "Information non disponible");
 
 // Courriel
-if (record.adresse_courriel) {
-    setTextIfCurrent(fetchId, isMairie ? "courrielmairie" : "courrielEpci",
-        record.adresse_courriel);
-}
+setTextIfCurrent(fetchId, isMairie ? "courrielmairie" : "courrielEpci",
+    record.adresse_courriel || "Information non disponible");
 
 // Site
-if (record.site_internet) {
-    const siteInternetData = safeJsonParse(record.site_internet, []);
-    const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
-    if (siteInternet) {
-        const a = document.createElement("a");
-        if (/^https?:\/\//i.test(siteInternet)) a.href = siteInternet;
-        a.textContent = siteInternet;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        setNodeIfCurrent(fetchId, isMairie ? "sitemairie" : "siteEpci", a);
-    }
+const siteInternetData = record.site_internet ? safeJsonParse(record.site_internet, []) : [];
+const siteInternet = siteInternetData.length > 0 ? siteInternetData[0].valeur : '';
+if (siteInternet) {
+    const a = document.createElement("a");
+    if (/^https?:\/\//i.test(siteInternet)) a.href = siteInternet;
+    a.textContent = siteInternet;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    setNodeIfCurrent(fetchId, isMairie ? "sitemairie" : "siteEpci", a);
+} else {
+    setTextIfCurrent(fetchId, isMairie ? "sitemairie" : "siteEpci",
+        "Information non disponible");
 }
 
 } catch (error) {
@@ -1180,7 +1192,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.44d du 04/07/2026 : Mise à jour du code</li>
+		<li>version 1.44e du 04/07/2026 : Mise à jour du code</li>
 	    <li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
 		<li>version 1.42e du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
