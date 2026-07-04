@@ -294,6 +294,25 @@ let csvUrlsInFlight = null;           // Promise en cours (dédoublonnage des ap
  const SIREN_MGP = "200054781";
  let latestFetchId = 0;
 
+ const CELL_IDS = ['populationInfo','popUrbaineInfo','epciInfo','nomdumaire',
+    'adressemairie','courrielmairie','sitemairie','nomdupresident',
+    'adresseEpci','courrielEpci','siteEpci','competencePLU','competenceRLP'];
+
+	// Partagée entre l'autocomplétion (fetchCommunes) et la résolution directe
+// (handleSearch). Les deux DOIVENT rester identiques : lastCommuneResult est
+// réutilisé de l'une vers l'autre, comparer des résultats obtenus avec des
+// paramètres différents serait incohérent.
+const buildCommuneSearchUrl = q =>
+    `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(q)}`
+  + `&fields=nom,code,codeDepartement&limit=13`;
+
+function clearCells() {
+    CELL_IDS.forEach(id => { document.getElementById(id).textContent = ''; });
+    // Annotation de source (hors tableaux) : évite de conserver la date de la
+    // recherche précédente si la nouvelle ne parvient pas à la déterminer.
+    document.getElementById('sourceRNEDate').textContent = '';
+}
+
 function renderCommuneList(data) {
     communeList.innerHTML = '';
 
@@ -368,10 +387,7 @@ function selectionnerCommune(commune) {
     hideCommuneList();
     infosElement.textContent = '';
 
-    const ids = ['populationInfo', 'popUrbaineInfo', 'epciInfo', 'nomdumaire',
-                 'adressemairie', 'courrielmairie', 'sitemairie', 'nomdupresident',
-                 'adresseEpci', 'courrielEpci', 'siteEpci', 'competencePLU', 'competenceRLP'];
-    ids.forEach(id => document.getElementById(id).textContent = '');
+   clearCells();
 
     const resultatCommune = document.getElementById('resultatCommune');
     const h2Element = document.createElement('h2');
@@ -399,13 +415,7 @@ function resetAffichage() {
     document.querySelectorAll("table").forEach(t => { t.style.display = "none"; });
     document.getElementById('resultatCommune').textContent = '';
     infosElement.textContent = '';
-    ['populationInfo','popUrbaineInfo','epciInfo','nomdumaire','adressemairie',
-     'courrielmairie','sitemairie','nomdupresident','adresseEpci','courrielEpci',
-     'siteEpci','competencePLU','competenceRLP']
-        .forEach(id => { document.getElementById(id).textContent = ''; });
-    // Annotation de source (hors tableaux) : évite de conserver la date de la
-    // recherche précédente si la nouvelle ne parvient pas à la déterminer.
-    document.getElementById('sourceRNEDate').textContent = '';
+    clearCells();
 }
 
 function safeJsonParse(value, fallback = null) {
@@ -504,7 +514,7 @@ function parseCsvLine(line, separator) {
     if (line.indexOf('"') === -1) {
         return line.split(separator).map(f => f.trim());
     }
-    // Chemin lent : ta machine à états, appliquée à une seule ligne.
+   // Chemin lent : machine à états appliquée à une seule ligne.
     // Champs cités préservés tels quels ; sinon trim — sémantique identique.
     const fields = [];
     let current = '';
@@ -672,8 +682,12 @@ async function handleSearch() {
     debouncedFetchCommunes.cancel();
     infosElement.textContent = '';
 
-    // Cas 1 : une commune a déjà été choisie dans la liste
+  // Cas 1 : une commune a déjà été choisie dans la liste
     if (selectedCodeCommune) {
+        // Vidage AVANT la re-recherche : en cas d'échec réseau, on affiche
+        // le message d'erreur seul, pas superposé aux données périmées.
+        document.querySelectorAll("table").forEach(t => { t.style.display = "none"; });
+        clearCells();
         showLoading();
         const fetchId = ++latestFetchId;
         await fetchData(selectedCodeCommune, fetchId);
@@ -698,9 +712,7 @@ if (!validateInput(saisie)) {
         if (lastCommuneResult && lastCommuneResult.query === saisie) {
             data = lastCommuneResult.data;
         } else {
-            const url = `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(saisie)}`
-                      + `&fields=nom,code,codeDepartement&limit=13`;
-            const response = await fetchWithTimeout(url);
+            const response = await fetchWithTimeout(buildCommuneSearchUrl(saisie));
             if (fetchId !== latestFetchId) return;   // saisie modifiée pendant la résolution → on abandonne
             if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
             data = await response.json();
@@ -863,9 +875,6 @@ function updateFocus(items) {
     });
 }
 
-
-
-
 async function fetchCommunes(communeName) {
     try {
         const myFetchId = latestFetchId;
@@ -875,8 +884,7 @@ async function fetchCommunes(communeName) {
         }
         communeController = new AbortController();
         const response = await fetchWithTimeout(
-            `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(query)}`
-          + `&fields=nom,code,codeDepartement&limit=13`,
+            buildCommuneSearchUrl(query),
             { signal: communeController.signal });
         if (myFetchId !== latestFetchId) return;
 
@@ -1192,7 +1200,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.44f du 04/07/2026 : Mise à jour du code</li>
+		<li>version 1.44g du 04/07/2026 : Mise à jour du code</li>
 	    <li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
 		<li>version 1.42e du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
