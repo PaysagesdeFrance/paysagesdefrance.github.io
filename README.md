@@ -706,7 +706,6 @@ async function handleSearch() {
             if (!Array.isArray(data)) throw new Error("Réponse de l'API invalide.");
             lastCommuneResult = { query: saisie, data };
         }
-        }
 
         // correspondances EXACTES de nom, accents et casse ignorés
         const norm = s => String(s).toLowerCase().normalize('NFD')
@@ -1181,7 +1180,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.44c du 04/07/2026 : Mise à jour du code</li>
+		<li>version 1.44d du 04/07/2026 : Mise à jour du code</li>
 	    <li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
 		<li>version 1.42e du 30/06/2026 : Mise à jour du code</li>
 		<li>version 1.41a du 29/06/2026 : Mise à jour du code</li>
