@@ -315,6 +315,8 @@ function clearCells() {
 
 function renderCommuneList(data) {
     communeList.innerHTML = '';
+	activeIndex = -1;
+    communeInput.setAttribute('aria-activedescendant', '');
 
     if (data.length === 0) {
         communeStatus.textContent = "Aucune commune trouvée";
@@ -819,8 +821,8 @@ communeInput.addEventListener('keydown', function(e) {
 if (!items.length) {
         // Liste fermée (Échap, clic extérieur) : ArrowDown la rouvre si la
         // saisie correspond encore au dernier résultat d'autocomplétion.
-        if (e.key === 'ArrowDown' && lastCommuneResult
-            && lastCommuneResult.query === communeInput.value.trim()) {
+		if (e.key === 'ArrowDown' && !rechercherBtn.disabled && lastCommuneResult
+             && lastCommuneResult.query === communeInput.value.trim()) {
             e.preventDefault();
             renderCommuneList(lastCommuneResult.data);
             const opts = communeList.querySelectorAll('li[role="option"]:not([aria-disabled="true"])');
@@ -1200,6 +1202,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.45a du 12/07/2026 : Mise à jour du code</li>
 		<li>version 1.44g du 04/07/2026 : Mise à jour du code</li>
 	    <li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
 		<li>version 1.42e du 30/06/2026 : Mise à jour du code</li>
