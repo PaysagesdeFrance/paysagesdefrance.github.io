@@ -540,15 +540,33 @@ function parseCsvLine(line, separator) {
 }
 
 async function handleCompetenceData(codeEpci, type, fetchId) {
-    if (codeEpci === SIREN_MGP) {
-        setTextIfCurrent(fetchId, `competence${type}`, "voir l'EPT de rattachement");
+    // Validation AVANT toute utilisation de `type` : il sert à la fois à
+    // construire une URL (donc à éviter toute injection de chemin) et à
+    // composer l'ID de cellule (`competence${type}`). Seules deux valeurs
+    // sont légitimes.
+    const typeNorm = typeof type === 'string' ? type.toLowerCase() : '';
+    if (typeNorm !== 'plu' && typeNorm !== 'rlp') {
+        console.warn("Type de compétence invalide :", type);
+        // On n'écrit pas dans une cellule arbitraire : on cible l'ID sûr
+        // dérivé d'un type validé à défaut d'ID connu → on ne fait rien.
         return;
     }
-    const url = `https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${type.toLowerCase()}`;
+
+    // À partir d'ici, `typeNorm` ∈ { 'plu', 'rlp' } et `typeNorm` est
+    // strictement équivalent à `type.toLowerCase()` pour les appelants
+    // légitimes ('PLU' / 'RLP').
+    const competenceType = typeNorm.toUpperCase();   // 'PLU' ou 'RLP' — pour l'ID de cellule
+
+    if (codeEpci === SIREN_MGP) {
+        setTextIfCurrent(fetchId, `competence${competenceType}`, "voir l'EPT de rattachement");
+        return;
+    }
+
+    const url = `https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/${typeNorm}`;
     const rows = await fetchCsvData(url, ',');
 
     if (!rows) {
-        setTextIfCurrent(fetchId, `competence${type}`, "Information non disponible");
+        setTextIfCurrent(fetchId, `competence${competenceType}`, "Information non disponible");
         return;
     }
 
@@ -557,9 +575,9 @@ async function handleCompetenceData(codeEpci, type, fetchId) {
         const message = row[1] === "0" ? "non"
                       : row[1] === "1" ? "oui"
                       : "Valeur inconnue";
-        setTextIfCurrent(fetchId, `competence${type}`, message);
+        setTextIfCurrent(fetchId, `competence${competenceType}`, message);
     } else {
-        setTextIfCurrent(fetchId, `competence${type}`, "Information non disponible");
+        setTextIfCurrent(fetchId, `competence${competenceType}`, "Information non disponible");
     }
 }
 
@@ -1202,6 +1220,7 @@ await Promise.all([
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
+		<li>version 1.46a du 09/11/2026 : Mise à jour du code</li>
 		<li>version 1.45a du 12/07/2026 : Mise à jour du code</li>
 		<li>version 1.44g du 04/07/2026 : Mise à jour du code</li>
 	    <li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
