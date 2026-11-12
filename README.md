@@ -369,30 +369,123 @@
 	const SIREN_MGP = "200054781";
 	const CODE_PARIS = "75056";
 
-	// Établissements publics territoriaux (EPT) de la Métropole du Grand Paris :
-	// SIREN de l'EPT -> nom et codes INSEE des communes membres.
-	// L'API geo.api.gouv.fr ne fournit pas ce rattachement : table reprise du jeu
-	// officiel « découpage administratif » d'Etalab (@etalab/decoupage-administratif
-	// 6.0.0, fichier ept.json). Paris n'appartient à aucun EPT.
-	// À mettre à jour en cas de fusion de communes ou de changement de périmètre.
+	// Établissements publics territoriaux (EPT) de la Métropole du Grand Paris.
+	// Ni geo.api.gouv.fr, ni le RNE, ni l'Annuaire de service-public.fr ne
+	// couvrent les EPT (vérifié le 12/11/2026), et l'API BANATIC n'est pas
+	// appelable depuis un navigateur (CORS) : les données sont donc intégrées ici.
+	//   - périmètre (communes) : découpage administratif Etalab 6.0.0, identique à BANATIC ;
+	//   - président et coordonnées du siège : fiches BANATIC consultées le 12/11/2026
+	//     (https://www.banatic.interieur.gouv.fr/consultation/intercommunalite/fiche/<SIREN>).
+	//     Champ vide = non renseigné dans BANATIC. Courriels nominatifs ou mal formés non repris.
+	// Paris n'appartient à aucun EPT. À mettre à jour après chaque changement de président
+	// ou de périmètre (comme les fichiers plu / rlp).
+	const EPT_MAJ = "12/11/2026";
 	const EPT_MGP = {
-		'200057867': { nom: 'Plaine Commune', communes: '93001 93027 93031 93039 93066 93070 93072 93079' },
-		'200057875': { nom: 'Est Ensemble', communes: '93006 93008 93010 93045 93048 93053 93055 93061 93063' },
-		'200057941': { nom: 'Paris Est Marne et Bois', communes: '94015 94017 94018 94033 94042 94046 94052 94058 94067 94068 94069 94079 94080' },
-		'200057966': { nom: 'Vallée Sud-Grand Paris', communes: '92002 92007 92014 92019 92020 92023 92032 92046 92049 92060 92071' },
-		'200057974': { nom: 'Grand Paris Seine Ouest', communes: '92012 92022 92040 92047 92048 92072 92075 92077' },
-		'200057982': { nom: 'Paris Ouest La Défense', communes: '92026 92033 92035 92044 92050 92051 92062 92063 92064 92073 92076' },
-		'200057990': { nom: 'Boucle Nord de Seine', communes: '92004 92009 92024 92025 92036 92078 95018' },
-		'200058006': { nom: 'Grand Paris Sud Est Avenir', communes: '94002 94004 94011 94019 94028 94044 94047 94048 94053 94055 94056 94059 94060 94070 94071 94075' },
-		'200058014': { nom: 'Grand-Orly Seine Bièvre', communes: '91027 91326 91432 91479 91589 91687 94001 94003 94016 94021 94022 94034 94037 94038 94041 94043 94054 94065 94073 94074 94076 94077 94078 94081' },
-		'200058097': { nom: 'Paris Terres d\'Envol', communes: '93005 93007 93013 93029 93030 93071 93073 93078' },
-		'200058790': { nom: 'Grand Paris Grand Est', communes: '93014 93015 93032 93033 93046 93047 93049 93050 93051 93057 93062 93064 93074 93077' }
+		'200057867': {
+			nom: "Plaine Commune",
+			president: "M. Bally BAGAYOKO",
+			adresse: "21 Avenue Jules Rimet – 93218 Saint-Denis",
+			telephone: "01 55 93 55 55",
+			courriel: "",
+			site: "https://plainecommune.fr",
+			communes: '93001 93027 93031 93039 93066 93070 93072 93079'
+		},
+		'200057875': {
+			nom: "Est Ensemble",
+			president: "M. Patrice BESSAC",
+			adresse: "100 Avenue Gaston Roussel – 93230 Romainville",
+			telephone: "",
+			courriel: "",
+			site: "",
+			communes: '93006 93008 93010 93045 93048 93053 93055 93061 93063'
+		},
+		'200057941': {
+			nom: "Paris Est Marne et Bois",
+			president: "M. Olivier CAPITANIO",
+			adresse: "14 Rue Louis Talamoni – 94500 Champigny-sur-Marne",
+			telephone: "",
+			courriel: "accueil@pemb.fr",
+			site: "",
+			communes: '94015 94017 94018 94033 94042 94046 94052 94058 94067 94068 94069 94079 94080'
+		},
+		'200057966': {
+			nom: "Vallée Sud-Grand Paris",
+			president: "M. Carl SEGAUD",
+			adresse: "Place de l'Hôtel de Ville, Hôtel de Ville d'Antony – 92160 Antony",
+			telephone: "01 55 95 84 05",
+			courriel: "",
+			site: "",
+			communes: '92002 92007 92014 92019 92020 92023 92032 92046 92049 92060 92071'
+		},
+		'200057974': {
+			nom: "Grand Paris Seine Ouest",
+			president: "M. Pierre-Christophe BAGUET",
+			adresse: "9 Route de Vaugirard, CS 90008 – 92190 Meudon",
+			telephone: "01 46 29 55 00",
+			courriel: "gpso@agglo-gpso.fr",
+			site: "www.agglo-gpso.fr",
+			communes: '92012 92022 92040 92047 92048 92072 92075 92077'
+		},
+		'200057982': {
+			nom: "Paris Ouest La Défense",
+			president: "M. Eric BERDOATI",
+			adresse: "1 Place du 27 mars 2002, Hôtel de Ville de Nanterre – 92000 Nanterre",
+			telephone: "01 55 69 31 50",
+			courriel: "",
+			site: "www.parisouestladefense.fr",
+			communes: '92026 92033 92035 92044 92050 92051 92062 92063 92064 92073 92076'
+		},
+		'200057990': {
+			nom: "Boucle Nord de Seine",
+			president: "M. Pascal PELAIN",
+			adresse: "1 Bis Rue de la Paix – 92230 Gennevilliers",
+			telephone: "01 40 85 49 06",
+			courriel: "",
+			site: "www.bouclenorddeseine.fr",
+			communes: '92004 92009 92024 92025 92036 92078 95018'
+		},
+		'200058006': {
+			nom: "Grand Paris Sud Est Avenir",
+			president: "M. Laurent CATHALA",
+			adresse: "14 Rue Le Corbusier – 94000 Créteil",
+			telephone: "",
+			courriel: "",
+			site: "",
+			communes: '94002 94004 94011 94019 94028 94044 94047 94048 94053 94055 94056 94059 94060 94070 94071 94075'
+		},
+		'200058014': {
+			nom: "Grand-Orly Seine Bièvre",
+			president: "M. Michel LEPRETRE",
+			adresse: "2 Avenue Youri Gagarine – 94400 Vitry-sur-Seine",
+			telephone: "",
+			courriel: "",
+			site: "",
+			communes: '91027 91326 91432 91479 91589 91687 94001 94003 94016 94021 94022 94034 94037 94038 94041 94043 94054 94065 94073 94074 94076 94077 94078 94081'
+		},
+		'200058097': {
+			nom: "Paris Terres d'Envol",
+			president: "M. Bruno BESCHIZZA",
+			adresse: "BP 10018 – 93601 Aulnay-sous-Bois",
+			telephone: "01 48 17 02 80",
+			courriel: "",
+			site: "https://www.paristerresdenvol.fr",
+			communes: '93005 93007 93013 93029 93030 93071 93073 93078'
+		},
+		'200058790': {
+			nom: "Grand Paris Grand Est",
+			president: "M. Zartoshte BAKHTIARI",
+			adresse: "Place de la Libération – 93160 Noisy-le-Grand",
+			telephone: "",
+			courriel: "",
+			site: "https://www.grandparisgrandest.fr",
+			communes: '93014 93015 93032 93033 93046 93047 93049 93050 93051 93057 93062 93064 93074 93077'
+		}
 	};
 
 	/** EPT de rattachement d'une commune de la MGP, ou null (Paris, ou table à mettre à jour). */
 	function eptDeCommune(codeCommune) {
 		for (const [siren, ept] of Object.entries(EPT_MGP)) {
-			if (ept.communes.split(' ').includes(codeCommune)) return { siren, nom: ept.nom };
+			if (ept.communes.split(' ').includes(codeCommune)) return { siren, ...ept };
 		}
 		return null;
 	}
@@ -499,9 +592,9 @@
 	}
 
 	/** Affiche un lien (href déjà validé par l'appelant) ou, à défaut, le texte seul. */
-	function setLienIfCurrent(fetchId, elementId, href, texte, nouvelOnglet, prefixe = '') {
+	function setLienIfCurrent(fetchId, elementId, href, texte, nouvelOnglet) {
 		if (!href) {
-			setTextIfCurrent(fetchId, elementId, prefixe + texte);
+			setTextIfCurrent(fetchId, elementId, texte);
 			return;
 		}
 		const a = document.createElement('a');
@@ -511,13 +604,7 @@
 			a.target = '_blank';
 			a.rel = 'noopener noreferrer';
 		}
-		if (!prefixe) {
-			setNodeIfCurrent(fetchId, elementId, a);
-			return;
-		}
-		const frag = document.createDocumentFragment();
-		frag.append(prefixe, a);
-		setNodeIfCurrent(fetchId, elementId, frag);
+		setNodeIfCurrent(fetchId, elementId, a);
 	}
 
 	/**
@@ -790,25 +877,25 @@
 		const ept = codeEpci === SIREN_MGP ? eptDeCommune(codeCommune) : null;
 
 		if (ept) {
-			// Commune de la MGP : nom de l'EPT, et compétences PLU / RLP de l'EPT
-			// (cf. fetchData). Les EPT ne figurent ni dans le RNE (fichier des
-			// conseillers communautaires) ni dans l'Annuaire de service-public.fr
-			// (vérifié en novembre 2026) : président et coordonnées affichés sont
-			// donc ceux de la Métropole du Grand Paris, explicitement signalés.
+			// Commune de la MGP : informations de son EPT (table EPT_MGP, source BANATIC).
 			const info = document.createDocumentFragment();
 			const note = document.createElement('small');
-			note.textContent = "Le président et les coordonnées des EPT ne sont pas publiés "
-				+ "en open data : ceux indiqués ci-dessous sont ceux de la Métropole du Grand Paris.";
-			info.append(normalizeText(
-				`${ept.nom} – (SIREN : ${ept.siren}) – établissement public territorial `
-				+ `de la Métropole du Grand Paris (SIREN : ${SIREN_MGP})`),
+			note.textContent = `Établissement public territorial de la Métropole du Grand Paris `
+				+ `(SIREN : ${SIREN_MGP}). Président et coordonnées : BANATIC (5), au ${EPT_MAJ}.`;
+			info.append(normalizeText(`${ept.nom} – (SIREN : ${ept.siren})`),
 				document.createElement('br'), note);
 			setNodeIfCurrent(fetchId, 'epciInfo', info);
-			const prefixe = 'Métropole du Grand Paris : ';
-			await Promise.all([
-				fetchAdresse(SIREN_MGP, "epci", fetchId, prefixe),
-				fetchNomEluOuPresident("president", SIREN_MGP, csvUrlPresident, fetchId, prefixe)
-			]);
+
+			const nd = "Information non disponible";
+			setTextIfCurrent(fetchId, 'nomdupresident', ept.president || nd);
+			setTextIfCurrent(fetchId, 'adresseEpci', ept.adresse || nd);
+			const telHref = ept.telephone.replace(/[^\d+]/g, '');
+			setLienIfCurrent(fetchId, 'telephoneEpci',
+				telHref.length >= 4 ? `tel:${telHref}` : null, ept.telephone || nd, false);
+			const courriel = courrielValide(ept.courriel);
+			setLienIfCurrent(fetchId, 'courrielEpci', courriel ? `mailto:${courriel}` : null, courriel || nd, false);
+			const site = ept.site ? urlSiteSure(ept.site) : null;
+			setLienIfCurrent(fetchId, 'siteEpci', site, ept.site || nd, true);
 		} else if (codeEpci === SIREN_MGP) {
 			// Paris n'appartient à aucun EPT : c'est la Ville de Paris qui exerce ces rôles.
 			// Autre commune absente de la table EPT_MGP : table à mettre à jour.
@@ -1227,12 +1314,12 @@
 	 *   maires      : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-maires-mai.csv
 	 *   présidents  : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-conseillers-communautaires-epci.csv
 	 */
-	async function fetchNomEluOuPresident(typeElu, code, csvUrl, fetchId, prefixe = '') {
+	async function fetchNomEluOuPresident(typeElu, code, csvUrl, fetchId) {
 		const infoId = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
 		const rows = await fetchCsvData(csvUrl);
 
 		if (!rows || rows.length < 2) {
-			setTextIfCurrent(fetchId, infoId, prefixe + "Information non disponible");
+			setTextIfCurrent(fetchId, infoId, "Information non disponible");
 			return;
 		}
 
@@ -1259,7 +1346,7 @@
 		// une colonne attendue a disparu ou changé de nom → on le signale au lieu d'afficher "undefined"
 		if (Object.values(idx).some(i => i === -1)) {
 			console.warn("Colonne CSV introuvable. En-tête réel :", header);
-			setTextIfCurrent(fetchId, infoId, prefixe + "Information non disponible");
+			setTextIfCurrent(fetchId, infoId, "Information non disponible");
 			return;
 		}
 
@@ -1275,12 +1362,12 @@
 			const sexeElu = row[idx.sexe] === "M" ? "M."
 				: row[idx.sexe] === "F" ? "Mme"
 				: "";
-			setTextIfCurrent(fetchId, infoId, `${prefixe}${sexeElu} ${prenom} ${nom}`);
+			setTextIfCurrent(fetchId, infoId, `${sexeElu} ${prenom} ${nom}`);
 			return;
 		}
 
 		console.warn("Aucun élu correspondant trouvé pour le code :", code);
-		setTextIfCurrent(fetchId, infoId, prefixe + "Information non disponible");
+		setTextIfCurrent(fetchId, infoId, "Information non disponible");
 	}
 
 	/** Site web : complète « www.exemple.fr » en https://, refuse tout autre schéma (javascript:, data:…). */
@@ -1305,7 +1392,7 @@
 			.find(m => /^[^\s@<>()"',;:]+@[^\s@<>()"',;:]+\.[a-z]{2,}$/i.test(m)) || null;
 	}
 
-	async function fetchAdresse(code, type, fetchId, prefixe = '') {
+	async function fetchAdresse(code, type, fetchId) {
 		const isMairie = type === 'mairie';
 		const ids = isMairie
 			? { adresse: "adressemairie", telephone: "telephonemairie", courriel: "courrielmairie", site: "sitemairie" }
@@ -1375,7 +1462,7 @@
 					.filter(v => typeof v === 'string' && v.trim()).join(' ');
 				adresseComplete = [voie, ville].filter(Boolean).join(' – ');
 			}
-			setTextIfCurrent(fetchId, ids.adresse, prefixe + (adresseComplete || "Information non disponible"));
+			setTextIfCurrent(fetchId, ids.adresse, adresseComplete || "Information non disponible");
 
 			// Téléphone
 			const tel = champJson(record.telephone)
@@ -1383,17 +1470,17 @@
 				.find(Boolean);
 			if (tel) {
 				const telHref = tel.replace(/[^\d+]/g, '');
-				setLienIfCurrent(fetchId, ids.telephone, telHref.length >= 4 ? `tel:${telHref}` : null, tel, false, prefixe);
+				setLienIfCurrent(fetchId, ids.telephone, telHref.length >= 4 ? `tel:${telHref}` : null, tel, false);
 			} else {
-				setTextIfCurrent(fetchId, ids.telephone, prefixe + "Information non disponible");
+				setTextIfCurrent(fetchId, ids.telephone, "Information non disponible");
 			}
 
 			// Courriel
 			const courriel = courrielValide(record.adresse_courriel);
 			if (courriel) {
-				setLienIfCurrent(fetchId, ids.courriel, `mailto:${courriel}`, courriel, false, prefixe);
+				setLienIfCurrent(fetchId, ids.courriel, `mailto:${courriel}`, courriel, false);
 			} else {
-				setTextIfCurrent(fetchId, ids.courriel, prefixe +
+				setTextIfCurrent(fetchId, ids.courriel,
 					(typeof record.adresse_courriel === 'string' && record.adresse_courriel.trim()
 						? record.adresse_courriel : "Information non disponible"));
 			}
@@ -1403,14 +1490,14 @@
 			const siteInternet = sites.length && sites[0] && typeof sites[0].valeur === 'string'
 				? sites[0].valeur.trim() : '';
 			if (siteInternet) {
-				setLienIfCurrent(fetchId, ids.site, urlSiteSure(siteInternet), siteInternet, true, prefixe);
+				setLienIfCurrent(fetchId, ids.site, urlSiteSure(siteInternet), siteInternet, true);
 			} else {
-				setTextIfCurrent(fetchId, ids.site, prefixe + "Information non disponible");
+				setTextIfCurrent(fetchId, ids.site, "Information non disponible");
 			}
 
 		} catch (error) {
 			console.error("Erreur lors de la récupération des données :", error);
-			Object.values(ids).forEach(id => setTextIfCurrent(fetchId, id, prefixe + "Information non disponible"));
+			Object.values(ids).forEach(id => setTextIfCurrent(fetchId, id, "Information non disponible"));
 		}
 	}
 
@@ -1637,12 +1724,12 @@
 		<li>(2) informations mises à jour manuellement – valable au 1er janvier 2026 – source : <a href="https://www.insee.fr/fr/information/4802589" target="_blank" rel="noopener noreferrer">https://www.insee.fr/fr/information/4802589</a></li>
 		<li>(3) OpenData gouvernemental : Ministère de l'Intérieur et des Outre-Mer – <a href="https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/" target="_blank" rel="noopener noreferrer">https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/</a> <span id="sourceRNEDate"></span></li>
 		<li>(4) API gouvernementale : <a href="https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration" target="_blank" rel="noopener noreferrer">https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration</a></li>
-		<li>(5) informations mises à jour manuellement (intercommunalité puis Export national ou régional) – valable au 4 juillet 2026 – source : <a href="https://www.banatic.interieur.gouv.fr/export/" target="_blank" rel="noopener noreferrer">https://www.banatic.interieur.gouv.fr/export/</a></li>
+		<li>(5) informations mises à jour manuellement (intercommunalité puis Export national ou régional) – valable au 4 juillet 2026 ; président et coordonnées des établissements publics territoriaux (EPT) de la Métropole du Grand Paris : fiches BANATIC au 12 novembre 2026 – source : <a href="https://www.banatic.interieur.gouv.fr/export/" target="_blank" rel="noopener noreferrer">https://www.banatic.interieur.gouv.fr/export/</a></li>
 	</ul>
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.46d du 12/11/2026 : Mise à jour du code</li>
+		<li>version 1.46e du 12/11/2026 : Mise à jour du code</li>
 		<li>version 1.45a du 12/07/2026 : Mise à jour du code</li>
 		<li>version 1.44g du 04/07/2026 : Mise à jour du code</li>
 		<li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
