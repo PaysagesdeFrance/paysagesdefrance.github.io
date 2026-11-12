@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="fr">
 
 <head>
@@ -1672,10 +1671,7 @@
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.49a du 12/11/2026 : Suppression des données figées : liste des EPT lue en direct (Etalab), lien vers la fiche BANATIC de l'EPT pour son président et ses coordonnées</li>
-		<li>version 1.48a du 12/11/2026 : Communes de la Métropole du Grand Paris : affichage des informations de l'EPT de rattachement</li>
-		<li>version 1.47a du 12/11/2026 : Ajout de l'état des services</li>
-		<li>version 1.46a du 12/11/2026 : Correctifs (unité urbaine des communes rurales, délai dépassé non signalé, DOCTYPE), sécurité et vie privée renforcées, recherche par code postal, recherche lancée dès la sélection, téléphone de la mairie et de l'EPCI, liens courriel et site cliquables, lien partageable</li>
+		<li>version 1.46h du 12/11/2026 : Mise à jour du code</li>
 		<li>version 1.45a du 12/07/2026 : Mise à jour du code</li>
 		<li>version 1.44g du 04/07/2026 : Mise à jour du code</li>
 		<li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
