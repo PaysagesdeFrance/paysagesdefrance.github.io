@@ -499,9 +499,9 @@
 	}
 
 	/** Affiche un lien (href déjà validé par l'appelant) ou, à défaut, le texte seul. */
-	function setLienIfCurrent(fetchId, elementId, href, texte, nouvelOnglet) {
+	function setLienIfCurrent(fetchId, elementId, href, texte, nouvelOnglet, prefixe = '') {
 		if (!href) {
-			setTextIfCurrent(fetchId, elementId, texte);
+			setTextIfCurrent(fetchId, elementId, prefixe + texte);
 			return;
 		}
 		const a = document.createElement('a');
@@ -511,7 +511,13 @@
 			a.target = '_blank';
 			a.rel = 'noopener noreferrer';
 		}
-		setNodeIfCurrent(fetchId, elementId, a);
+		if (!prefixe) {
+			setNodeIfCurrent(fetchId, elementId, a);
+			return;
+		}
+		const frag = document.createDocumentFragment();
+		frag.append(prefixe, a);
+		setNodeIfCurrent(fetchId, elementId, frag);
 	}
 
 	/**
@@ -784,14 +790,24 @@
 		const ept = codeEpci === SIREN_MGP ? eptDeCommune(codeCommune) : null;
 
 		if (ept) {
-			// Commune de la MGP : les informations utiles sont celles de son EPT
-			// (président, coordonnées, compétences PLU et RLP).
-			setTextIfCurrent(fetchId, 'epciInfo',
+			// Commune de la MGP : nom de l'EPT, et compétences PLU / RLP de l'EPT
+			// (cf. fetchData). Les EPT ne figurent ni dans le RNE (fichier des
+			// conseillers communautaires) ni dans l'Annuaire de service-public.fr
+			// (vérifié en novembre 2026) : président et coordonnées affichés sont
+			// donc ceux de la Métropole du Grand Paris, explicitement signalés.
+			const info = document.createDocumentFragment();
+			const note = document.createElement('small');
+			note.textContent = "Le président et les coordonnées des EPT ne sont pas publiés "
+				+ "en open data : ceux indiqués ci-dessous sont ceux de la Métropole du Grand Paris.";
+			info.append(normalizeText(
 				`${ept.nom} – (SIREN : ${ept.siren}) – établissement public territorial `
-				+ `de la Métropole du Grand Paris (SIREN : ${SIREN_MGP})`);
+				+ `de la Métropole du Grand Paris (SIREN : ${SIREN_MGP})`),
+				document.createElement('br'), note);
+			setNodeIfCurrent(fetchId, 'epciInfo', info);
+			const prefixe = 'Métropole du Grand Paris : ';
 			await Promise.all([
-				fetchAdresse(ept.siren, "epci", fetchId),
-				fetchNomEluOuPresident("president", ept.siren, csvUrlPresident, fetchId)
+				fetchAdresse(SIREN_MGP, "epci", fetchId, prefixe),
+				fetchNomEluOuPresident("president", SIREN_MGP, csvUrlPresident, fetchId, prefixe)
 			]);
 		} else if (codeEpci === SIREN_MGP) {
 			// Paris n'appartient à aucun EPT : c'est la Ville de Paris qui exerce ces rôles.
@@ -1211,12 +1227,12 @@
 	 *   maires      : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-maires-mai.csv
 	 *   présidents  : https://static.data.gouv.fr/resources/repertoire-national-des-elus-1/{date}/elus-conseillers-communautaires-epci.csv
 	 */
-	async function fetchNomEluOuPresident(typeElu, code, csvUrl, fetchId) {
+	async function fetchNomEluOuPresident(typeElu, code, csvUrl, fetchId, prefixe = '') {
 		const infoId = typeElu === "maire" ? "nomdumaire" : "nomdupresident";
 		const rows = await fetchCsvData(csvUrl);
 
 		if (!rows || rows.length < 2) {
-			setTextIfCurrent(fetchId, infoId, "Information non disponible");
+			setTextIfCurrent(fetchId, infoId, prefixe + "Information non disponible");
 			return;
 		}
 
@@ -1243,7 +1259,7 @@
 		// une colonne attendue a disparu ou changé de nom → on le signale au lieu d'afficher "undefined"
 		if (Object.values(idx).some(i => i === -1)) {
 			console.warn("Colonne CSV introuvable. En-tête réel :", header);
-			setTextIfCurrent(fetchId, infoId, "Information non disponible");
+			setTextIfCurrent(fetchId, infoId, prefixe + "Information non disponible");
 			return;
 		}
 
@@ -1259,12 +1275,12 @@
 			const sexeElu = row[idx.sexe] === "M" ? "M."
 				: row[idx.sexe] === "F" ? "Mme"
 				: "";
-			setTextIfCurrent(fetchId, infoId, `${sexeElu} ${prenom} ${nom}`);
+			setTextIfCurrent(fetchId, infoId, `${prefixe}${sexeElu} ${prenom} ${nom}`);
 			return;
 		}
 
 		console.warn("Aucun élu correspondant trouvé pour le code :", code);
-		setTextIfCurrent(fetchId, infoId, "Information non disponible");
+		setTextIfCurrent(fetchId, infoId, prefixe + "Information non disponible");
 	}
 
 	/** Site web : complète « www.exemple.fr » en https://, refuse tout autre schéma (javascript:, data:…). */
@@ -1289,7 +1305,7 @@
 			.find(m => /^[^\s@<>()"',;:]+@[^\s@<>()"',;:]+\.[a-z]{2,}$/i.test(m)) || null;
 	}
 
-	async function fetchAdresse(code, type, fetchId) {
+	async function fetchAdresse(code, type, fetchId, prefixe = '') {
 		const isMairie = type === 'mairie';
 		const ids = isMairie
 			? { adresse: "adressemairie", telephone: "telephonemairie", courriel: "courrielmairie", site: "sitemairie" }
@@ -1359,7 +1375,7 @@
 					.filter(v => typeof v === 'string' && v.trim()).join(' ');
 				adresseComplete = [voie, ville].filter(Boolean).join(' – ');
 			}
-			setTextIfCurrent(fetchId, ids.adresse, adresseComplete || "Information non disponible");
+			setTextIfCurrent(fetchId, ids.adresse, prefixe + (adresseComplete || "Information non disponible"));
 
 			// Téléphone
 			const tel = champJson(record.telephone)
@@ -1367,19 +1383,19 @@
 				.find(Boolean);
 			if (tel) {
 				const telHref = tel.replace(/[^\d+]/g, '');
-				setLienIfCurrent(fetchId, ids.telephone, telHref.length >= 4 ? `tel:${telHref}` : null, tel, false);
+				setLienIfCurrent(fetchId, ids.telephone, telHref.length >= 4 ? `tel:${telHref}` : null, tel, false, prefixe);
 			} else {
-				setTextIfCurrent(fetchId, ids.telephone, "Information non disponible");
+				setTextIfCurrent(fetchId, ids.telephone, prefixe + "Information non disponible");
 			}
 
 			// Courriel
 			const courriel = courrielValide(record.adresse_courriel);
 			if (courriel) {
-				setLienIfCurrent(fetchId, ids.courriel, `mailto:${courriel}`, courriel, false);
+				setLienIfCurrent(fetchId, ids.courriel, `mailto:${courriel}`, courriel, false, prefixe);
 			} else {
-				setTextIfCurrent(fetchId, ids.courriel,
-					typeof record.adresse_courriel === 'string' && record.adresse_courriel.trim()
-						? record.adresse_courriel : "Information non disponible");
+				setTextIfCurrent(fetchId, ids.courriel, prefixe +
+					(typeof record.adresse_courriel === 'string' && record.adresse_courriel.trim()
+						? record.adresse_courriel : "Information non disponible"));
 			}
 
 			// Site
@@ -1387,14 +1403,14 @@
 			const siteInternet = sites.length && sites[0] && typeof sites[0].valeur === 'string'
 				? sites[0].valeur.trim() : '';
 			if (siteInternet) {
-				setLienIfCurrent(fetchId, ids.site, urlSiteSure(siteInternet), siteInternet, true);
+				setLienIfCurrent(fetchId, ids.site, urlSiteSure(siteInternet), siteInternet, true, prefixe);
 			} else {
-				setTextIfCurrent(fetchId, ids.site, "Information non disponible");
+				setTextIfCurrent(fetchId, ids.site, prefixe + "Information non disponible");
 			}
 
 		} catch (error) {
 			console.error("Erreur lors de la récupération des données :", error);
-			Object.values(ids).forEach(id => setTextIfCurrent(fetchId, id, "Information non disponible"));
+			Object.values(ids).forEach(id => setTextIfCurrent(fetchId, id, prefixe + "Information non disponible"));
 		}
 	}
 
@@ -1626,7 +1642,7 @@
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.46c du 12/11/2026 : Mise à jour du code</li>
+		<li>version 1.46d du 12/11/2026 : Mise à jour du code</li>
 		<li>version 1.45a du 12/07/2026 : Mise à jour du code</li>
 		<li>version 1.44g du 04/07/2026 : Mise à jour du code</li>
 		<li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
