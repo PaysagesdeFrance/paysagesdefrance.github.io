@@ -368,6 +368,34 @@
 	let csvUrlsInFlight = null;           // Promise en cours (dédoublonnage des appels concurrents)
 	const SIREN_MGP = "200054781";
 	const CODE_PARIS = "75056";
+
+	// Établissements publics territoriaux (EPT) de la Métropole du Grand Paris :
+	// SIREN de l'EPT -> nom et codes INSEE des communes membres.
+	// L'API geo.api.gouv.fr ne fournit pas ce rattachement : table reprise du jeu
+	// officiel « découpage administratif » d'Etalab (@etalab/decoupage-administratif
+	// 6.0.0, fichier ept.json). Paris n'appartient à aucun EPT.
+	// À mettre à jour en cas de fusion de communes ou de changement de périmètre.
+	const EPT_MGP = {
+		'200057867': { nom: 'Plaine Commune', communes: '93001 93027 93031 93039 93066 93070 93072 93079' },
+		'200057875': { nom: 'Est Ensemble', communes: '93006 93008 93010 93045 93048 93053 93055 93061 93063' },
+		'200057941': { nom: 'Paris Est Marne et Bois', communes: '94015 94017 94018 94033 94042 94046 94052 94058 94067 94068 94069 94079 94080' },
+		'200057966': { nom: 'Vallée Sud-Grand Paris', communes: '92002 92007 92014 92019 92020 92023 92032 92046 92049 92060 92071' },
+		'200057974': { nom: 'Grand Paris Seine Ouest', communes: '92012 92022 92040 92047 92048 92072 92075 92077' },
+		'200057982': { nom: 'Paris Ouest La Défense', communes: '92026 92033 92035 92044 92050 92051 92062 92063 92064 92073 92076' },
+		'200057990': { nom: 'Boucle Nord de Seine', communes: '92004 92009 92024 92025 92036 92078 95018' },
+		'200058006': { nom: 'Grand Paris Sud Est Avenir', communes: '94002 94004 94011 94019 94028 94044 94047 94048 94053 94055 94056 94059 94060 94070 94071 94075' },
+		'200058014': { nom: 'Grand-Orly Seine Bièvre', communes: '91027 91326 91432 91479 91589 91687 94001 94003 94016 94021 94022 94034 94037 94038 94041 94043 94054 94065 94073 94074 94076 94077 94078 94081' },
+		'200058097': { nom: 'Paris Terres d\'Envol', communes: '93005 93007 93013 93029 93030 93071 93073 93078' },
+		'200058790': { nom: 'Grand Paris Grand Est', communes: '93014 93015 93032 93033 93046 93047 93049 93050 93051 93057 93062 93064 93074 93077' }
+	};
+
+	/** EPT de rattachement d'une commune de la MGP, ou null (Paris, ou table à mettre à jour). */
+	function eptDeCommune(codeCommune) {
+		for (const [siren, ept] of Object.entries(EPT_MGP)) {
+			if (ept.communes.split(' ').includes(codeCommune)) return { siren, nom: ept.nom };
+		}
+		return null;
+	}
 	let latestFetchId = 0;
 
 	// Formats de codes acceptés
@@ -753,8 +781,21 @@
 		const nomEpci = data[0].epci.nom || 'Non disponible';
 		const codeEpci = data[0].codeEpci;
 
-		if (codeEpci === SIREN_MGP) {
+		const ept = codeEpci === SIREN_MGP ? eptDeCommune(codeCommune) : null;
+
+		if (ept) {
+			// Commune de la MGP : les informations utiles sont celles de son EPT
+			// (président, coordonnées, compétences PLU et RLP).
+			setTextIfCurrent(fetchId, 'epciInfo',
+				`${ept.nom} – (SIREN : ${ept.siren}) – établissement public territorial `
+				+ `de la Métropole du Grand Paris (SIREN : ${SIREN_MGP})`);
+			await Promise.all([
+				fetchAdresse(ept.siren, "epci", fetchId),
+				fetchNomEluOuPresident("president", ept.siren, csvUrlPresident, fetchId)
+			]);
+		} else if (codeEpci === SIREN_MGP) {
 			// Paris n'appartient à aucun EPT : c'est la Ville de Paris qui exerce ces rôles.
+			// Autre commune absente de la table EPT_MGP : table à mettre à jour.
 			const msg = codeCommune === CODE_PARIS
 				? "sans objet (Ville de Paris)"
 				: "voir l'EPT de rattachement";
@@ -1292,6 +1333,11 @@
 						item.code_insee_commune.includes(code))
 					: pivotData.some(item => item && item.type_service_local === "epci");
 			});
+			// Structure intercommunale (EPCI ou EPT) dont la fiche ne porte pas le type
+			// « epci » : la requête filtrant déjà sur le SIREN exact, on garde le résultat.
+			if (!isMairie && records.length === 0) {
+				records.push(...data.results.filter(r => r && typeof r === 'object'));
+			}
 
 			const record = records.find(r => typeof r.nom === 'string' && r.nom.startsWith("Mairie - ")) || records[0];
 
@@ -1415,13 +1461,17 @@
 				setTextIfCurrent(fetchId, 'sourceRNEDate', `(mise à jour du ${dateMaj})`);
 			}
 
+			// Commune de la MGP : les compétences PLU et RLP sont exercées par l'EPT.
+			const ept = codeEpci === SIREN_MGP ? eptDeCommune(codeCommune) : null;
+			const codeCompetence = ept ? ept.siren : codeEpci;
+
 			handlePopulationData(data, fetchId);
 			await Promise.all([
 				hasEpci ? handleEpciData(data, csvUrlPresident, fetchId, codeCommune) : null,
 				handleMaireData(codeCommune, csvUrlMaire, fetchId),
 				handleUniteUrbaineData(codeCommune, fetchId),
-				hasEpci ? handleCompetenceData(codeEpci, 'PLU', fetchId, codeCommune) : null,
-				hasEpci ? handleCompetenceData(codeEpci, 'RLP', fetchId, codeCommune) : null
+				hasEpci ? handleCompetenceData(codeCompetence, 'PLU', fetchId, codeCommune) : null,
+				hasEpci ? handleCompetenceData(codeCompetence, 'RLP', fetchId, codeCommune) : null
 			]);
 
 			if (fetchId !== latestFetchId) return;
@@ -1567,7 +1617,7 @@
 
 	<hr> <b>Sources :</b>
 	<ul style="list-style-type:square">
-		<li>(1) API gouvernementale : <a href="https://geo.api.gouv.fr/decoupage-administratif/communes" target="_blank" rel="noopener noreferrer">https://geo.api.gouv.fr/decoupage-administratif/communes</a></li>
+		<li>(1) API gouvernementale : <a href="https://geo.api.gouv.fr/decoupage-administratif/communes" target="_blank" rel="noopener noreferrer">https://geo.api.gouv.fr/decoupage-administratif/communes</a> – rattachement des communes de la Métropole du Grand Paris à leur établissement public territorial (EPT) : <a href="https://github.com/datagouv/decoupage-administratif" target="_blank" rel="noopener noreferrer">découpage administratif (Etalab)</a></li>
 		<li>(2) informations mises à jour manuellement – valable au 1er janvier 2026 – source : <a href="https://www.insee.fr/fr/information/4802589" target="_blank" rel="noopener noreferrer">https://www.insee.fr/fr/information/4802589</a></li>
 		<li>(3) OpenData gouvernemental : Ministère de l'Intérieur et des Outre-Mer – <a href="https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/" target="_blank" rel="noopener noreferrer">https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/</a> <span id="sourceRNEDate"></span></li>
 		<li>(4) API gouvernementale : <a href="https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration" target="_blank" rel="noopener noreferrer">https://api-lannuaire.service-public.fr/explore/dataset/api-lannuaire-administration</a></li>
@@ -1576,7 +1626,7 @@
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.46b du 12/11/2026 : Ajout de l'état des services</li>
+		<li>version 1.46c du 12/11/2026 : Mise à jour du code</li>
 		<li>version 1.45a du 12/07/2026 : Mise à jour du code</li>
 		<li>version 1.44g du 04/07/2026 : Mise à jour du code</li>
 		<li>version 1.43a du 01/07/2026 : Mise à jour du code</li>
