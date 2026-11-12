@@ -9,6 +9,7 @@
 	<link rel="dns-prefetch" href="https://static.data.gouv.fr">
 	<link rel="dns-prefetch" href="https://api-lannuaire.service-public.fr">
 	<link rel="dns-prefetch" href="https://raw.githubusercontent.com">
+	<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 
 	<!-- Anti-framing réel = frame-buster JS plus bas (#af + script).
 	     frame-ancestors ci-dessous est ignoré en mode <meta> (spec CSP),
@@ -23,7 +24,8 @@
 			https://api-lannuaire.service-public.fr
 			https://raw.githubusercontent.com
 			https://static.data.gouv.fr
-			https://www.data.gouv.fr;
+			https://www.data.gouv.fr
+			https://cdn.jsdelivr.net;
 		base-uri 'none';
 		form-action 'none';
 		frame-ancestors 'none';">
@@ -343,6 +345,12 @@
 			<td id="etat-github" class="etat-attente">non vérifié</td>
 			<td id="heure-github"></td>
 		</tr>
+		<tr>
+			<th scope="row">Liste des EPT de la Métropole du Grand Paris (Etalab, via jsDelivr)</th>
+			<td>(1)</td>
+			<td id="etat-etalab" class="etat-attente">non vérifié</td>
+			<td id="heure-etalab"></td>
+		</tr>
 	</table>
 	<p id="etatResume" role="status" aria-live="polite"></p>
 	<button type="button" id="verifierServicesBtn">Vérifier les services</button>
@@ -370,36 +378,59 @@
 	const SIREN_MGP = "200054781";
 	const CODE_PARIS = "75056";
 
-	// Établissements publics territoriaux (EPT) de la Métropole du Grand Paris :
-	// SIREN de l'EPT -> nom et codes INSEE des communes membres.
-	// geo.api.gouv.fr ne fournit pas ce rattachement : table reprise du jeu officiel
-	// « découpage administratif » d'Etalab (6.0.0), identique au périmètre BANATIC.
-	// Ne change qu'en cas de fusion de communes. Paris n'appartient à aucun EPT.
+	// Établissements publics territoriaux (EPT) de la Métropole du Grand Paris.
+	// geo.api.gouv.fr ne fournit pas le rattachement commune -> EPT : il est lu en direct
+	// dans le fichier officiel ept.json du « découpage administratif » d'Etalab (source
+	// de geo.api.gouv.fr), diffusé par le paquet npm @etalab/decoupage-administratif et
+	// servi par jsDelivr dans sa dernière version publiée. Aucune donnée figée ici.
 	// Président et coordonnées des EPT : ni le RNE ni l'Annuaire ne les publient, et
 	// l'API BANATIC refuse les appels depuis un navigateur (CORS) → lien vers la fiche
-	// BANATIC officielle, toujours à jour, plutôt qu'une copie à maintenir.
-	const EPT_MGP = {
-		'200057867': { nom: "Plaine Commune", communes: '93001 93027 93031 93039 93066 93070 93072 93079' },
-		'200057875': { nom: "Est Ensemble", communes: '93006 93008 93010 93045 93048 93053 93055 93061 93063' },
-		'200057941': { nom: "Paris Est Marne et Bois", communes: '94015 94017 94018 94033 94042 94046 94052 94058 94067 94068 94069 94079 94080' },
-		'200057966': { nom: "Vallée Sud-Grand Paris", communes: '92002 92007 92014 92019 92020 92023 92032 92046 92049 92060 92071' },
-		'200057974': { nom: "Grand Paris Seine Ouest", communes: '92012 92022 92040 92047 92048 92072 92075 92077' },
-		'200057982': { nom: "Paris Ouest La Défense", communes: '92026 92033 92035 92044 92050 92051 92062 92063 92064 92073 92076' },
-		'200057990': { nom: "Boucle Nord de Seine", communes: '92004 92009 92024 92025 92036 92078 95018' },
-		'200058006': { nom: "Grand Paris Sud Est Avenir", communes: '94002 94004 94011 94019 94028 94044 94047 94048 94053 94055 94056 94059 94060 94070 94071 94075' },
-		'200058014': { nom: "Grand-Orly Seine Bièvre", communes: '91027 91326 91432 91479 91589 91687 94001 94003 94016 94021 94022 94034 94037 94038 94041 94043 94054 94065 94073 94074 94076 94077 94078 94081' },
-		'200058097': { nom: "Paris Terres d'Envol", communes: '93005 93007 93013 93029 93030 93071 93073 93078' },
-		'200058790': { nom: "Grand Paris Grand Est", communes: '93014 93015 93032 93033 93046 93047 93049 93050 93051 93057 93062 93064 93074 93077' }
-	};
+	// BANATIC officielle, toujours à jour.
+	const URL_EPT = 'https://cdn.jsdelivr.net/npm/@etalab/decoupage-administratif/data/ept.json';
+	let eptCache = null;      // { index: Map(code INSEE -> { siren, nom }), timestamp }
+	let eptInFlight = null;
 
 	const urlFicheBanatic = siren => `https://www.banatic.interieur.gouv.fr/intercommunalite/${siren}`;
 
-	/** EPT de rattachement d'une commune de la MGP, ou null (Paris, ou commune absente de la table). */
-	function eptDeCommune(codeCommune) {
-		for (const [siren, ept] of Object.entries(EPT_MGP)) {
-			if (ept.communes.split(' ').includes(codeCommune)) return { siren, nom: ept.nom };
-		}
-		return null;
+	/** Index code INSEE -> EPT, ou null si le fichier est indisponible ou invalide. */
+	async function chargerEpt() {
+		if (eptCache && (Date.now() - eptCache.timestamp) < CSV_CACHE_TTL) return eptCache.index;
+		if (eptInFlight) return eptInFlight;
+		eptInFlight = (async () => {
+			try {
+				const response = await fetchWithTimeout(URL_EPT);
+				if (!response.ok) throw new Error(`Erreur réseau : ${response.status}`);
+				const liste = await response.json();
+				if (!Array.isArray(liste)) throw new Error("ept.json : format inattendu.");
+				const index = new Map();
+				for (const e of liste) {
+					// Contrôle strict : données externes
+					if (!e || typeof e.code !== 'string' || !/^\d{9}$/.test(e.code)
+						|| typeof e.nom !== 'string' || !e.nom || e.nom.length > 200
+						|| !Array.isArray(e.membres)) continue;
+					const ept = { siren: e.code, nom: e.nom };
+					e.membres.forEach(m => {
+						if (m && typeof m.code === 'string' && /^(?:\d{5}|2[AB]\d{3})$/.test(m.code)) index.set(m.code, ept);
+					});
+				}
+				if (index.size === 0) throw new Error("ept.json : aucune entrée valide.");
+				eptCache = { index, timestamp: Date.now() };
+				return index;
+			} catch (error) {
+				console.error("Erreur chargement des EPT :", error);
+				return null;
+			} finally {
+				eptInFlight = null;
+			}
+		})();
+		return eptInFlight;
+	}
+
+	/** EPT de rattachement : { siren, nom }, { indisponible: true } si la liste est inaccessible, ou null. */
+	async function eptDeCommune(codeCommune) {
+		const index = await chargerEpt();
+		if (!index) return { indisponible: true };
+		return index.get(codeCommune) || null;
 	}
 
 	let latestFetchId = 0;
@@ -737,7 +768,7 @@
 
 	async function handleCompetenceData(codeEpci, type, fetchId, codeCommune) {
 		if (codeEpci === SIREN_MGP) {
-			// Paris, ou EPT de rattachement inconnu (commune absente de EPT_MGP)
+			// Paris, ou EPT de rattachement inconnu (liste des EPT inaccessible)
 			setTextIfCurrent(fetchId, `competence${type}`, codeCommune === CODE_PARIS
 				? "sans objet (compétence exercée par la Ville de Paris)"
 				: "Information non disponible");
@@ -788,7 +819,7 @@
 		const nomEpci = data[0].epci.nom || 'Non disponible';
 		const codeEpci = data[0].codeEpci;
 
-		if (ept) {
+		if (ept && !ept.indisponible) {
 			// Commune de la MGP : nom de l'EPT (compétences PLU / RLP de l'EPT : cf. fetchData).
 			// Président et coordonnées : lien vers la fiche BANATIC, seule source à jour.
 			const info = document.createDocumentFragment();
@@ -804,7 +835,7 @@
 					`voir la fiche BANATIC de ${ept.nom}`, true));
 		} else if (codeEpci === SIREN_MGP) {
 			// Paris n'appartient à aucun EPT : c'est la Ville de Paris qui exerce ces rôles.
-			// Autre commune : absente de la table EPT_MGP (table à mettre à jour).
+			// Autre commune : liste des EPT inaccessible, ou commune absente de cette liste.
 			const msg = codeCommune === CODE_PARIS
 				? "sans objet (Ville de Paris)"
 				: "Information non disponible";
@@ -1476,7 +1507,7 @@
 			}
 
 			// Commune de la MGP : les compétences PLU et RLP sont exercées par l'EPT.
-			const codeCompetence = ept ? ept.siren : codeEpci;
+			const codeCompetence = ept && !ept.indisponible ? ept.siren : codeEpci;
 
 			handlePopulationData(data, fetchId);
 			await Promise.all([
@@ -1511,7 +1542,8 @@
 		'www.data.gouv.fr':                { cle: 'datagouv', nom: 'Catalogue data.gouv.fr' },
 		'static.data.gouv.fr':             { cle: 'rne',      nom: 'Fichiers du RNE' },
 		'api-lannuaire.service-public.fr': { cle: 'annuaire', nom: "Annuaire de l'administration" },
-		'raw.githubusercontent.com':       { cle: 'github',   nom: 'Fichiers GitHub' }
+		'raw.githubusercontent.com':       { cle: 'github',   nom: 'Fichiers GitHub' },
+		'cdn.jsdelivr.net':                { cle: 'etalab',   nom: 'Liste des EPT (Etalab)' }
 	};
 	const SEUIL_LENT_MS = 3000;
 	const etatParCle = {};   // cle -> 'ok' | 'lent' | 'ko' | 'attente' | 'inconnu'
@@ -1602,6 +1634,7 @@
 				tester('https://geo.api.gouv.fr/communes?code=75056&fields=code'),
 				tester('https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records?select=nom&limit=1'),
 				tester('https://raw.githubusercontent.com/PaysagesdeFrance/pdf/main/uu', { method: 'HEAD' }),
+				tester(URL_EPT, { method: 'HEAD' }),
 				// Le catalogue fournit l'URL du fichier des maires, testé ensuite.
 				tester('https://www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/', { method: 'HEAD' })
 					.then(() => getLatestCsvUrls())
@@ -1639,7 +1672,7 @@
 
 	<hr> <b>Historique :</b>
 	<ul style="list-style-type:square">
-		<li>version 1.48d du 12/11/2026 : Communes de la Métropole du Grand Paris : lien vers la fiche BANATIC de l'EPT de rattachement (président et coordonnées, toujours à jour)</li>
+		<li>version 1.49a du 12/11/2026 : Suppression des données figées : liste des EPT lue en direct (Etalab), lien vers la fiche BANATIC de l'EPT pour son président et ses coordonnées</li>
 		<li>version 1.48a du 12/11/2026 : Communes de la Métropole du Grand Paris : affichage des informations de l'EPT de rattachement</li>
 		<li>version 1.47a du 12/11/2026 : Ajout de l'état des services</li>
 		<li>version 1.46a du 12/11/2026 : Correctifs (unité urbaine des communes rurales, délai dépassé non signalé, DOCTYPE), sécurité et vie privée renforcées, recherche par code postal, recherche lancée dès la sélection, téléphone de la mairie et de l'EPCI, liens courriel et site cliquables, lien partageable</li>
